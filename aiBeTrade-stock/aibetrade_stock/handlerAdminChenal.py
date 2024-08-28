@@ -40,11 +40,10 @@ from loguru import logger
 # from calendarCreate import create_calendar
 # from helper import create_db,convert_text_to_variables,create_db2,get_next_weekend,find_and_format_date,find_patterns_date,create_db_for_user
 from datetime import datetime,timedelta
-# from workGS import Sheet
+
 import uuid
 import time
-# import speech_recognition as sr
-# from promt import clasificatorPromt
+
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN_BOT_EVENT')
@@ -58,13 +57,7 @@ router = Router()
 
 bot = Bot(token=TOKEN,)
 
-import requests
-import hashlib
-import base64
-import json
-import hmac
-import aiohttp
-# import loguru
+
 from loguru import logger
 logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
 # Define the secret key and other required information
@@ -92,11 +85,6 @@ async def message(msg: CallbackQuery):
 
            
     return 0
-
-
-# # @router.message(F.voice)
-
-
 
 
 
@@ -153,7 +141,7 @@ async def message(msg: Message, state: FSMContext):
     
     # if msg.chat.id != -1002118909508:
     #     return 0
-    if msg.chat.id not in [-1002118909508,-1002242862285,-1002231035352,-1002163616957]:
+    if msg.chat.id not in [-1002118909508,-1002242862285,-1002231035352,-1002163616957,-1002232344340]:
         return 0
     
     thereadID=msg.message_thread_id
