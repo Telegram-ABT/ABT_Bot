@@ -91,38 +91,45 @@ logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="10
 # # Print the response
 # print("Status Code:", response.status_code)
 # print("Response Body:", response.json())
+REQUESTS_PER_SECOND = 3  # Максимальное количество запросов в секунду
+
+# Создание семафора для ограничения количества запросов
+semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
+
+# async with semaphore:
+    # await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
+
 async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
-    secret_key = SECRECT_KEY
+    async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
+        await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
+        secret_key = SECRECT_KEY
 
-    # Преобразование тела в JSON-строку
-    body_json = json.dumps(body)
-    total_params = body_json.encode('utf-8')
-    secret_key = secret_key.encode('utf-8')
-    
-    # Создание подписи
-    signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
+        # Преобразование тела в JSON-строку
+        body_json = json.dumps(body)
+        total_params = body_json.encode('utf-8')
+        secret_key = secret_key.encode('utf-8')
+        
+        # Создание подписи
+        signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
 
-    # Определение заголовков
-    headers = {
-        "Content-Type": "application/json",
-        "X-Api-Signature-Sha256": signature
-    }
+        # Определение заголовков
+        headers = {
+            "Content-Type": "application/json",
+            "X-Api-Signature-Sha256": signature
+        }
 
-    # Отправка POST-запроса
-    async with aiohttp.ClientSession() as session:
-        async with session.post(webhook, headers=headers, data=body_json) as response:
-            response_text = await response.text()
-            if response.status == 200:
-                logger.debug(f'{webhook=}\n')
-                logger.debug(f'{headers=}\n')
-                logger.debug(f'{body_json=}\n')
-                logger.debug(f'{response_text=}\n')
-                logger.debug(f'{response.status=}\n')
-            # else:
-                # logger.error(f'Error: {response.status}, {response_text}')
-    # logger.debug(f'{response.text=}\n')
-    # pprint(response.text)  
-
+        # Отправка POST-запроса
+        async with aiohttp.ClientSession() as session:
+            async with session.post(webhook, headers=headers, data=body_json) as response:
+                response_text = await response.text()
+                if response.status == 200:
+                    logger.debug(f'{webhook=}\n')
+                    logger.debug(f'{headers=}\n')
+                    logger.debug(f'{body_json=}\n')
+                    logger.debug(f'{response_text=}\n')
+                    logger.debug(f'{response.status=}\n')
+                else:
+                    logger.error(f'Error: {response.status}, {response_text}')
 
 
 @router.message(Command("help"))
