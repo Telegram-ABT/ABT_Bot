@@ -121,11 +121,16 @@ def request_AiBeTrade(body, webhook:str=WEBHOOK_URL):
     # pprint(body_json)
     # Make the POST request
 
-    logger.debug(f'{url=}\n')
-    logger.debug(f'{headers=}\n')
-    logger.debug(f'{body_json=}\n')
+    
+    
     response = requests.post(url, headers=headers, data=body_json)  
-    logger.debug(f'{response.text=}\n')
+    if response.status_code == 200:
+        logger.debug(f'{url=}\n')
+        logger.debug(f'{headers=}\n')
+        logger.debug(f'{body_json=}\n')
+        logger.debug(f'{response.text=}\n')
+        logger.debug(f'{response.status_code=}\n')
+    # logger.debug(f'{response.text=}\n')
     # pprint(response.text)  
 
 
