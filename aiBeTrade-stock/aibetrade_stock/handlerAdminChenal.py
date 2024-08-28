@@ -69,69 +69,6 @@ from loguru import logger
 logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
 # Define the secret key and other required information
 
-# task_code = "sub"
-# user_id = "your_telegram_user_id"
-# action = True  # or False depending on your requirement
-
-# Prepare the body of the request
-
-
-# Define the headers
-# headers = {
-#     "Content-Type": "application/json",
-#     "X-Api-Signature-Sha256": signature
-# }
-
-# Define the URL
-# url = "https://gql.aibetrade.com/hook/task"
-
-# Make the POST request
-# response = requests.post(url, headers=headers, data=body_json)
-
-# # Print the response
-# print("Status Code:", response.status_code)
-# print("Response Body:", response.json())
-REQUESTS_PER_SECOND = 3  # Максимальное количество запросов в секунду
-
-# Создание семафора для ограничения количества запросов
-semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
-
-# async with semaphore:
-    # await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
-
-async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
-    async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
-        await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
-        secret_key = SECRECT_KEY
-
-        # Преобразование тела в JSON-строку
-        body_json = json.dumps(body)
-        total_params = body_json.encode('utf-8')
-        secret_key = secret_key.encode('utf-8')
-        
-        # Создание подписи
-        signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
-
-        # Определение заголовков
-        headers = {
-            "Content-Type": "application/json",
-            "X-Api-Signature-Sha256": signature
-        }
-
-        # Отправка POST-запроса
-        async with aiohttp.ClientSession() as session:
-            async with session.post(webhook, headers=headers, data=body_json) as response:
-                response_text = await response.text()
-                if response.status == 200:
-                    logger.debug(f'{webhook=}\n')
-                    logger.debug(f'{headers=}\n')
-                    logger.debug(f'{body_json=}\n')
-                    logger.debug(f'{response_text=}\n')
-                    logger.debug(f'{response.status=}\n')
-                # else:
-                #     logger.error(f'Error: {response.status}, {response_text}')
-
-
 @router.message(Command("help"))
 async def help_handler(msg: Message, state: FSMContext):
     mess="/start - начало работы"
@@ -158,108 +95,10 @@ async def message(msg: CallbackQuery):
 
 
 # # @router.message(F.voice)
-# @router.message(F.left_chat_member)
-# async def left_chat_member(msg: Message, state: FSMContext):
-#     print('left_chat_member')
-#     print(msg)
-#     # await message(msg1, state)  
-#     pass
-# @router.message(F.join_chat_member)
-# async def join_chat_member(msg: Message, state: FSMContext):
-#     print('join_chat_member')
-#     print(msg)
-#     # await message(msg1, state)  
-    
-#     pass
 
-@router.chat_boost()
-async def chat_boost_handler(chat_boost: types.ChatBoostUpdated) -> Any: 
-    
-    print(f'{"booost":_^34}')
-    pprint(chat_boost.__dict__)
-    print(f'{"chat":_^34}')
-    pprint(chat_boost.chat.__dict__)
 
-    userID=chat_boost.boost.source.user.id
-    chatID=chat_boost.chat.id
-    print(f"{chatID=}")
-    print(f"{userID=}")
 
-    task_code = f"boost{chatID}"
-    action = True
-    body={
-        "code": task_code,
-        "userId": userID,
-        "action": action
-    }
-    pprint(body)
-    await request_AiBeTrade(body)
-    pass
 
-@router.removed_chat_boost()
-async def removed_chat_boost_handler(chat_boost: types.ChatBoostRemoved) -> Any: 
-    # pprint(chat_boost.__dict__)
-    # pprint(chat_boost.chat.__dict__)
-    print(f'{"booost":_^34}')
-    pprint(chat_boost.__dict__)
-    print(f'{"chat":_^34}')
-    pprint(chat_boost.chat.__dict__)
-
-    # pprint(chat_boost.source.__dict__)
-    userID=chat_boost.source.user.id
-    chatID=chat_boost.chat.id
-    print(f"{chatID=}")
-    print(f"{userID=}")
-
-    task_code = f"boost{chatID}"
-    action = False
-    body={
-        "code": task_code,
-        "userId": userID,
-        "action": action
-    }
-    pprint(body)
-    await request_AiBeTrade(body)
-    pass
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_leave(event: ChatMemberUpdated):
-    print('on_user_leave')
-    # pprint(event)
-    # print(event.from_user.id)
-    userID=event.from_user.id
-    chatID=event.chat.id
-    # print(chatID)
-    task_code = f"sub{chatID}"
-    action = False
-    body={
-        "code": task_code,
-        "userId": userID,
-        "action": action
-    }
-    # pprint(body)
-    await request_AiBeTrade(body)
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
-async def on_user_join(event: ChatMemberUpdated):
-    # await message(event.message, event.state)  
-    print('on_user_join')
-    # pprint(event)
-    # print(event.from_user.id)
-    userID=event.from_user.id
-    chatID=event.chat.id
-    task_code = f"sub{chatID}"
-    action = True
-    body={
-        "code": task_code,
-        "userId": userID,
-        "action": action
-    }
-    # pprint(body)
-    await request_AiBeTrade(body)
-    
-    # print(chatID)
-    pass
 
 async def delete_and_send_message(msg:Message, text='You have violated the rules of this chat.  Message deleted. If you violate it again, you will be blocked.'):
     """удаление сообщения и отправка нового сообщения"""
