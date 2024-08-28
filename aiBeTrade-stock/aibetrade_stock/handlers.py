@@ -63,6 +63,7 @@ import hashlib
 import base64
 import json
 import hmac
+import aiohttp
 # import loguru
 from loguru import logger
 logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
@@ -90,46 +91,35 @@ logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="10
 # # Print the response
 # print("Status Code:", response.status_code)
 # print("Response Body:", response.json())
-def request_AiBeTrade(body, webhook:str=WEBHOOK_URL):
-    # body = {
-    # "code": task_code,
-    # "userId": user_id,
-    # "action": action
-    # }
+async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
     secret_key = SECRECT_KEY
 
-    # Convert the body to a JSON string
+    # Преобразование тела в JSON-строку
     body_json = json.dumps(body)
-    total_params = body_json
-    # print(total_params)
-    total_params = total_params.encode('utf-8')
+    total_params = body_json.encode('utf-8')
     secret_key = secret_key.encode('utf-8')
     
-    # Create the signature
-    # signature = base64.b64encode(hashlib.sha256((body_json + secret_key).encode()).digest()).decode()
+    # Создание подписи
     signature = hmac.new(secret_key, total_params, hashlib.sha256).hexdigest()
-    # print(signature)
-    # Define the headers
+
+    # Определение заголовков
     headers = {
         "Content-Type": "application/json",
         "X-Api-Signature-Sha256": signature
     }
 
-    # Define the URL
-    url=WEBHOOK_URL
-    # pprint(headers)
-    # pprint(body_json)
-    # Make the POST request
-
-    
-    
-    response = requests.post(url, headers=headers, data=body_json)  
-    if response.status_code == 200:
-        logger.debug(f'{url=}\n')
-        logger.debug(f'{headers=}\n')
-        logger.debug(f'{body_json=}\n')
-        logger.debug(f'{response.text=}\n')
-        logger.debug(f'{response.status_code=}\n')
+    # Отправка POST-запроса
+    async with aiohttp.ClientSession() as session:
+        async with session.post(webhook, headers=headers, data=body_json) as response:
+            response_text = await response.text()
+            if response.status == 200:
+                logger.debug(f'{webhook=}\n')
+                logger.debug(f'{headers=}\n')
+                logger.debug(f'{body_json=}\n')
+                logger.debug(f'{response_text=}\n')
+                logger.debug(f'{response.status=}\n')
+            # else:
+                # logger.error(f'Error: {response.status}, {response_text}')
     # logger.debug(f'{response.text=}\n')
     # pprint(response.text)  
 
@@ -196,7 +186,7 @@ async def chat_boost_handler(chat_boost: types.ChatBoostUpdated) -> Any:
         "action": action
     }
     pprint(body)
-    request_AiBeTrade(body)
+    await request_AiBeTrade(body)
     pass
 
 @router.removed_chat_boost()
@@ -222,7 +212,7 @@ async def removed_chat_boost_handler(chat_boost: types.ChatBoostRemoved) -> Any:
         "action": action
     }
     pprint(body)
-    request_AiBeTrade(body)
+    await request_AiBeTrade(body)
     pass
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
@@ -241,7 +231,7 @@ async def on_user_leave(event: ChatMemberUpdated):
         "action": action
     }
     # pprint(body)
-    request_AiBeTrade(body)
+    await request_AiBeTrade(body)
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
@@ -259,7 +249,7 @@ async def on_user_join(event: ChatMemberUpdated):
         "action": action
     }
     # pprint(body)
-    request_AiBeTrade(body)
+    await request_AiBeTrade(body)
     
     # print(chatID)
     pass
@@ -362,12 +352,12 @@ async def message(msg: Message, state: FSMContext):
 
 
 if __name__ == '__main__':
-    body={
-        "code": 'boost-1001609461642',
-        "userId": 327475194,
-        "action": True  
-    }
-    pprint(body)
-    request_AiBeTrade(body)
+    # body={
+    #     "code": 'boost-1001609461642',
+    #     "userId": 327475194,
+    #     "action": True  
+    # }
+    # pprint(body)
+    # request_AiBeTrade(body)
 
     pass
