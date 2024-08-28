@@ -6,7 +6,7 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.bot import DefaultBotProperties
 # import config
-from handlers import router
+from handlerAdminChenal import router
 
 from dotenv import load_dotenv
 import os
