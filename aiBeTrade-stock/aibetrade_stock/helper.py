@@ -21,7 +21,7 @@ load_dotenv()
 gpt = GPT()
 
 # GPT.set_key(os.getenv('KEY_AI'))
-
+TOKEN_BOT_FORECAST=os.getenv('TOKEN_BOT_FORECAST')
 STOCK_URL = os.environ.get('STOCK_URL')
 
 coins = {'Bitcoin':'BTCUSDT', 
@@ -261,7 +261,15 @@ def forecastText(day:int, coin='Bitcoin'):
         # send_message(-1002118909508,answer,1)
 
         # send_message(-1002118909508,answer5,1)
-        send_message(-1002247551722,answer5,1)
+        # send_message(-1002247551722,answer5,1)
+        url = f'https://api.telegram.org/bot{TOKEN_BOT_FORECAST}/sendMessage'
+        params = {
+            'chat_id': -1002247551722,
+            'text': answer5,
+            'parse_mode': 'Markdown'  # или 'Markdown'
+        }
+            
+        response = requests.post(url, params=params)
         # send_message(-1002247551722, message=answer)
         return answer
     except Exception as e:
