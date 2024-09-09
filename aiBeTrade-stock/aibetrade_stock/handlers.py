@@ -48,7 +48,7 @@ logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="10
 # Define the secret key and other required information
 
 REQUESTS=0
-REQUESTS_PER_SECOND = 3  # Максимальное количество запросов в секунду
+REQUESTS_PER_SECOND = 50  # Максимальное количество запросов в секунду
 
 # Создание семафора для ограничения количества запросов
 semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
@@ -75,7 +75,7 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
     REQUESTS+=1
     print(f'IN-{REQUESTS=}')
     async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
-        await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
+        # await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
         secret_key = SECRECT_KEY
 
         # Преобразование тела в JSON-строку
