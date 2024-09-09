@@ -53,6 +53,7 @@ REQUESTS=0
 REQUESTS_PER_SECOND = 50  # Максимальное количество запросов в секунду
 TOTAL_TIME = 0  # Общее время выполнения запросов
 TOTAL_REQUESTS = 0  # Общее количество выполненных запросов
+TIMEOUT_SECONDS = 1  # Установите желаемое время таймаута в секундах
 # Создание семафора для ограничения количества запросов
 semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
 
@@ -105,7 +106,8 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
         # Отправка POST-запроса
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(webhook, headers=headers, data=body_json) as response:
+                timeout = aiohttp.ClientTimeout(total=TIMEOUT_SECONDS)  # Установка таймаута
+                async with session.post(webhook, headers=headers, data=body_json, timeout=timeout) as response:
                     response_text = await response.text()
                     if response.status == 200:
                         logger.debug(f'{webhook=}\n')
@@ -115,6 +117,8 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
                         logger.debug(f'{response.status=}\n')
                     # else:
                     #     logger.error(f'Error: {response.status}, {response_text}')
+        except asyncio.TimeoutError:
+            logger.error('Request timed out 1sec')  # Обработка таймаута
         except Exception as e:
             logger.error(f'Error: {e}')                 
         
