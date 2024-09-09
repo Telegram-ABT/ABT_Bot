@@ -42,6 +42,8 @@ import base64
 import json
 import hmac
 import aiohttp
+import time
+
 # import loguru
 from loguru import logger
 logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
@@ -49,7 +51,8 @@ logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="10
 
 REQUESTS=0
 REQUESTS_PER_SECOND = 50  # Максимальное количество запросов в секунду
-
+TOTAL_TIME = 0  # Общее время выполнения запросов
+TOTAL_REQUESTS = 0  # Общее количество выполненных запросов
 # Создание семафора для ограничения количества запросов
 semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
 
@@ -70,12 +73,19 @@ NEED_CHATS=[-1002118909508,
 -1001918899816,
 -1002161095631,
 -1002207548212,]
+
+
+
+
 async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
-    global REQUESTS
+    global REQUESTS, TOTAL_TIME, TOTAL_REQUESTS
+
     REQUESTS+=1
     print(f'IN-{REQUESTS=}')
+    start_time = time.time()  # Начало отсчета времени
     async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
         # await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
+        
         secret_key = SECRECT_KEY
 
         # Преобразование тела в JSON-строку
@@ -107,6 +117,16 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
                     #     logger.error(f'Error: {response.status}, {response_text}')
         except Exception as e:
             logger.error(f'Error: {e}')                 
+        
+        end_time = time.time()  # Конец отсчета времени
+        elapsed_time = end_time - start_time  # Время выполнения запроса
+        TOTAL_TIME += elapsed_time
+        TOTAL_REQUESTS += 1
+        
+        # Вычисление среднего времени выполнения
+        average_time = TOTAL_TIME / TOTAL_REQUESTS if TOTAL_REQUESTS > 0 else 0
+        print(f'Average execution time: {average_time:.4f} seconds')
+
         REQUESTS-=1
         print(f'OUT-{REQUESTS=}')
 
