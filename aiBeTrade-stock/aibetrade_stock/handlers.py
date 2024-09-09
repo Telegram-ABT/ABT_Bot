@@ -55,7 +55,21 @@ semaphore = asyncio.Semaphore(REQUESTS_PER_SECOND)
 
 # async with semaphore:
     # await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
-
+NEED_CHATS=[-1002118909508,
+-1001609461642,
+-1001967803227,
+-1001609461642,
+-1001517527759,
+-1001657532978,
+-1002242862285,
+-1002247551722,
+-1002231035352,
+-1002163616957,
+-1002185622410,
+-1001642718580,
+-1001918899816,
+-1002161095631,
+-1002207548212,]
 async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
     async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
         await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
@@ -76,18 +90,20 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
         }
 
         # Отправка POST-запроса
-        async with aiohttp.ClientSession() as session:
-            async with session.post(webhook, headers=headers, data=body_json) as response:
-                response_text = await response.text()
-                if response.status == 200:
-                    logger.debug(f'{webhook=}\n')
-                    logger.debug(f'{headers=}\n')
-                    logger.debug(f'{body_json=}\n')
-                    logger.debug(f'{response_text=}\n')
-                    logger.debug(f'{response.status=}\n')
-                # else:
-                #     logger.error(f'Error: {response.status}, {response_text}')
-
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(webhook, headers=headers, data=body_json) as response:
+                    response_text = await response.text()
+                    if response.status == 200:
+                        logger.debug(f'{webhook=}\n')
+                        logger.debug(f'{headers=}\n')
+                        logger.debug(f'{body_json=}\n')
+                        logger.debug(f'{response_text=}\n')
+                        logger.debug(f'{response.status=}\n')
+                    # else:
+                    #     logger.error(f'Error: {response.status}, {response_text}')
+        except Exception as e:
+            logger.error(f'Error: {e}')                 
 
 @router.message(Command("help"))
 async def help_handler(msg: Message, state: FSMContext):
@@ -117,7 +133,8 @@ async def message(msg: CallbackQuery):
 
 @router.chat_boost()
 async def chat_boost_handler(chat_boost: types.ChatBoostUpdated) -> Any: 
-    
+    if chat_boost.chat.id not in NEED_CHATS:
+        return 0
     print(f'{"booost":_^34}')
     pprint(chat_boost.__dict__)
     print(f'{"chat":_^34}')
@@ -143,6 +160,8 @@ async def chat_boost_handler(chat_boost: types.ChatBoostUpdated) -> Any:
 async def removed_chat_boost_handler(chat_boost: types.ChatBoostRemoved) -> Any: 
     # pprint(chat_boost.__dict__)
     # pprint(chat_boost.chat.__dict__)
+    if chat_boost.chat.id not in NEED_CHATS:
+        return 0
     print(f'{"booost":_^34}')
     pprint(chat_boost.__dict__)
     print(f'{"chat":_^34}')
@@ -167,6 +186,8 @@ async def removed_chat_boost_handler(chat_boost: types.ChatBoostRemoved) -> Any:
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_leave(event: ChatMemberUpdated):
+    if event.chat.id not in NEED_CHATS:
+        return 0
     print('on_user_leave')
     # pprint(event)
     # print(event.from_user.id)
@@ -186,6 +207,8 @@ async def on_user_leave(event: ChatMemberUpdated):
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated):
     # await message(event.message, event.state)  
+    if event.chat.id not in NEED_CHATS:
+        return 0
     print('on_user_join')
     # pprint(event)
     # print(event.from_user.id)
