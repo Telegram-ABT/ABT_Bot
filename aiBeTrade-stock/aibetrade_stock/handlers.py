@@ -47,7 +47,7 @@ from loguru import logger
 logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
 # Define the secret key and other required information
 
-
+REQUESTS=0
 REQUESTS_PER_SECOND = 3  # Максимальное количество запросов в секунду
 
 # Создание семафора для ограничения количества запросов
@@ -71,6 +71,9 @@ NEED_CHATS=[-1002118909508,
 -1002161095631,
 -1002207548212,]
 async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
+    global REQUESTS
+    REQUESTS+=1
+    print(f'IN-{REQUESTS=}')
     async with semaphore:  # Ограничение на количество одновременно выполняемых запросов
         await asyncio.sleep(1 / REQUESTS_PER_SECOND)  # Задержка перед отправкой запроса
         secret_key = SECRECT_KEY
@@ -104,6 +107,8 @@ async def request_AiBeTrade(body, webhook: str = WEBHOOK_URL):
                     #     logger.error(f'Error: {response.status}, {response_text}')
         except Exception as e:
             logger.error(f'Error: {e}')                 
+        REQUESTS-=1
+        print(f'OUT-{REQUESTS=}')
 
 @router.message(Command("help"))
 async def help_handler(msg: Message, state: FSMContext):
