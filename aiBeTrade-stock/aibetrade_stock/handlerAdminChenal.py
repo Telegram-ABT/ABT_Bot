@@ -141,7 +141,7 @@ async def message(msg: Message, state: FSMContext):
     
     # if msg.chat.id != -1002118909508:
     #     return 0
-    if msg.chat.id not in [-1002118909508,-1002242862285,-1002231035352,-1002163616957,-1002232344340]:
+    if msg.chat.id not in [-1002118909508,-1002242862285,-1002231035352,-1002163616957,-1002232344340,-1002415281592]:
         return 0
     
     thereadID=msg.message_thread_id
