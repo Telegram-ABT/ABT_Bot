@@ -206,6 +206,11 @@ services:
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_URL=${POSTGRES_URL}
+      
   publisher:
     image: publisher
     volumes:
@@ -222,6 +227,7 @@ services:
       # - API_ID=${API_ID}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - URL=${URL}
 
    
 volumes:
