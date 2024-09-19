@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 # import workYDB
 # from workYDB import *
-import redis
-import json
+# import redis
+# import json
 from chat import GPT
 from dotenv import load_dotenv
 import os
@@ -14,7 +14,7 @@ from workBinance import get_BTC_analit_for, get_price_now
 import random 
 # from workFlask import send_message
 from postgreWork import *
-import aiohttp
+# import aiohttp
 load_dotenv()
 # sql = workYDB.Ydb()
 
