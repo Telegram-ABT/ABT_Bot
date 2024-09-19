@@ -33,7 +33,7 @@ from aiogram.types import ChatMemberUpdated
 from dotenv import load_dotenv
 import os
 # from chat import GPT
-import postgreWork 
+# import postgreWork 
 # import chromaDBwork
 # from loguru import logger
 # from workRedis import *
