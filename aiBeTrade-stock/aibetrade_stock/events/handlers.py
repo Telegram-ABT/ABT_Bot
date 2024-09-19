@@ -46,7 +46,7 @@ import time
 
 # import loguru
 from loguru import logger
-logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
+logger.add("logs/file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
 # Define the secret key and other required information
 
 REQUESTS=0

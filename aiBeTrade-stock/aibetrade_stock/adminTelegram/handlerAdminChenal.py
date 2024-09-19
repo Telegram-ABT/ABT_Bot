@@ -33,7 +33,7 @@ from aiogram.types import ChatMemberUpdated
 from dotenv import load_dotenv
 import os
 # from chat import GPT
-import postgreWork 
+# import postgreWork 
 # import chromaDBwork
 from loguru import logger
 # from workRedis import *
@@ -41,8 +41,8 @@ from loguru import logger
 # from helper import create_db,convert_text_to_variables,create_db2,get_next_weekend,find_and_format_date,find_patterns_date,create_db_for_user
 from datetime import datetime,timedelta
 
-import uuid
-import time
+# import uuid
+# import time
 
 
 load_dotenv()
@@ -59,7 +59,7 @@ bot = Bot(token=TOKEN,)
 
 
 from loguru import logger
-logger.add("file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
+logger.add("logs/file_{time}.log",format="{time} - {level} - {message}", rotation="100 MB", retention="10 days", level="DEBUG")
 # Define the secret key and other required information
 
 @router.message(Command("help"))

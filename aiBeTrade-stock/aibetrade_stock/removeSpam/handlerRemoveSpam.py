@@ -46,7 +46,7 @@ import time
 
 
 load_dotenv()
-TOKEN = os.getenv('TOKEN_BOT_EVENT')
+TOKEN = os.getenv('BOT_REMOVE_SPAM')
 # PAYMENTS_TOKEN = os.getenv('PAYMENTS_TOKEN')
 WEBHOOK_URL = os.getenv('WEBHOOK')
 SECRECT_KEY = os.getenv('SECRET_CHAT')
