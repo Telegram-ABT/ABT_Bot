@@ -10,7 +10,7 @@ WORKDIR /app
 
 
 # Копируем файлы 
-COPY postgreWork.py chat.py tasksFastapi.py /app/
+COPY . /app/
 # COPY pyproject_admin.toml /app/pyproject.toml
 COPY pyproject.toml /app/
 # COPY .env /app/

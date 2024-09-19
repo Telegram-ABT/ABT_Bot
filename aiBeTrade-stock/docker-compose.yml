@@ -205,7 +205,25 @@ services:
       # - SECRET_CHAT=${SECRET_CHAT}
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
-  
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+  publisher:
+    image: publisher
+    volumes:
+      - ./aibetrade_stock/publish:/app
+      # - ./pyproject.toml:/app/pyproject.toml
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/publish/
+      dockerfile: DockerFile.app.publish
+    environment:
+      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+      # - WEBHOOK=${WEBHOOK}
+      # - SECRET_CHAT=${SECRET_CHAT}
+      # - API_ID=${API_ID}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+   
 volumes:
   habrdb-data:
   pgadmin-data:
