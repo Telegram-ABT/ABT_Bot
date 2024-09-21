@@ -1,232 +1,146 @@
 from datetime import datetime, timedelta
-# import workYDB
-# from workYDB import *
-# import redis
-# import json
-from chat import GPT
-from dotenv import load_dotenv
 import os
-from pprint import pprint
 import time
+import random
 import requests
-from workBinance import get_BTC_analit_for, get_price_now
-# from loguru import logger
-import random 
-# from workFlask import send_message
-from postgreWork import *
-import aiohttp
+from dotenv import load_dotenv
+from chat import GPT
+from binance import Client
+from pprint import pprint
+
+# Загрузка переменных окружения
 load_dotenv()
-# sql = workYDB.Ydb()
 
+# Инициализация переменных и объектов
 gpt = GPT()
+TOKEN_BOT_FORECAST = os.getenv('TOKEN_BOT_FORECAST')
+STOCK_URL = os.getenv('STOCK_URL')
+api_key = os.getenv('api_key_binance')
+api_secret = os.getenv('api_secret_binance')
+client = Client(api_key, api_secret)
 
-# GPT.set_key(os.getenv('KEY_AI'))
-TOKEN_BOT_FORECAST=os.getenv('TOKEN_BOT_FORECAST')
-STOCK_URL = os.environ.get('STOCK_URL')
+coins = {
+    'Bitcoin': 'BTCUSDT',
+    'Ethereum': 'ETHUSDT',
+    'Bnb': 'BNBUSDT',
+    'Ripple': 'XRPUSDT',
+    'Cardano': 'ADAUSDT',
+    'Dogecoin': 'DOGEUSDT',
+    'Solana': 'SOLUSDT',
+    'Tron': 'TRXUSDT',
+    'Polkadot': 'DOTUSDT',
+    'Polygon': 'MATICUSDT'
+}
 
-coins = {'Bitcoin':'BTCUSDT', 
-    'Ethereum':'ETHUSDT',
-    'Bnb':'BNBUSDT',
-    'Ripple':'XRPUSDT',
-    'Cardano':'ADAUSDT',
-    'Dogecoin':'DOGEUSDT',
-    'Solana':'SOLUSDT',
-    'Tron':'TRXUSDT',
-    'Polkadot':'DOTUSDT',
-    'Polygon':'MATICUSDT'}
-
-coins2 =[ 
-    {'name': 'Bitcoin', 'code': 'BTCUSDT'},
-    {'name': 'Ethereum', 'code': 'ETHUSDT'},
-    {'name': 'Bnb', 'code': 'BNBUSDT'},
-    {'name': 'Ripple', 'code': 'XRPUSDT'},
-    {'name': 'Cardano', 'code': 'ADAUSDT'},
-    {'name': 'Dogecoin', 'code': 'DOGEUSDT'},
-    {'name': 'Solana', 'code': 'SOLUSDT'},
-    {'name': 'Tron', 'code': 'TRXUSDT'},
-    {'name': 'Polkadot', 'code': 'DOTUSDT'},
-    {'name': 'Polygon', 'code': 'MATICUSDT'}]
-#datetime
-def time_epoch():
-    from time import mktime
-    dt = datetime.now()
-    sec_since_epoch = mktime(dt.timetuple()) + dt.microsecond/1000000.0
-
-    millis_since_epoch = sec_since_epoch * 1000
-    return int(millis_since_epoch)
-
-def get_dates_YDB(day):
-    # Текущая дата
-    #patern = '2023-07-18T20:26:32'
-    patern = '%Y-%m-%dT%H:%M:%SZ'
-    current_date = datetime.now().strftime(patern)
-
-    # Дата, отстоящая на 30 дней
-    delta = timedelta(days=day)
-    future_date = (datetime.now() + delta).strftime(patern)
-
-    return current_date, future_date
-
-def get_dates(day, pattern = '%d/%m/%Y'):
-    # Текущая дата
+def get_dates(day, pattern='%d/%m/%Y'):
+    """Форматирует текущую и будущую дату."""
     current_date = datetime.now().strftime(pattern)
-
-    # Дата, отстоящая на 30 дней
-    delta = timedelta(days=day)
-    future_date = (datetime.now() + delta).strftime(pattern)
-
+    future_date = (datetime.now() + timedelta(days=day)).strftime(pattern)
     return current_date, future_date
-
-def timestamp_to_date(timestap, pattern='%Y-%m-%dT%H:%M:%SZ'):
-   
-    a = time.gmtime(timestap)
-    date_time = datetime(*a[:6])
-    date_string = date_time.strftime(pattern)
-    
-    return date_string
 
 def date_now():
+    """Возвращает текущую дату в формате '%Y-%m-%dT%H:00:00Z'."""
     patern = '%Y-%m-%dT%H:00:00'
-    current_date = datetime.now().strftime(patern)
-    return current_date+'Z'
+    return datetime.now().strftime(patern) + 'Z'
 
 def prepare_prognoz(text):
+    """Извлекает прогнозные значения из текста."""
     import re
     pattern = r"\d+\.\d+"
     matches = re.findall(pattern, text)
-    lowerPrice = 0
-    upperPrice = 0
-    if len(matches)==3:
-        prognozPrice = matches[0]
-        lowerPrice = matches[1]
-        upperPrice = matches[2]
-    elif len(matches)==4:
-        prognozPrice = matches[0]
-        lowerPrice = matches[2]
-        upperPrice = matches[3]
+    if len(matches) >= 3:
+        prognozPrice, lowerPrice, upperPrice = matches[0], matches[1], matches[2]
+    elif len(matches) == 2:
+        prognozPrice, lowerPrice, upperPrice = matches[0], matches[1], 0
     else:
-        prognozPrice = matches[0]
+        prognozPrice, lowerPrice, upperPrice = matches[0], 0, 0
     return prognozPrice, lowerPrice, upperPrice
 
-def forecastText(day:int, coin='Bitcoin'):
-    dateNow = date_now()
+def get_BTC_analit_for(dayStart, coin):
+    """Возвращает аналитику по BTC на заданное количество дней."""
+    coin = coins[coin.title()]
+    settings = {
+        'Аналитика BTC на 5 дней': [Client.KLINE_INTERVAL_1DAY, '3 month ago UTC'],
+        'Аналитика BTC на 15 дней': [Client.KLINE_INTERVAL_1DAY, '3 month ago UTC'],
+        'Аналитика BTC на 30 дней': [Client.KLINE_INTERVAL_1WEEK, '2 year ago UTC'],
+    }
+    setting = settings.get(dayStart, [Client.KLINE_INTERVAL_1HOUR, '6 day ago UTC'])
+    klines = client.get_historical_klines(coin, setting[0], setting[1])
+    return prepare_list(klines)
 
-    #TODO взять последний от этого часа прогноз
-    # rows = sql.select_query('prognoz_text',f"date = CAST('{dateNow}' as datetime) and coin = '{coin}'")
-    # if rows != []:
-    #     text = rows[0]['textPrognoz']
-    #     return text
-    promtUrl = 'https://docs.google.com/document/d/1_Ft4sDJJpGdBX8k2Et-OBIUtvO0TSuw8ZSjbv5r7H7I/edit?usp=sharing'
-    PROMT_URL = promtUrl 
-    #promt = gpt.load_prompt(promptUrl)
-    try:
-        promt = gpt.load_prompt(PROMT_URL)
-    except:
-        time.sleep(60)
-        promt = gpt.load_prompt(PROMT_URL)
-    #promt = 
-    #print(f'{promptUrl=}')
-    
-    #print(f'{analitBTC}')
+def prepare_list(lst):
+    """Преобразует данные свечей в удобочитаемый формат."""
+    text = ''
+    for i in lst:
+        i[0] = timestamp_to_date(i[0])
+        i[6] = timestamp_to_date(i[6])
+        candle_dict = {
+            'Open time': i[0], 'High': i[2], 'Low': i[3], 'Close': i[4], 
+            'Volume': i[5], 'Close time': i[6], 'Quote asset volume': i[7], 'Number of trades': i[8]
+        }
+        text += f"\n& {candle_dict['Open time']}; {float(candle_dict['High'])}; {float(candle_dict['Low'])}; {float(candle_dict['Close'])}; {round(float(candle_dict['Volume']))}; {candle_dict['Close time']}; {round(float(candle_dict['Quote asset volume']))}; {round(float(candle_dict['Number of trades']))}"
+    return text
+
+def timestamp_to_date(timestamp):
+    """Конвертирует метку времени в строку даты."""
+    dt_object = datetime.fromtimestamp(int(timestamp) / 1000)
+    return dt_object.strftime("%d/%m/%y")
+
+def get_price_now(coin):
+    """Возвращает текущую цену для указанного актива."""
+    coin = coins[coin.title()]
+    priceNow = client.get_symbol_ticker(symbol=coin)
+    return float(priceNow['price'])
+
+def forecastText(day, coin='Bitcoin'):
+    """Генерирует текст прогноза с использованием данных аналитики и GPT."""
+    dateNow = date_now()
     analitBTC = get_BTC_analit_for(day, coin)
     current, future = get_dates(day)
-    priceNow = str(get_price_now(coin)) 
+    priceNow = str(get_price_now(coin))
 
-    print("Текущая дата:", current)
-    print(f"Дата через {day} дней:", future)
-    promt = promt.replace('[analitict]', analitBTC)
-    promt = promt.replace('[nextDate]', str(day))
-    promt = promt.replace('[coin]', coin)
-    promt = promt.replace('[nowDate]', future)
-    promt = promt.replace('[exchangerate]', priceNow)
+    print(f"Текущая дата: {current}")
+    print(f"Дата через {day} дней: {future}")
 
-    print('#########################################', promt)
+    promtURL = [
+        'https://docs.google.com/document/d/1_Ft4sDJJpGdBX8k2Et-OBIUtvO0TSuw8ZSjbv5r7H7I/edit?usp=sharing',
+        'https://docs.google.com/document/d/1kvtS8FDYQ7Mg0QTuIYLUzfzPzIwNtNAy8nVHTDcmH1A/edit?usp=sharing',
+        'https://docs.google.com/document/d/15nj87WI9Ud3EGgmp0JM0AZdQVQGPgN3ly-zjWCEUsB0/edit?usp=sharing',
+        'https://docs.google.com/document/d/17hsm51kQGnhXgU7LkFkCGxsIBY82FPefowN8GcGIa6U/edit?usp=sharing',
+        'https://docs.google.com/document/d/1cqDETdeSLj2vX8nBzWFbNV4jAl61oz_nGwL16EM-ZIM/edit?usp=sharing',
+        'https://docs.google.com/document/d/1TPTa7s_VsbjMdaHw0k0EQrHecSnp8X5T-JoaOoGh53M/edit?usp=sharing'
+    ]
+
     try:
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': ' '}]
-        random_time = random.randint(5, 30)
-        #time.sleep(random_time)
-        #answer, allToken, allTokenPrice= gpt.answer(' ',mess,)
-        
-        primt1URL = 'https://docs.google.com/document/d/1kvtS8FDYQ7Mg0QTuIYLUzfzPzIwNtNAy8nVHTDcmH1A/edit?usp=sharing'
-        promt = gpt.load_prompt(primt1URL)
-        promt = promt.replace('[analitict]', analitBTC)
-        promt = promt.replace('[nextDate]', str(day))
-        promt = promt.replace('[coin]', coin)
-        promt = promt.replace('[nowDate]', future)
+        answers = []
+        allToken = 0
+        allTokenPrice = 0
+        for i in range(len(promtURL) - 1):
+            promt = gpt.load_prompt(promtURL[i])
+            promt = promt.replace('[analitict]', analitBTC).replace('[nextDate]', str(day))
+            promt = promt.replace('[coin]', coin).replace('[nowDate]', future)
+            promt = promt.replace('[exchangerate]', priceNow)
+            mess = [{'role': 'system', 'content': promt}, {'role': 'user', 'content': ' '}]
+            answer, token, tokenPrice = gpt.answer(' ', mess)
+            answers.append(answer)
+            allToken += token
+            allTokenPrice += tokenPrice
+
+        promt = gpt.load_prompt(promtURL[-1])
+        promt = promt.replace('[analitict]', analitBTC).replace('[coin]', coin)
         promt = promt.replace('[exchangerate]', priceNow)
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': ' '}]
-        answer1, allToken1, allTokenPrice1= gpt.answer(' ',mess,)
-        
-        random_time = random.randint(5, 30)
-        #time.sleep(random_time)
-        primt2URL= 'https://docs.google.com/document/d/15nj87WI9Ud3EGgmp0JM0AZdQVQGPgN3ly-zjWCEUsB0/edit?usp=sharing'
-        promt = gpt.load_prompt(primt2URL)
-        promt = promt.replace('[analitict]', analitBTC)
-        promt = promt.replace('[nextDate]', str(day))
-        promt = promt.replace('[coin]', coin)
-        promt = promt.replace('[nowDate]', future)
-        promt = promt.replace('[exchangerate]', priceNow)
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': ' '}]
-        answer2, allToken2, allTokenPrice2= gpt.answer(' ',mess,)
-        
+        mess = [{'role': 'system', 'content': promt}, {'role': 'user', 'content': ' '.join(answers)}]
+        final_answer, token, tokenPrice = gpt.answer(' ', mess)
+        allToken += token
+        allTokenPrice += tokenPrice
 
-        primt3URL= 'https://docs.google.com/document/d/17hsm51kQGnhXgU7LkFkCGxsIBY82FPefowN8GcGIa6U/edit?usp=sharing'
-        promt = gpt.load_prompt(primt3URL)
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': f"{answer1}\n{answer2}"}]
-        answer3, allToken3, allTokenPrice3= gpt.answer(' ',mess,)
-        
-        random_time = random.randint(5, 30)
-        #time.sleep(random_time)
-        primt4URL= 'https://docs.google.com/document/d/1cqDETdeSLj2vX8nBzWFbNV4jAl61oz_nGwL16EM-ZIM/edit?usp=sharing'
-        promt = gpt.load_prompt(primt4URL)
-        promt = promt.replace('[language]', 'Russian')
-
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': f"{answer1} {answer2} {answer3}"}]
-        answer4, allToken4, allTokenPrice4= gpt.answer(' ',mess,)
-
-        answer = answer4
-        allToken = allToken1+allToken2+allToken3+allToken4
-        allTokenPrice = allTokenPrice1+allTokenPrice2+allTokenPrice3+allTokenPrice4
-
-        promt5URL = 'https://docs.google.com/document/d/1TPTa7s_VsbjMdaHw0k0EQrHecSnp8X5T-JoaOoGh53M/edit?usp=sharing'
-        promt = gpt.load_prompt(promt5URL)
-        promt = promt.replace('[analitict]', analitBTC)
-        promt = promt.replace('[coin]', coin)
-        promt = promt.replace('[exchangerate]', priceNow)
-        # promt = promt.replace('[language]', 'Russian')
-
-        mess = [{'role': 'system', 'content': promt,},
-                {'role': 'user', 'content': f""}]
-        #print(promt)
-        answer5, allToken5, allTokenPrice5= gpt.answer(' ',mess,) 
-        # prognozPrice, lowerPrice, upperPrice = prepare_prognoz(answer5)
-        
-        allTokenPrice += allTokenPrice5
-        allToken += allToken5
         url = f'https://api.telegram.org/bot{TOKEN_BOT_FORECAST}/sendMessage'
-        params = {
-            'chat_id': -1002247551722,
-            'text': answer5,
-            'parse_mode': 'Markdown'  # или 'Markdown'
-        }
+        params = {'chat_id': -1002247551722, 'text': final_answer, 'parse_mode': 'Markdown'}
         response = requests.post(url, params=params)
-        return answer
+        return final_answer
     except Exception as e:
-        print(e.__traceback__)
         pprint(e)
-        logger.debug(f'{e=}')
-
 
 if __name__ == '__main__':
-
-    a=forecastText(0) 
-    print(a)
-    # send_message(2118909508,a,1)
-    # print(a)
-    
-   
+    result = forecastText(0) 
+    print(result)
