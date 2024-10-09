@@ -111,7 +111,7 @@ def check_ref(msg:Message):
     """Проверка на реферальную ссылку true если его нету"""
     text=msg.text
     # Проверяем наличие http или t.me/
-    if 'http' in text or 't.me/' in text or 'bot' in text or 'BOT' in text or '@' in text or 'HAMSTER' in text or 'BIO' in text or 'bio' in text:
+    if 'http' in text or 't.me/' in text or 'bot' in text or 'BOT' in text or '@' in text or 'HAMSTER' in text or 'BIO' in text or 'bio' in text or 'AlRDR0P' in text or 'airfrop' in text:
         # Проверяем отсутствие aibetrade
             return True
     return False
