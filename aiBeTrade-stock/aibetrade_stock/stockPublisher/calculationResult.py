@@ -169,7 +169,7 @@ def main():
         print(f'Error in response: {response["retMsg"]}')
 
 # Планирование ежедневного выполнения в 10:00 утра по времени сервера
-schedule.every().day.at("10:00").do(main)
+schedule.every().day.at("12:00").do(main)
 
 # Бесконечный цикл для планирования задач
 while True:
