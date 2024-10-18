@@ -15,13 +15,12 @@ CHANNEL_ID = os.getenv('ID_CH_CR')  # ID вашего канала
 API_BYBIT = os.getenv('API_BYBIT_CR')
 API_BYBIT_SEC = os.getenv('API_BYBIT_SEC_CR')
 
-script_directory = Path(__file__).parent  # Путь к каталогу исполняемого файла
 
 # Функция для публикации в Telegram через запрос к API
 def publish_to_telegram(profit, totalProfit, days, is_successful):
     # Определяем картинку и текст
     if is_successful:
-        image_path = script_directory / "pic/successful.jpg"
+        image_path =  "pic/successful.jpg"
         message_text = (
             f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
             f"Strategy: <b>ABT BITS PRO</b>\n"
@@ -30,7 +29,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
             f"Number of Trading Days: <b>{days}</b>"
         )
     else:
-        image_path = script_directory / "pic/failure.jpg"
+        image_path = "pic/failure.jpg"
         message_text = (
             f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
             f"Strategy: <b>ABT BITS PRO</b>\n"
@@ -58,7 +57,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
 
 # Функция для записи нового баланса и даты в файл
 def save_balance_to_file(balance, filename="balance_data.json"):
-    filepath = script_directory / filename
+    filepath = filename
     current_date = datetime.now().strftime('%d.%m.%Y')
 
     try:
@@ -87,7 +86,7 @@ def save_balance_to_file(balance, filename="balance_data.json"):
 
 # Функция для чтения баланса за предыдущий день
 def get_previous_balance(filename="balance_data.json"):
-    filepath = script_directory / filename
+    filepath = filename
     try:
         with open(filepath, 'r') as file:
             data = json.load(file)
@@ -103,7 +102,7 @@ def get_previous_balance(filename="balance_data.json"):
 
 # Функция для подсчета количества записей в файле балансов
 def count_days_in_file(filename="balance_data.json"):
-    filepath = script_directory / filename
+    filepath =  filename
     try:
         with open(filepath, 'r') as file:
             data = json.load(file)
@@ -170,7 +169,7 @@ def main():
 
 # Планирование ежедневного выполнения в 10:00 утра по времени сервера
 schedule.every().day.at("12:00").do(main)
-
+main()
 # Бесконечный цикл для планирования задач
 while True:
     schedule.run_pending()
