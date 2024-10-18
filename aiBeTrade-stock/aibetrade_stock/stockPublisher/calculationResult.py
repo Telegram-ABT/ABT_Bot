@@ -6,9 +6,13 @@ from pybit.unified_trading import HTTP
 from pathlib import Path
 
 # Настройки из переменных окружения для Telegram
+URL = os.getenv('URL')
 URL_BOT = 'https://api.telegram.org/bot'
-TELEGRAM_TOKEN = '7212356676:AAFtz6Jve66Lzq_l4BajmPnNMhL5UzSdnps'  # Токен вашего Telegram бота
-CHANNEL_ID = '-1002238309807' # ID вашего канала
+TELEGRAM_TOKEN = os.getenv('API_BOT_CR')  # Токен вашего Telegram бота
+CHANNEL_ID = os.getenv('ID_CH_CR') # ID вашего канала
+API_BYBIT = os.getenv('API_BYBIT_CR'),
+API_BYBIT_SEC = os.getenv('API_BYBIT_CR')
+
 script_directory = Path(__file__).parent  # Путь к каталогу исполняемого файла
 
 # Функция для публикации в Telegram через запрос к API
@@ -121,8 +125,8 @@ def calculate_profit(resultBalance, preBalance):
 # Создаем сессию с API Bybit
 session = HTTP(
     testnet=False,  # Используйте False, если работаете на основном API
-    api_key = "BLHHwcap6tcf4PqmcN",
-    api_secret = "LPd4Lcjk5vOHMoJ81I1oedmH2rSlOhasQrYD"
+    api_key = API_BYBIT,
+    api_secret = API_BYBIT_SEC
 )
 
 # Получаем баланс для определенной монеты (например, USDT)
