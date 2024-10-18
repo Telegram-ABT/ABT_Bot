@@ -4,13 +4,15 @@ import requests
 from datetime import datetime, timedelta
 from pybit.unified_trading import HTTP
 from pathlib import Path
+import schedule
+import time
 
 # Настройки из переменных окружения для Telegram
 URL = os.getenv('URL')
 URL_BOT = 'https://api.telegram.org/bot'
 TELEGRAM_TOKEN = os.getenv('API_BOT_CR')  # Токен вашего Telegram бота
-CHANNEL_ID = os.getenv('ID_CH_CR') # ID вашего канала
-API_BYBIT = os.getenv('API_BYBIT_CR'),
+CHANNEL_ID = os.getenv('ID_CH_CR')  # ID вашего канала
+API_BYBIT = os.getenv('API_BYBIT_CR')
 API_BYBIT_SEC = os.getenv('API_BYBIT_SEC_CR')
 
 script_directory = Path(__file__).parent  # Путь к каталогу исполняемого файла
@@ -21,7 +23,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
     if is_successful:
         image_path = script_directory / "pic/successful.jpg"
         message_text = (
-            f"🟢 <b>ABT Bits: day trading was Successful!</b>\n\n"
+            f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
             f"Strategy: <b>ABT BITS PRO</b>\n"
             f"Profit of trade is: <b>{profit}%</b>\n"
             f"Total profit: <b>{totalProfit}%</b>\n"
@@ -30,7 +32,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
     else:
         image_path = script_directory / "pic/failure.jpg"
         message_text = (
-            f"🔴 <b>ABT Bits: day trading was Failure!</b>\n\n"
+            f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
             f"Strategy: <b>ABT BITS PRO</b>\n"
             f"Profit of trade is: <b>{profit}%</b>\n"
             f"Total profit: <b>{totalProfit}%</b>\n"
@@ -122,44 +124,54 @@ def calculate_profit(resultBalance, preBalance):
     
     return round(profit, 2), round(totalProfit, 2)
 
-# Создаем сессию с API Bybit
-session = HTTP(
-    testnet=False,  # Используйте False, если работаете на основном API
-    api_key = API_BYBIT,
-    api_secret = API_BYBIT_SEC
-)
+# Основная функция для выполнения задачи
+def main():
+    # Создаем сессию с API Bybit
+    session = HTTP(
+        testnet=False,  # Используйте False, если работаете на основном API
+        api_key=API_BYBIT,
+        api_secret=API_BYBIT_SEC
+    )
 
-# Получаем баланс для определенной монеты (например, USDT)
-response = session.get_wallet_balance(
-    accountType="UNIFIED",
-    coin="USDT"
-)
+    # Получаем баланс для определенной монеты (например, USDT)
+    response = session.get_wallet_balance(
+        accountType="UNIFIED",
+        coin="USDT"
+    )
 
-if response['retCode'] == 0:
-    try:
-        result_list = response['result']['list'][0]
-        coin_data = result_list['coin'][0]
-        resultBalance = float(coin_data['availableToWithdraw'])
-        print(f'Available to Withdraw: {resultBalance}')
-        
-        # Сохраняем баланс
-        save_balance_to_file(resultBalance)
-        
-        # Получаем баланс за предыдущий день
-        preBalance = get_previous_balance()
+    if response['retCode'] == 0:
+        try:
+            result_list = response['result']['list'][0]
+            coin_data = result_list['coin'][0]
+            resultBalance = float(coin_data['availableToWithdraw'])
+            print(f'Available to Withdraw: {resultBalance}')
+            
+            # Сохраняем баланс
+            save_balance_to_file(resultBalance)
+            
+            # Получаем баланс за предыдущий день
+            preBalance = get_previous_balance()
 
-        # Подсчитываем количество записей (количество дней наблюдений)
-        days = count_days_in_file()
+            # Подсчитываем количество записей (количество дней наблюдений)
+            days = count_days_in_file()
 
-        # Рассчитываем профит
-        profit, totalProfit = calculate_profit(resultBalance, preBalance)
-        
-        if profit is not None and totalProfit is not None:
-            # Определяем успех или провал и публикуем сообщение в Telegram
-            is_successful = resultBalance > preBalance
-            publish_to_telegram(profit, totalProfit, days, is_successful)
-        
-    except (KeyError, IndexError) as e:
-        print(f'Error extracting resultBalance: {e}')
-else:
-    print(f'Error in response: {response["retMsg"]}')
+            # Рассчитываем профит
+            profit, totalProfit = calculate_profit(resultBalance, preBalance)
+            
+            if profit is not None and totalProfit is not None:
+                # Определяем успех или провал и публикуем сообщение в Telegram
+                is_successful = resultBalance > preBalance
+                publish_to_telegram(profit, totalProfit, days, is_successful)
+            
+        except (KeyError, IndexError) as e:
+            print(f'Error extracting resultBalance: {e}')
+    else:
+        print(f'Error in response: {response["retMsg"]}')
+
+# Планирование ежедневного выполнения в 10:00 утра по времени сервера
+schedule.every().day.at("10:00").do(main)
+
+# Бесконечный цикл для планирования задач
+while True:
+    schedule.run_pending()
+    time.sleep(60)  # Проверяем задачи каждую минуту
