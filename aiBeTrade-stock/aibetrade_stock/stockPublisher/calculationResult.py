@@ -11,7 +11,7 @@ URL_BOT = 'https://api.telegram.org/bot'
 TELEGRAM_TOKEN = os.getenv('API_BOT_CR')  # Токен вашего Telegram бота
 CHANNEL_ID = os.getenv('ID_CH_CR') # ID вашего канала
 API_BYBIT = os.getenv('API_BYBIT_CR'),
-API_BYBIT_SEC = os.getenv('API_BYBIT_CR')
+API_BYBIT_SEC = os.getenv('API_BYBIT_SEC_CR')
 
 script_directory = Path(__file__).parent  # Путь к каталогу исполняемого файла
 
