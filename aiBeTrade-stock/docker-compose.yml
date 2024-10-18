@@ -230,6 +230,30 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - URL=${URL}
+  
+  stockPublisher:
+    image: stockPublisher
+    volumes:
+      - ./aibetrade_stock/stockPublisher:/app
+      # - ./pyproject.toml:/app/pyproject.toml
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/stockPublisher/
+      dockerfile: DockerFile.app.stockPublisher
+    environment:
+      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+      # - WEBHOOK=${WEBHOOK}
+      # - SECRET_CHAT=${SECRET_CHAT}
+      # - API_ID=${API_ID}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - URL=${URL}
+      - URL_BOT=${URL_BOT}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - CHANNEL_ID=${CHANNEL_ID}
+      - API_BYBIT=${API_BYBIT}
+      - API_BYBIT_SEC=${API_BYBIT_SEC}
+      
 
    
 volumes:
