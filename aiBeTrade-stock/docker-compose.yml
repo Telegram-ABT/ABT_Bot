@@ -231,8 +231,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - URL=${URL}
   
-  stockPublisher:
-    image: stockPublisher
+  stock_publisher:
+    image: stock_publisher
     volumes:
       - ./aibetrade_stock/stockPublisher:/app
       # - ./pyproject.toml:/app/pyproject.toml
