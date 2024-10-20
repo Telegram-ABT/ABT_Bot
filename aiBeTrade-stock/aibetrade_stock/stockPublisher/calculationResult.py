@@ -177,7 +177,7 @@ def main_for_account(account):
             api_key=account["api_key"],
             api_secret=account["api_secret"]
         )
-        logger.info(f'Api keys {api_key}: {api_secret}')
+        logger.info(f'Api keys for {account["strategy_name"]}: {account["api_key"]}')
 
         # Получаем баланс для определенной монеты (например, USDT)
         response = session.get_wallet_balance(
