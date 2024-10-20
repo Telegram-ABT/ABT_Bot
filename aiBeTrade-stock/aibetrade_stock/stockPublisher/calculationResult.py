@@ -19,13 +19,13 @@ accounts = [
         "api_key": os.getenv('API_BYBIT_CR'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR'),
         "strategy_id": "roman_strat",
-        "strategy_name": "Стратегия Парагон"
+        "strategy_name": "ABT BITS PRO_PAR"
     },
     {
         "api_key": os.getenv('API_BYBIT_CR_1'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR_1'),
         "strategy_id": "constantin_strat",
-        "strategy_name": "Стратегия Номмо"
+        "strategy_name": "ABT BITS PRO_NOM"
     }
 ]
 
