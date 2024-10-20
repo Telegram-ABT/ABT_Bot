@@ -253,7 +253,8 @@ services:
       - ID_CH_CR=${ID_CH_CR}
       - API_BYBIT_CR=${API_BYBIT_CR}
       - API_BYBIT_SEC_CR=${API_BYBIT_SEC_CR}
-      
+      - API_BYBIT_CR_1=${API_BYBIT_CR_1}
+      - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}      
 
 volumes:
   habrdb-data:
