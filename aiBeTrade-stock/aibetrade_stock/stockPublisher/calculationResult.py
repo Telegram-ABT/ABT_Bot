@@ -41,7 +41,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name)
         if is_successful:
             image_path = "pic/successful.jpg"
             message_text = (
-                f"🟢 <b>{strategy_name}: day trading was Successful!</b>\n\n"
+                f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
                 f"Strategy: <b>{strategy_name}</b>\n"
                 f"Profit of trade is: <b>{profit}%</b>\n"
                 f"Total profit: <b>{totalProfit}%</b>\n"
@@ -50,7 +50,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name)
         else:
             image_path = "pic/failure.jpg"
             message_text = (
-                f"🔴 <b>{strategy_name}: day trading was Failure!</b>\n\n"
+                f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
                 f"Strategy: <b>{strategy_name}</b>\n"
                 f"Profit of trade is: <b>{profit}%</b>\n"
                 f"Total profit: <b>{totalProfit}%</b>\n"
@@ -176,6 +176,7 @@ def main_for_account(account):
             testnet=False,  # Используйте False, если работаете на основном API
             api_key=account["api_key"],
             api_secret=account["api_secret"]
+            logger.info(f'Api keys {api_key}: {api_secret}')
         )
 
         # Получаем баланс для определенной монеты (например, USDT)
