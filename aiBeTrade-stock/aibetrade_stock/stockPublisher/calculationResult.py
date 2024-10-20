@@ -176,8 +176,8 @@ def main_for_account(account):
             testnet=False,  # Используйте False, если работаете на основном API
             api_key=account["api_key"],
             api_secret=account["api_secret"]
-            logger.info(f'Api keys {api_key}: {api_secret}')
         )
+        logger.info(f'Api keys {api_key}: {api_secret}')
 
         # Получаем баланс для определенной монеты (например, USDT)
         response = session.get_wallet_balance(
