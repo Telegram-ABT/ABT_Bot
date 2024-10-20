@@ -121,6 +121,12 @@ def calculate_profit(resultBalance, preBalance):
     profit = (resultBalance / preBalance - 1) * 100
     totalProfit = (resultBalance / 5000 - 1) * 100
     
+    print(f"Текущий баланс: {resultBalance}")
+    print(f"Баланс предыдущий день: {preBalance}")
+    print(f"Результат (%): {profit}")
+    print(f"Общий результат (%): {totalProfit}")
+
+
     return round(profit, 2), round(totalProfit, 2)
 
 # Основная функция для выполнения задачи
