@@ -59,7 +59,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
         else:
             logger.error(f"Failed to send message: {response.status_code}, {response.text}")
     except Exception as e:
-        logger.error(f"Error during publish to Telegram: {e}")
+        logger.error(f"Error publishing to Telegram: {e}")
 
 # Функция для записи нового баланса и даты в файл
 def save_balance_to_file(balance, filename="balance_data.json"):
@@ -130,23 +130,27 @@ def count_days_in_file(filename="balance_data.json"):
 
 # Функция расчета профита
 def calculate_profit(resultBalance, preBalance):
-    try:
-        if preBalance is None:
-            logger.warning("No previous balance data available for calculation.")
-            return None, None
-        
-        profit = (resultBalance / preBalance - 1) * 100
-        totalProfit = (resultBalance / 5000 - 1) * 100
-        
-        return round(profit, 2), round(totalProfit, 2)
-    except Exception as e:
-        logger.error(f"Error calculating profit: {e}")
+    if preBalance is None:
+        logger.warning("No previous balance data available for calculation.")
         return None, None
+    
+    profit = (resultBalance / preBalance - 1) * 100
+    totalProfit = (resultBalance / 5000 - 1) * 100
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# Логируем данные, а затем другие сообщения
+    logger.info(f"Дата и время: {current_time}")
+    logger.info(f"Текущий баланс: {resultBalance}")
+    logger.info(f"Баланс предыдущий день: {preBalance}")
+    logger.info(f"Результат (%): {profit}")
+    logger.info(f"Общий результат (%): {totalProfit}")
+
+    return round(profit, 2), round(totalProfit, 2)
 
 # Основная функция для выполнения задачи
 def main():
-    # Создаем сессию с API Bybit
     try:
+        # Создаем сессию с API Bybit
         session = HTTP(
             testnet=False,  # Используйте False, если работаете на основном API
             api_key=API_BYBIT,
@@ -192,6 +196,9 @@ def main():
 
 # Планирование выполнения задачи каждые 60 минут
 schedule.every(60).minutes.do(main)
+
+# Выполняем основную функцию
+main()
 
 # Бесконечный цикл для планирования задач
 while True:
