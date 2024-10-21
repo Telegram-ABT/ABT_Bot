@@ -92,15 +92,22 @@ def save_balance_to_file(balance, strategy_id, filename=None):
     except FileNotFoundError:
         data = []  # Если файла нет, начинаем с пустого списка
 
+    # Флаг для отслеживания, найдена ли запись за текущий день
+    record_found = False
+
     # Проверяем, есть ли запись за текущий день
     for entry in data:
-        if entry['date'] == current_date and entry['balance'] == balance:
-            logger.info(f"Balance for {current_date} has not changed. No new entry added.")
-            return
+        if entry['date'] == current_date:
+            entry['balance'] = balance  # Обновляем баланс для текущего дня
+            logger.info(f"Balance for {current_date} has been updated.")
+            record_found = True
+            break
 
-    # Добавляем новую запись
-    new_entry = {'balance': balance, 'date': current_date}
-    data.append(new_entry)
+    # Если запись не найдена, добавляем новую
+    if not record_found:
+        new_entry = {'balance': balance, 'date': current_date}
+        data.append(new_entry)
+        logger.info(f"Balance for {current_date} has been added.")
 
     try:
         with open(filepath, 'w') as file:
