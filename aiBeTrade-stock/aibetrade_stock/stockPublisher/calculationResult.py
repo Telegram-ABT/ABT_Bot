@@ -27,7 +27,7 @@ accounts = [
         "api_secret": os.getenv('API_BYBIT_SEC_CR_1'),
         "strategy_id": "constantin_strat",
         "strategy_name": "ABT BITS PRO_NOM",
-        "start_deposit": 5100  # Начальный депозит для второго аккаунта
+        "start_deposit": 4050  # Начальный депозит для второго аккаунта
     }
 ]
 
