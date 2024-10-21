@@ -19,13 +19,15 @@ accounts = [
         "api_key": os.getenv('API_BYBIT_CR'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR'),
         "strategy_id": "roman_strat",
-        "strategy_name": "ABT BITS PRO_PAR"
+        "strategy_name": "ABT BITS PRO_PAR",
+        "start_deposit": 5000  # Начальный депозит для первого аккаунта
     },
     {
         "api_key": os.getenv('API_BYBIT_CR_1'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR_1'),
         "strategy_id": "constantin_strat",
-        "strategy_name": "ABT BITS PRO_NOM"
+        "strategy_name": "ABT BITS PRO_NOM",
+        "start_deposit": 5100  # Начальный депозит для второго аккаунта
     }
 ]
 
@@ -160,13 +162,13 @@ def count_days_in_file(strategy_id, filename=None):
         return 0
 
 # Функция расчета профита
-def calculate_profit(resultBalance, preBalance):
+def calculate_profit(resultBalance, preBalance, start_deposit):
     if preBalance is None:
         logger.warning("No previous balance data available for calculation.")
         return None, None
     
     profit = (resultBalance / preBalance - 1) * 100
-    totalProfit = (resultBalance / 5000 - 1) * 100
+    totalProfit = (resultBalance / start_deposit - 1) * 100
 
     logger.info(f"Текущий баланс: {resultBalance}")
     logger.info(f"Баланс предыдущий день: {preBalance}")
@@ -192,6 +194,9 @@ def main_for_account(account):
             coin="USDT"
         )
 
+        # Логируем полный ответ от Bybit API для отладки
+        logger.info(f'Full response for {account["strategy_name"]}: {json.dumps(response, indent=4)}')
+
         if response['retCode'] == 0:
             try:
                 result_list = response['result']['list'][0]
@@ -209,7 +214,7 @@ def main_for_account(account):
                 days = count_days_in_file(account["strategy_id"])
 
                 # Рассчитываем профит
-                profit, totalProfit = calculate_profit(resultBalance, preBalance)
+                profit, totalProfit = calculate_profit(resultBalance, preBalance, account["start_deposit"])
                 
                 if profit is not None and totalProfit is not None:
                     # Определяем успех или провал и публикуем сообщение в Telegram
@@ -222,7 +227,6 @@ def main_for_account(account):
             logger.error(f'Error in response for {account["strategy_name"]}: {response["retMsg"]}')
     except Exception as e:
         logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
-
 # Планирование выполнения задачи каждые 60 минут
 def main():
     for account in accounts:

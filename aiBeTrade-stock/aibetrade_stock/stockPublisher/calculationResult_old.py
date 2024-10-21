@@ -6,28 +6,43 @@ from pybit.unified_trading import HTTP
 import schedule
 import time
 import logging
+from pathlib import Path
+from datetime import datetime
 
-# Настройки из переменных окружения для Telegram
-URL = os.getenv('URL')
+# Настройки логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
+
+# Настройки для каждого аккаунта
+accounts = [
+    {
+        "api_key": os.getenv('API_BYBIT_CR'),
+        "api_secret": os.getenv('API_BYBIT_SEC_CR'),
+        "strategy_id": "roman_strat",
+        "strategy_name": "ABT BITS PRO_PAR"
+    },
+    {
+        "api_key": os.getenv('API_BYBIT_CR_1'),
+        "api_secret": os.getenv('API_BYBIT_SEC_CR_1'),
+        "strategy_id": "constantin_strat",
+        "strategy_name": "ABT BITS PRO_NOM"
+    }
+]
+
+# Настройки для Telegram
 URL_BOT = 'https://api.telegram.org/bot'
 TELEGRAM_TOKEN = os.getenv('API_BOT_CR')  # Токен вашего Telegram бота
 CHANNEL_ID = os.getenv('ID_CH_CR')  # ID вашего канала
-API_BYBIT = os.getenv('API_BYBIT_CR')
-API_BYBIT_SEC = os.getenv('API_BYBIT_SEC_CR')
-
-# Настройки логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Функция для публикации в Telegram через запрос к API
-def publish_to_telegram(profit, totalProfit, days, is_successful):
+def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name):
     try:
         # Определяем картинку и текст
         if is_successful:
             image_path = "pic/successful.jpg"
             message_text = (
                 f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
-                f"Strategy: <b>ABT BITS PRO</b>\n"
+                f"Strategy: <b>{strategy_name}</b>\n"
                 f"Profit of trade is: <b>{profit}%</b>\n"
                 f"Total profit: <b>{totalProfit}%</b>\n"
                 f"Number of Trading Days: <b>{days}</b>"
@@ -36,7 +51,7 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
             image_path = "pic/failure.jpg"
             message_text = (
                 f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
-                f"Strategy: <b>ABT BITS PRO</b>\n"
+                f"Strategy: <b>{strategy_name}</b>\n"
                 f"Profit of trade is: <b>{profit}%</b>\n"
                 f"Total profit: <b>{totalProfit}%</b>\n"
                 f"Number of Trading Days: <b>{days}</b>"
@@ -55,14 +70,17 @@ def publish_to_telegram(profit, totalProfit, days, is_successful):
             response = requests.post(url, files=files, data=data)
 
         if response.status_code == 200:
-            logger.info(f"Message sent to Telegram channel {CHANNEL_ID}.")
+            logger.info(f"Message sent to Telegram for strategy {strategy_name}.")
         else:
             logger.error(f"Failed to send message: {response.status_code}, {response.text}")
     except Exception as e:
         logger.error(f"Error publishing to Telegram: {e}")
 
 # Функция для записи нового баланса и даты в файл
-def save_balance_to_file(balance, filename="balance_data.json"):
+def save_balance_to_file(balance, strategy_id, filename=None):
+    if filename is None:
+        filename = f"balance_data_{strategy_id}.json"
+    
     filepath = filename
     current_date = datetime.now().strftime('%d.%m.%Y')
 
@@ -74,15 +92,22 @@ def save_balance_to_file(balance, filename="balance_data.json"):
     except FileNotFoundError:
         data = []  # Если файла нет, начинаем с пустого списка
 
+    # Флаг для отслеживания, найдена ли запись за текущий день
+    record_found = False
+
     # Проверяем, есть ли запись за текущий день
     for entry in data:
-        if entry['date'] == current_date and entry['balance'] == balance:
-            logger.info(f"Balance for {current_date} has not changed. No new entry added.")
-            return
+        if entry['date'] == current_date:
+            entry['balance'] = balance  # Обновляем баланс для текущего дня
+            logger.info(f"Balance for {current_date} has been updated.")
+            record_found = True
+            break
 
-    # Добавляем новую запись
-    new_entry = {'balance': balance, 'date': current_date}
-    data.append(new_entry)
+    # Если запись не найдена, добавляем новую
+    if not record_found:
+        new_entry = {'balance': balance, 'date': current_date}
+        data.append(new_entry)
+        logger.info(f"Balance for {current_date} has been added.")
 
     try:
         with open(filepath, 'w') as file:
@@ -92,7 +117,10 @@ def save_balance_to_file(balance, filename="balance_data.json"):
         logger.error(f"Error saving balance to file: {e}")
 
 # Функция для чтения баланса за предыдущий день
-def get_previous_balance(filename="balance_data.json"):
+def get_previous_balance(strategy_id, filename=None):
+    if filename is None:
+        filename = f"balance_data_{strategy_id}.json"
+    
     filepath = filename
     try:
         with open(filepath, 'r') as file:
@@ -113,7 +141,10 @@ def get_previous_balance(filename="balance_data.json"):
         return None
 
 # Функция для подсчета количества записей в файле балансов
-def count_days_in_file(filename="balance_data.json"):
+def count_days_in_file(strategy_id, filename=None):
+    if filename is None:
+        filename = f"balance_data_{strategy_id}.json"
+    
     filepath = filename
     try:
         with open(filepath, 'r') as file:
@@ -136,10 +167,7 @@ def calculate_profit(resultBalance, preBalance):
     
     profit = (resultBalance / preBalance - 1) * 100
     totalProfit = (resultBalance / 5000 - 1) * 100
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-# Логируем данные, а затем другие сообщения
-    logger.info(f"Дата и время: {current_time}")
     logger.info(f"Текущий баланс: {resultBalance}")
     logger.info(f"Баланс предыдущий день: {preBalance}")
     logger.info(f"Результат (%): {profit}")
@@ -147,15 +175,16 @@ def calculate_profit(resultBalance, preBalance):
 
     return round(profit, 2), round(totalProfit, 2)
 
-# Основная функция для выполнения задачи
-def main():
+# Основная функция для каждого аккаунта
+def main_for_account(account):
     try:
-        # Создаем сессию с API Bybit
+        # Создаем сессию с API Bybit для каждого аккаунта
         session = HTTP(
             testnet=False,  # Используйте False, если работаете на основном API
-            api_key=API_BYBIT,
-            api_secret=API_BYBIT_SEC
+            api_key=account["api_key"],
+            api_secret=account["api_secret"]
         )
+        logger.info(f'Api keys for {account["strategy_name"]}: {account["api_key"]}')
 
         # Получаем баланс для определенной монеты (например, USDT)
         response = session.get_wallet_balance(
@@ -168,16 +197,16 @@ def main():
                 result_list = response['result']['list'][0]
                 coin_data = result_list['coin'][0]
                 resultBalance = float(coin_data['availableToWithdraw'])
-                logger.info(f'Available to Withdraw: {resultBalance}')
+                logger.info(f'Available to Withdraw for {account["strategy_name"]}: {resultBalance}')
                 
                 # Сохраняем баланс
-                save_balance_to_file(resultBalance)
+                save_balance_to_file(resultBalance, account["strategy_id"])
                 
                 # Получаем баланс за предыдущий день
-                preBalance = get_previous_balance()
+                preBalance = get_previous_balance(account["strategy_id"])
 
                 # Подсчитываем количество записей (количество дней наблюдений)
-                days = count_days_in_file()
+                days = count_days_in_file(account["strategy_id"])
 
                 # Рассчитываем профит
                 profit, totalProfit = calculate_profit(resultBalance, preBalance)
@@ -185,16 +214,20 @@ def main():
                 if profit is not None and totalProfit is not None:
                     # Определяем успех или провал и публикуем сообщение в Telegram
                     is_successful = resultBalance > preBalance
-                    publish_to_telegram(profit, totalProfit, days, is_successful)
+                    publish_to_telegram(profit, totalProfit, days, is_successful, account["strategy_name"])
                 
             except (KeyError, IndexError) as e:
                 logger.error(f'Error extracting resultBalance: {e}')
         else:
-            logger.error(f'Error in response: {response["retMsg"]}')
+            logger.error(f'Error in response for {account["strategy_name"]}: {response["retMsg"]}')
     except Exception as e:
-        logger.error(f"Error in Bybit API session: {e}")
+        logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
 
 # Планирование выполнения задачи каждые 60 минут
+def main():
+    for account in accounts:
+        main_for_account(account)
+
 schedule.every(60).minutes.do(main)
 
 # Выполняем основную функцию
