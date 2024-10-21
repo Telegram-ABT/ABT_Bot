@@ -201,7 +201,7 @@ def main_for_account(account):
             try:
                 result_list = response['result']['list'][0]
                 coin_data = result_list['coin'][0]
-                resultBalance = float(coin_data['availableToWithdraw'])
+                resultBalance = float(coin_data['usdValue'])
                 logger.info(f'Available to Withdraw for {account["strategy_name"]}: {resultBalance}')
                 
                 # Сохраняем баланс
