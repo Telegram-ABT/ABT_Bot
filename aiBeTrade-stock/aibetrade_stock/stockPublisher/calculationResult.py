@@ -28,7 +28,15 @@ accounts = [
         "strategy_id": "constantin_strat",
         "strategy_name": "ABT BITS PRO_NOM",
         "start_deposit": 4050  # Начальный депозит для второго аккаунта
+    },
+    {
+        "api_key": os.getenv('API_BYBIT_CR_2'),
+        "api_secret": os.getenv('API_BYBIT_SEC_CR_2'),
+        "strategy_id": "constantin_strat",
+        "strategy_name": "ABT BITS PRO_NEWS",
+        "start_deposit": 2385  # Начальный депозит для второго аккаунта
     }
+    
 ]
 
 # Настройки для Telegram
