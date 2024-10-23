@@ -126,8 +126,8 @@ def generate_combo_data():
         "priseCode": "",
         "limit": 5000000,
         "count": 0,
-        "startAt": start_at.isoformat() + 'Z',
-        "endAt": end_at.isoformat() + 'Z',
+        "startAt": start_at,
+        "endAt": end_at,
         "isActive": True
     }
 
@@ -153,15 +153,29 @@ def attempt_to_save_data():
             # В случае неудачи выводим сообщение об ошибке и перегенерируем данные
             logger.error(f"Ошибка при записи в MongoDB: {e}. Перегенерация данных...")
 
-# Функция, которая выполняется каждую минуту
-def run_every_minute():
+def run_at_9am():
     if check_db_and_collection():  # Проверяем наличие базы данных и коллекции
         while True:
-            attempt_to_save_data()  # Запускаем попытку записи данных в MongoDB
-            time.sleep(60)  # Ждем 60 секунд для следующего запуска
+            now = datetime.now()
+            target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
+
+            # Если текущее время уже прошло 9:00 сегодня, ждём до 9:00 следующего дня
+            if now > target_time:
+                target_time += timedelta(days=1)
+
+            # Вычисляем, сколько секунд до 9 утра
+            time_to_wait = (target_time - now).total_seconds()
+            logger.info(f"Ожидание до 9 утра: {time_to_wait // 3600} часов, {time_to_wait % 3600 // 60} минут")
+            
+            # Ждем до 9 утра
+            time.sleep(time_to_wait)
+
+            # Запускаем попытку записи данных в MongoDB и публикации в Telegram
+            attempt_to_save_data()
+
     else:
         logger.error("Ошибка: Убедитесь, что база данных и коллекция существуют.")
 
-# Запуск выполнения каждую минуту
+# Запуск выполнения в 9 утра
 if __name__ == "__main__":
-    run_every_minute()
+    run_at_9am()
