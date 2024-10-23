@@ -202,8 +202,7 @@ def main_for_account(account):
         # Получаем баланс для определенной монеты (например, USDT)
         response = session.get_wallet_balance(
             accountType="UNIFIED",
-            coin="USDT",
-            timeout=timeout  # Указываем таймаут в 2 секунды
+            coin="USDT"
         )
 
         # Логируем полный ответ от Bybit API для отладки
