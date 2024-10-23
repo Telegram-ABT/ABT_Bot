@@ -184,13 +184,10 @@ def run_once():
         target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
 
         # Проверяем, совпадает ли текущее время с 9:00 утра
-        if now >= target_time and now < target_time + timedelta(minutes=1):
-            logger.info("Текущее время совпадает с 9 утра. Запускаем процесс...")
+        logger.info("Запускаем процесс...")
             
-            # Запускаем попытку записи данных в MongoDB и публикации в Telegram
-            attempt_to_save_data()
-        else:
-            logger.info("Скрипт не запущен, так как текущее время не совпадает с 9 утра.")
+        # Запускаем попытку записи данных в MongoDB и публикации в Telegram
+        attempt_to_save_data()
     else:
         logger.error("Ошибка: Убедитесь, что база данных и коллекция существуют.")
 
