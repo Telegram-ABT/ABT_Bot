@@ -26,8 +26,8 @@ client = MongoClient(mongo_url)
 
 # Инициализация бота Telegram через переменные окружения
 telegram_token = os.getenv('API_BOT_CR')  # Замените на ваш Telegram Bot API token
-chat_id_ru = os.getenv('ID_CH_CR')  # Замените на ID чата для русского поста
-chat_id_en = os.getenv('ID_CH_CR')  # Замените на ID чата для английского поста
+chat_id_ru = '-1001609461642'  # Замените на ID чата для русского поста
+chat_id_en = '-1001967803227'  # Замените на ID чата для английского поста
 
 bot = telebot.TeleBot(telegram_token)
 
@@ -193,5 +193,5 @@ def run_once():
 
 # Запуск выполнения один раз при старте
 if __name__ == "__main__":
-    run_once()
-    # run_at_9am()
+    # run_once()
+    run_at_9am()
