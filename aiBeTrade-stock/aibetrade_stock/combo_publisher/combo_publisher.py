@@ -122,18 +122,12 @@ def generate_combo_data():
         "code": combo,
         "currencyCode": "abt",
         "precision": 9,
-        "amount": {
-            "$numberLong": str(random_amount)
-        },
+        "amount": int(random_amount),
         "priseCode": "",
         "limit": 5000000,
         "count": 0,
-        "startAt": {
-            "$date": start_at.isoformat() + 'Z'
-        },
-        "endAt": {
-            "$date": end_at.isoformat() + 'Z'
-        },
+        "startAt": start_at.isoformat() + 'Z',
+        "endAt": end_at.isoformat() + 'Z',
         "isActive": True
     }
 
