@@ -176,6 +176,25 @@ def run_at_9am():
     else:
         logger.error("Ошибка: Убедитесь, что база данных и коллекция существуют.")
 
-# Запуск выполнения в 9 утра
+# Функция, которая запускается один раз при старте
+def run_once():
+    # Проверяем наличие базы данных и коллекции
+    if check_db_and_collection():
+        now = datetime.now()
+        target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
+
+        # Проверяем, совпадает ли текущее время с 9:00 утра
+        if now >= target_time and now < target_time + timedelta(minutes=1):
+            logger.info("Текущее время совпадает с 9 утра. Запускаем процесс...")
+            
+            # Запускаем попытку записи данных в MongoDB и публикации в Telegram
+            attempt_to_save_data()
+        else:
+            logger.info("Скрипт не запущен, так как текущее время не совпадает с 9 утра.")
+    else:
+        logger.error("Ошибка: Убедитесь, что база данных и коллекция существуют.")
+
+# Запуск выполнения один раз при старте
 if __name__ == "__main__":
-    run_at_9am()
+    run_once()
+    # run_at_9am()
