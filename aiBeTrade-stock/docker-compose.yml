@@ -255,6 +255,27 @@ services:
       - API_BYBIT_SEC_CR=${API_BYBIT_SEC_CR}
       - API_BYBIT_CR_1=${API_BYBIT_CR_1}
       - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}      
+  combo_publisher:
+    image: combo_publisher
+    volumes:
+      - ./aibetrade_stock/combo_publisher:/app
+      # - ./pyproject.toml:/app/pyproject.toml
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/combo_publisher/
+      dockerfile: DockerFile.app.combo_publisher
+    environment:
+      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+      # - WEBHOOK=${WEBHOOK}
+      # - SECRET_CHAT=${SECRET_CHAT}
+      # - API_ID=${API_ID}
+      # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - URL=${URL}
+      # - URL_BOT=${URL_BOT}
+      - API_BOT_CR=${API_BOT_CR}
+      - ID_CH_CR=${ID_CH_CR}
+      - MONGO_URL=${MONGO_URL}
 
 volumes:
   habrdb-data:
