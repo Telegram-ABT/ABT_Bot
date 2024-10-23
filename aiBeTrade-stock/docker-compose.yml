@@ -254,8 +254,9 @@ services:
       - API_BYBIT_CR=${API_BYBIT_CR}
       - API_BYBIT_SEC_CR=${API_BYBIT_SEC_CR}
       - API_BYBIT_CR_1=${API_BYBIT_CR_1}
-      - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_2}      
-      - API_BYBIT_CR_2=${API_BYBIT_CR_1}
+      - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}   
+
+      - API_BYBIT_CR_2=${API_BYBIT_CR_2}
       - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}      
   combo_publisher:
     image: combo_publisher

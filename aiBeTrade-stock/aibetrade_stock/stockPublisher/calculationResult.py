@@ -196,9 +196,6 @@ def main_for_account(account):
         )
         logger.info(f'Api keys for {account["strategy_name"]}: {account["api_key"]}')
 
-        # Устанавливаем таймаут для запросов к API
-        timeout = 2  # Таймаут в секундах
-
         # Получаем баланс для определенной монеты (например, USDT)
         response = session.get_wallet_balance(
             accountType="UNIFIED",
