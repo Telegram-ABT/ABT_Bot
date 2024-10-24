@@ -19,7 +19,7 @@ accounts = [
         "api_key": os.getenv('API_BYBIT_CR'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR'),
         "strategy_id": "roman_strat",
-        "strategy_name": "ABT BITS PRO_PAR",
+        "strategy_name": "ABT BITS PRO",
         "start_deposit": 4950,  # Начальный депозит для первого аккаунта
         "channel_id": '-1002247551722'  # ID Telegram @abtbits
     },
