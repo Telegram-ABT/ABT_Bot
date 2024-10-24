@@ -68,15 +68,14 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
                 f"Number of Trading Days: <b>{days}</b>"
             )
 
-        # Добавляем кнопки с ссылками
+        # Добавляем кнопки с ссылками, каждая кнопка на новой строке
         keyboard = {
             "inline_keyboard": [
-                [
-                    {"text": "🚀 ABT Bits Pro Bot", "url": "https://t.me/aibetradecombot"},
-                    {"text": "🛠⁉️ ABT Support", "url": "https://t.me/abtsupportbot"}
-                ]
+                [{"text": "🚀 ABT Bits Pro Bot", "url": "https://t.me/aibetradecombot"}],
+                [{"text": "🛠⁉️ ABT Support", "url": "https://t.me/abtsupportbot"}]
             ]
         }
+
 
         url = f'{URL_BOT}{TELEGRAM_TOKEN}/sendPhoto'
 
