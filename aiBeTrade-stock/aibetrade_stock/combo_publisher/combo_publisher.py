@@ -60,7 +60,8 @@ def publish_to_telegram(combo_text_ru, combo_text_en):
         markup_ru = telebot.types.InlineKeyboardMarkup()
         button1_ru = telebot.types.InlineKeyboardButton("🚀 ABT Miner", url="https://t.me/aibetradecombot")
         button2_ru = telebot.types.InlineKeyboardButton("💼 Амба", url="https://forms.gle/CuJJGWReWM8STR1S7")
-        markup_ru.add(button1_ru, button2_ru)
+        markup_ru.add(button1_ru)
+        markup_ru.add(button2_ru)
 
         with open(image_path_ru, 'rb') as photo_ru:
             bot.send_photo(chat_id_ru, photo_ru, caption=combo_text_ru, reply_markup=markup_ru, parse_mode='HTML')
@@ -69,7 +70,18 @@ def publish_to_telegram(combo_text_ru, combo_text_en):
         markup_en = telebot.types.InlineKeyboardMarkup()
         button1_en = telebot.types.InlineKeyboardButton("🚀 ABT Miner", url="https://t.me/aibetradecombot")
         button2_en = telebot.types.InlineKeyboardButton("💼 Be Ambas", url="https://forms.gle/2P3GwRaMWt1Q381A6")
-        markup_en.add(button1_en, button2_en)
+
+
+        button1 = telebot.types.InlineKeyboardButton("🎉", callback_data='celebrate')
+        button2 = telebot.types.InlineKeyboardButton("🔥", callback_data='fire')
+        button3 = telebot.types.InlineKeyboardButton("😎", callback_data='cool')
+        button4 = telebot.types.InlineKeyboardButton("😍", callback_data='love')
+        button5 = telebot.types.InlineKeyboardButton("🤩", callback_data='star')
+
+        # Добавление кнопок в одну строку
+        markup.add(button1, button2, button3, button4, button5)
+        markup_en.add(button1_en)
+        markup_en.add(button2_en)
 
         with open(image_path_en, 'rb') as photo_en:
             bot.send_photo(chat_id_en, photo_en, caption=combo_text_en, reply_markup=markup_en, parse_mode='HTML')
