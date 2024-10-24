@@ -86,18 +86,18 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
             }
 
 
-        url = f'{URL_BOT}{TELEGRAM_TOKEN}/sendPhoto'
+            url = f'{URL_BOT}{TELEGRAM_TOKEN}/sendPhoto'
 
-        # Открываем изображение и отправляем запрос на API Telegram
-        with open(image_path, 'rb') as image_file:
-            files = {'photo': image_file}
-            data = {
-                'chat_id': channel_id,
-                'caption': message_text,
-                'parse_mode': 'HTML',
-                'reply_markup': json.dumps(keyboard)  # Добавляем кнопки
-            }
-            response = requests.post(url, files=files, data=data)
+            # Открываем изображение и отправляем запрос на API Telegram
+            with open(image_path, 'rb') as image_file:
+                files = {'photo': image_file}
+                data = {
+                    'chat_id': channel_id,
+                    'caption': message_text,
+                    'parse_mode': 'HTML',
+                    'reply_markup': json.dumps(keyboard)  # Добавляем кнопки
+                }
+                response = requests.post(url, files=files, data=data)
 
         if response.status_code == 200:
             logger.info(f"Message sent to Telegram for strategy {strategy_name}.")
