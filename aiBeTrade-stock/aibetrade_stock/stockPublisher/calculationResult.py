@@ -7,6 +7,7 @@ import schedule
 import time
 import logging
 from pathlib import Path
+from datetime import datetime
 
 # Настройки логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -18,10 +19,9 @@ accounts = [
         "api_key": os.getenv('API_BYBIT_CR'),
         "api_secret": os.getenv('API_BYBIT_SEC_CR'),
         "strategy_id": "roman_strat",
-        "strategy_name": "ABT BITS PRO",
+        "strategy_name": "ABT BITS PRO_PAR",
         "start_deposit": 4920,  # Начальный депозит для первого аккаунта 
-        # "channel_id": '-1002247551722'  # ID Telegram @abtbits
-        "channel_id": os.getenv('ID_CH_CR_CONSTANTIN')  # ID Telegram канала для второго аккаунта
+        "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для первого аккаунта
     },
     {
         "api_key": os.getenv('API_BYBIT_CR_1'),
@@ -29,7 +29,7 @@ accounts = [
         "strategy_id": "constantin_strat",
         "strategy_name": "ABT BITS PRO_NOM",
         "start_deposit": 4050,  # Начальный депозит для второго аккаунта
-        "channel_id": os.getenv('ID_CH_CR_CONSTANTIN')  # ID Telegram канала для второго аккаунта
+        "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для второго аккаунта
     },
     {
         "api_key": os.getenv('API_BYBIT_CR_2'),
@@ -37,7 +37,7 @@ accounts = [
         "strategy_id": "news_strat",
         "strategy_name": "ABT BITS PRO_NEWS",
         "start_deposit": 2350,  # Начальный депозит для третьего аккаунта
-        "channel_id": os.getenv('ID_CH_CR_NEWS')  # ID Telegram канала для третьего аккаунта
+        "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для третьего аккаунта
     }
 ]
 
@@ -72,8 +72,8 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
         keyboard = {
             "inline_keyboard": [
                 [
-                    {"text": "🚀 Connect", "url": "https://t.me/aibetradecombot"},
-                    {"text": "🛠⁉️ Support", "url": "https://t.me/abtsupportbot"}
+                    {"text": "🚀 ABT Bits Pro Bot", "url": "https://t.me/aibetradecombot"},
+                    {"text": "🛠⁉️ ABT Support", "url": "https://t.me/abtsupportbot"}
                 ]
             ]
         }
@@ -151,21 +151,6 @@ def main_for_account(account):
     except Exception as e:
         logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
 
-# # Основная функция для запуска всех аккаунтов
-# def main():
-#     for account in accounts:
-#         main_for_account(account)
-
-# # Планирование задачи на 8 утра каждый день
-# schedule.every().day.at("08:00").do(main)
-
-# # Бесконечный цикл для планирования задач
-# while True:
-#     schedule.run_pending()
-#     time.sleep(60)  # Проверяем задачи каждую минуту
-
-
-# Это убрать
 # Планирование выполнения задачи каждые 60 минут
 def main():
     for account in accounts:
