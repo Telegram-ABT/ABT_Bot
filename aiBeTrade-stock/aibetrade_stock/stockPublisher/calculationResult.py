@@ -254,30 +254,28 @@ def main_for_account(account):
     except Exception as e:
         logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
 
-# # Планирование выполнения задачи каждые 60 минут
-def main():
-    for account in accounts:
-        main_for_account(account)
+# Функция для ожидания до 9 утра
+def wait_until_9am():
+    now = datetime.now()
+    target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
 
-# schedule.every(60).minutes.do(main)
+    # Если текущее время уже прошло 9:00, ждем до 9 утра следующего дня
+    if now > target_time:
+        target_time += timedelta(days=1)
 
-# # Выполняем основную функцию
-# main()
+    # Вычисляем, сколько времени осталось до 9 утра
+    time_to_wait = (target_time - now).total_seconds()
+    logger.info(f"Waiting until 9 AM. Time to wait: {time_to_wait // 3600} hours and {(time_to_wait % 3600) // 60} minutes")
+    
+    time.sleep(time_to_wait)
 
-# # Бесконечный цикл для планирования задач
-# while True:
-#     schedule.run_pending()
-#     time.sleep(60)  # Проверяем задачи каждую минуту
+# Основной код, который будет выполнен только в 9 утра
+if __name__ == "__main__":
+    while True:
+        # Ждем до 9 утра
+        wait_until_9am()
 
+        # Запускаем основную задачу
+        main()
 
-
-# Планирование выполнения задачи в 9 утра каждый день
-schedule.every().day.at("09:00").do(main)
-
-# Выполняем основную функцию
-main()
-
-# Бесконечный цикл для планирования задач
-while True:
-    schedule.run_pending()
-    time.sleep(60)  # Проверяем задачи каждую минуту
+        # После выполнения основной задачи ждем до следующего 9 утра
