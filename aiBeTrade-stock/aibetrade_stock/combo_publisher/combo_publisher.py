@@ -59,7 +59,7 @@ def publish_to_telegram(combo_text_ru, combo_text_en):
         # Публикация русского поста с картинкой
         markup_ru = telebot.types.InlineKeyboardMarkup()
         button1_ru = telebot.types.InlineKeyboardButton("🚀 ABT Miner", url="https://t.me/aibetradecombot")
-        button2_ru = telebot.types.InlineKeyboardButton("💼 Амбассадорство", url="https://forms.gle/CuJJGWReWM8STR1S7")
+        button2_ru = telebot.types.InlineKeyboardButton("💼 Амба", url="https://forms.gle/CuJJGWReWM8STR1S7")
         markup_ru.add(button1_ru, button2_ru)
 
         with open(image_path_ru, 'rb') as photo_ru:
@@ -68,7 +68,7 @@ def publish_to_telegram(combo_text_ru, combo_text_en):
         # Публикация английского поста с картинкой
         markup_en = telebot.types.InlineKeyboardMarkup()
         button1_en = telebot.types.InlineKeyboardButton("🚀 ABT Miner", url="https://t.me/aibetradecombot")
-        button2_en = telebot.types.InlineKeyboardButton("💼 Be Ambassador", url="https://forms.gle/2P3GwRaMWt1Q381A6")
+        button2_en = telebot.types.InlineKeyboardButton("💼 Be Ambas", url="https://forms.gle/2P3GwRaMWt1Q381A6")
         markup_en.add(button1_en, button2_en)
 
         with open(image_path_en, 'rb') as photo_en:
