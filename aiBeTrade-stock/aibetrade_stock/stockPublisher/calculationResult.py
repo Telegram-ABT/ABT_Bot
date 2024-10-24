@@ -10,7 +10,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Настройки логирования
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levellevel)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 # Настройки для каждого аккаунта
@@ -47,6 +47,7 @@ TELEGRAM_TOKEN = os.getenv('API_BOT_CR')  # Токен вашего Telegram б�
 
 # Функция для публикации в Telegram через запрос к API
 def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name, channel_id):
+    response = None  # Инициализируем переменную response заранее
     try:
         # Определяем картинку и текст
         if is_successful:
@@ -68,36 +69,33 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
                 f"Number of Trading Days: <b>{days}</b>"
             )
 
-        # Добавляем кнопки с ссылками, каждая кнопка на новой строке
-            keyboard = {
-                "inline_keyboard": [
-                    # Сначала добавляем кнопки с эмоджи на одной строке
-                    [
-                        {"text": "🎉", "callback_data": "celebrate"},
-                        {"text": "🔥", "callback_data": "fire"},
-                        {"text": "😎", "callback_data": "cool"},
-                        {"text": "😍", "callback_data": "love"},
-                        {"text": "🤩", "callback_data": "star"}
-                    ],
-                    # Затем добавляем кнопки с ссылками, каждая на отдельной строке
-                    [{"text": "🚀 ABT Bits Pro Bot", "url": "https://t.me/aibetradecombot"}],
-                    [{"text": "🛠⁉️ ABT Support", "url": "https://t.me/abtsupportbot"}]
-                ]
+        # Добавляем кнопки с эмоджи и ссылками
+        keyboard = {
+            "inline_keyboard": [
+                [
+                    {"text": "🎉", "callback_data": "celebrate"},
+                    {"text": "🔥", "callback_data": "fire"},
+                    {"text": "😎", "callback_data": "cool"},
+                    {"text": "😍", "callback_data": "love"},
+                    {"text": "🤩", "callback_data": "star"}
+                ],
+                [{"text": "🚀 ABT Bits Pro Bot", "url": "https://t.me/aibetradecombot"}],
+                [{"text": "🛠⁉️ ABT Support", "url": "https://t.me/abtsupportbot"}]
+            ]
+        }
+
+        url = f'{URL_BOT}{TELEGRAM_TOKEN}/sendPhoto'
+
+        # Открываем изображение и отправляем запрос на API Telegram
+        with open(image_path, 'rb') as image_file:
+            files = {'photo': image_file}
+            data = {
+                'chat_id': channel_id,
+                'caption': message_text,
+                'parse_mode': 'HTML',
+                'reply_markup': json.dumps(keyboard)  # Добавляем кнопки
             }
-
-
-            url = f'{URL_BOT}{TELEGRAM_TOKEN}/sendPhoto'
-
-            # Открываем изображение и отправляем запрос на API Telegram
-            with open(image_path, 'rb') as image_file:
-                files = {'photo': image_file}
-                data = {
-                    'chat_id': channel_id,
-                    'caption': message_text,
-                    'parse_mode': 'HTML',
-                    'reply_markup': json.dumps(keyboard)  # Добавляем кнопки
-                }
-                response = requests.post(url, files=files, data=data)
+            response = requests.post(url, files=files, data=data)
 
         if response.status_code == 200:
             logger.info(f"Message sent to Telegram for strategy {strategy_name}.")
