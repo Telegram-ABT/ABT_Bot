@@ -21,7 +21,7 @@ accounts = [
         "strategy_id": "roman_strat",
         "strategy_name": "ABT BITS PRO_PAR",
         "start_deposit": 4950,  # Начальный депозит для первого аккаунта
-        "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для первого аккаунта
+        "channel_id": '-1002247551722'  # ID Telegram @abtbits
     },
     {
         "api_key": os.getenv('API_BYBIT_CR_1'),
@@ -254,12 +254,25 @@ def main_for_account(account):
     except Exception as e:
         logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
 
-# Планирование выполнения задачи каждые 60 минут
+# # Планирование выполнения задачи каждые 60 минут
 def main():
     for account in accounts:
         main_for_account(account)
 
-schedule.every(60).minutes.do(main)
+# schedule.every(60).minutes.do(main)
+
+# # Выполняем основную функцию
+# main()
+
+# # Бесконечный цикл для планирования задач
+# while True:
+#     schedule.run_pending()
+#     time.sleep(60)  # Проверяем задачи каждую минуту
+
+
+
+# Планирование выполнения задачи в 9 утра каждый день
+schedule.every().day.at("09:00").do(main)
 
 # Выполняем основную функцию
 main()
