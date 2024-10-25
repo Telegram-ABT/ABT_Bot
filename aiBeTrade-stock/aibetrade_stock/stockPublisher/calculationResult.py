@@ -254,6 +254,11 @@ def main_for_account(account):
     except Exception as e:
         logger.error(f"Error in Bybit API session for {account['strategy_name']}: {e}")
 
+# Основная функция для выполнения всех операций для каждого аккаунта
+def main():
+    for account in accounts:
+        main_for_account(account)
+
 # Функция для ожидания до 9 утра
 def wait_until_9am():
     now = datetime.now()
@@ -277,5 +282,4 @@ if __name__ == "__main__":
 
         # Запускаем основную задачу
         main()
-
         # После выполнения основной задачи ждем до следующего 9 утра
