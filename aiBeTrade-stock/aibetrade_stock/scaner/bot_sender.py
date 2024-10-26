@@ -81,9 +81,7 @@ async def process_scanercall_records():
                print(f"Сообщение будет отправлено пользователю {user_id}: {gpt_response} и запись обновлена.")
                
                user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
-               await client.send_message(user_entity, gpt_response, record["_id"])
-
-              #await send_message(user_id, gpt_response, record["_id"])
+               await client.send_message(user_entity, gpt_response, id_chat)
  
                 # Обновляем запись в MongoDB
                scanercall_collection.update_one(
@@ -183,7 +181,7 @@ async def handle_incoming_message(event):
 
         # # Отправляем ответ пользователю в Telegram
         user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
-        await client.send_message(user_entity, gpt_response)
+        await client.send_message(user_entity, gpt_response, id_chat)
         print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
     else:
         print(f"Не удалось получить ответ от ChatGPT для пользователя {user_id}.")
