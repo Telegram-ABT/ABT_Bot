@@ -8,10 +8,10 @@ import os
 
 # Настройки для ChatGPT API
 key = os.environ.get('OPENAI_API_KEY')
-openai.api_key = key
+openai.api_key = key # Не заню сработает или нет
 
 # Настройки MongoDB
-mongo_url = os.getenv('MONGO_URL')
+mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 scanercall_collection = db["scanercall"]
@@ -20,7 +20,7 @@ scanersettings_collection = db["scanersettings"]
 # Настройки для клиента Telethon
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
-USER_PHONE = os.getenv('USER_PHONE')
+USER_PHONE = os.getenv('USER_PHONE') # Номер телефона для сеанса пользователя
 
 # Инициализация клиента Telethon
 client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
@@ -100,10 +100,7 @@ async def process_scanercall_records():
 # Функция для отправки сообщения пользователю через Telegram клиент
 async def send_message(user_id, message_text, record_id):
     try:
-        # Явно получаем entity пользователя
-        user_entity = await client.get_entity(user_id)
-        
-        await client.send_message(user_entity, message_text)
+        await client.send_message(user_id, message_text)
         print(f"Сообщение для {user_id}: {message_text}")
         time.sleep(1)  # Задержка для предотвращения спама
 
@@ -174,8 +171,7 @@ async def handle_incoming_message(event):
         )
 
         # Отправляем ответ пользователю в Telegram
-        user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
-        await client.send_message(user_entity, gpt_response)
+        await client.send_message(user_id, gpt_response)
         print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
     else:
         print(f"Не удалось получить ответ от ChatGPT для пользователя {user_id}.")
