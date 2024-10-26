@@ -1,3 +1,4 @@
+import os
 from telethon import TelegramClient, events
 from pymongo import MongoClient
 from datetime import datetime
