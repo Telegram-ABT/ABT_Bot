@@ -23,7 +23,7 @@ API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
 
 # Инициализация клиента Telethon
-client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
+client = TelegramClient('session_name2', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
@@ -172,6 +172,7 @@ async def handle_incoming_message(event):
             {"_id": record["_id"]},
             {"$set": {"dialogues": updated_dialogues}}
         )
+        print(f"Ответ будет отправлен пользователю {user_id}: {updated_dialogues}")
 
         # Отправляем ответ пользователю в Telegram
         user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
