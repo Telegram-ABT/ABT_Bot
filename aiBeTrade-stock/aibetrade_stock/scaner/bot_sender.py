@@ -7,7 +7,8 @@ import time
 import os
 
 # Настройки для ChatGPT API
-openai.api_key = os.getenv('OPENAI_API_KEY')
+key = os.environ.get('OPENAI_API_KEY')
+openai.api_key = key
 
 # Настройки MongoDB
 mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
