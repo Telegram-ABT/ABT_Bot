@@ -77,9 +77,16 @@ async def process_scanercall_records():
 
         if gpt_response:
             try:
-                await send_message(user_id, gpt_response, record["_id"])
+                 
+               print(f"Сообщение будет отправлено пользователю {user_id}: {gpt_response} и запись обновлена.")
+               
+               user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
+               await client.send_message(user_entity, gpt_response, record["_id"])
+
+              #await send_message(user_id, gpt_response, record["_id"])
+ 
                 # Обновляем запись в MongoDB
-                scanercall_collection.update_one(
+               scanercall_collection.update_one(
                     {"_id": record["_id"]},
                     {
                         "$set": {
@@ -88,7 +95,7 @@ async def process_scanercall_records():
                         }
                     }
                 )
-                print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
+               print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
             except Exception as e:
                 print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
                 continue
@@ -174,7 +181,7 @@ async def handle_incoming_message(event):
         )
         print(f"Ответ будет отправлен пользователю {user_id}: {updated_dialogues}")
 
-        # Отправляем ответ пользователю в Telegram
+        # # Отправляем ответ пользователю в Telegram
         user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
         await client.send_message(user_entity, gpt_response)
         print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
