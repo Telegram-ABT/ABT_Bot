@@ -8,11 +8,12 @@ import os
 import signal
 
 # Укажите токен вашего бота
-TOKEN = '7676701889:AAGaynGf_PiyMg_r401DaZfALzeSH86qg2Y'
+TOKEN = os.getenv('TOKEN_BOT_SCANER')
 bot = telebot.TeleBot(TOKEN)
 
 # Подключение к MongoDB
-client = MongoClient("mongodb://localhost:27017/")
+mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
+client = MongoClient(mongo_url)
 db = client["nntcapital"]
 collection = db["support"]
 scanerchats_collection = db["scanerchats"]

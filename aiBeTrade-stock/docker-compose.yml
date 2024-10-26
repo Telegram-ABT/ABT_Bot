@@ -278,6 +278,22 @@ services:
       - API_BOT_CR=${API_BOT_CR}
       - ID_CH_CR=${ID_CH_CR}
       - MONGO_URL=${MONGO_URL}
+  scaner:
+    image: scaner
+    volumes:
+      - ./aibetrade_stock/scaner:/app
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/scaner/
+      dockerfile: DockerFile.app.scaner
+    environment:
+      - TOKEN_BOT_SCANER=${TOKEN_BOT_SCANER}
+      - MONGO_URL=${MONGO_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_ID=${API_ID}
+      - API_HASH=${API_HASH}
+      - OPENAI_API_KEY=${API_ID}
+      - USER_PHONE=${USER_PHONE}
 
 volumes:
   habrdb-data:
