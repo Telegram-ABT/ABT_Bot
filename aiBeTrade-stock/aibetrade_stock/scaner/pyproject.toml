@@ -21,7 +21,7 @@ pyTelegramBotAPI = "^4.23.0"
 psutil = "^6.1.0"
 
 
-openai = "^1.52.2"
+openai = "^0.28"
 
 
 [build-system]
