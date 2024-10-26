@@ -116,7 +116,8 @@ def check_ref(msg:Message):
         'HAMSTER' in text or 'BIO' in text or 'bio' in text or 'AlRDR0P' in text or 
         'airfrop' in text or '❗️❗️❗️❗️❗️❗️❗️❗️' in text or '👍👍👍👍' in text or 
         'Click To Claim' in text or 'AIRDOP' in text or '🆕🆕🆕🆕' in text or 
-        '$DОGS' in text or 'JetTon' in text or 'NOTCOIN' in text or 'Empire' in text or 'EMPIRE' in text
+        '$DОGS' in text or 'JetTon' in text or 'NOTCOIN' in text or 'Empire' in text or 'EMPIRE' in text or
+        '@TON' in text
     ):        # Проверяем отсутствие aibetrade
             return True
     return False
