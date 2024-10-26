@@ -19,7 +19,7 @@ telebot = "^0.0.5"
 pymongo = "^4.10.1"
 pyTelegramBotAPI = "^4.23.0"
 psutil = "^6.1.0"
-subprocess = "^32 3.5.4"
+
 
 openai = "^1.52.2"
 
