@@ -289,7 +289,7 @@ services:
     environment:
       - TOKEN_BOT_SCANER=${TOKEN_BOT_SCANER}
       - MONGO_URL=${MONGO_URL}
-      - OPENAI_API_KEY_SCANER=${OPENAI_API_KEY_SCANER}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - USER_PHONE=${USER_PHONE}
