@@ -293,7 +293,7 @@ services:
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - USER_PHONE=${USER_PHONE}
-
+# Надо проверить обновление композера
 volumes:
   habrdb-data:
   pgadmin-data:
