@@ -1,11 +1,7 @@
 from openai import OpenAI
 from pymongo import MongoClient
-from telethon import events
-from telethon.errors import RPCError
-from datetime import datetime
-import time
 import os
-from bot_support import telethon_client as client  # Импортируем клиент из bot_support
+from bot_support import send_telegram_message  # Импортируем функцию отправки сообщений
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -18,14 +14,6 @@ db = mongo_client["nntcapital"]
 scanercall_collection = db["scanercall"]
 scanersettings_collection = db["scanersettings"]
 
-# # Настройки для клиента Telethon
-# API_ID = os.getenv('API_ID')
-# API_HASH = os.getenv('API_HASH')
-# USER_PHONE = os.getenv('USER_PHONE')
-
-# # Инициализация клиента Telethon
-# client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
-client.get_dialogs()
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
@@ -46,7 +34,7 @@ async def process_scanercall_records():
     print("Запуск скрипта обработки записей")
     records = scanercall_collection.find({"firstcall": False})
     for record in records:
-        print(f"\nПоучена запись: {record}")
+        print(f"\nПолучена запись: {record}")
         
         user_id = record["user_id"]
         id_chat = record["id_chat"]
@@ -78,14 +66,11 @@ async def process_scanercall_records():
 
         if gpt_response:
             try:
-                 
-               print(f"Сообщение будет отправлено пользователю {user_id}: {gpt_response} и запись обновлена.")
-               
-               user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
-               await client.send_message(user_entity, gpt_response, id_chat)
- 
+                print(f"Сообщение будет отправлено пользователю {user_id}: {gpt_response} и запись обновлена.")
+                await send_telegram_message(user_id, gpt_response)  # Используем функцию из bot_support
+
                 # Обновляем запись в MongoDB
-               scanercall_collection.update_one(
+                scanercall_collection.update_one(
                     {"_id": record["_id"]},
                     {
                         "$set": {
@@ -94,7 +79,7 @@ async def process_scanercall_records():
                         }
                     }
                 )
-               print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
+                print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
             except Exception as e:
                 print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
                 continue
@@ -103,102 +88,11 @@ async def process_scanercall_records():
 
     print("Завершение скрипта")
 
-# Функция для отправки сообщения пользователю через Telegram клиент
-async def send_message(user_id, message_text, record_id):
-    try:
-        # Явно получаем entity пользователя
-        user_entity = await client.get_entity(user_id)
-        
-        await client.send_message(user_entity, message_text)
-        print(f"Сообщение для {user_id}: {message_text}")
-        time.sleep(1)  # Задержка для предотвращения спама
-
-        # Обновляем запись в MongoDB, если отправка успешна
-        scanercall_collection.update_one(
-            {"_id": record_id},
-            {"$set": {"result_call": True}}
-        )
-    except RPCError as e:
-        print(f"Ошибка при отправке сообщения: {e}")
-
-        # Обновляем запись в MongoDB, если произошла ошибка отправки
-        scanercall_collection.update_one(
-            {"_id": record_id},
-            {"$set": {"result_call": False}}
-        )
-
-# Обработчик входящих сообщений
-@client.on(events.NewMessage)
-async def handle_incoming_message(event):
-    user_id = event.sender_id
-    user_message = event.raw_text
-    print(f"Получено новое сообщение от пользователя {user_id}: {user_message}")
-
-    # Ищем запись в MongoDB по user_id
-    record = scanercall_collection.find_one({"user_id": user_id})
-    if not record:
-        print(f"Запись для пользователя {user_id} не найдена. Никаких действий не требуется.")
-        return
-
-    # Обновляем поле dialogues, добавляя новый ответ пользователя
-    updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {user_message}"
-    scanercall_collection.update_one(
-        {"_id": record["_id"]},
-        {"$set": {"dialogues": updated_dialogues}}
-    )
-
-    # Формируем текст для ChatGPT
-    id_chat = record["id_chat"]
-    chat_name = record.get("chat_name", "Личные сообщения")
-    chat_discr = record.get("chat_discr", "Личные сообщения")
-    firstcalltext = record.get("firstcalltext", "")
-    texts_message = record.get("texts_message", "")
-
-    # Получаем promt из таблицы scanersettings
-    settings = scanersettings_collection.find_one({"id_chat": id_chat})
-    if settings:
-        promt = settings.get("promt", "")
-    else:
-        print(f"Настройки для чата {id_chat} не найдены. Пропуск обработки.")
-        return
-
-    chatgpt_text = (
-        f"Ранее у нас была совместная переписка в одном из чатов '{chat_name}', "
-        f"чат про '{chat_discr}'. Диалоги пользователя: {texts_message}. "
-        f"Я ему написал: '{firstcalltext}', и он мне ответил: '{updated_dialogues}'. "
-        f"Продолжи диалог с пользователем."
-    )
-
-    # Отправляем текст в ChatGPT
-    gpt_response = send_to_chatgpt(promt, chatgpt_text)
-    if gpt_response:
-        # Обновляем поле dialogues, до��авляя ответ от ChatGPT
-        updated_dialogues += f"\nЯ ответил пользователю: {gpt_response}"
-        scanercall_collection.update_one(
-            {"_id": record["_id"]},
-            {"$set": {"dialogues": updated_dialogues}}
-        )
-        print(f"Ответ будет отправлен пользователю {user_id}: {updated_dialogues}")
-
-        try:
-            # Пытаемся отправить сообщение напрямую, используя event
-            await event.reply(gpt_response)
-            print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
-        except Exception as e:
-            print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
-            try:
-                # Если не удалось отправить через event, пробуем через client.send_message
-                await client.send_message(user_id, gpt_response)
-                print(f"Ответ отправлен пользователю {user_id} через client.send_message: {gpt_response}")
-            except Exception as e2:
-                print(f"Не удалось отправить сообщение пользователю {user_id}: {e2}")
-    else:
-        print(f"Не удалось получить ответ от ChatGPT для пользователя {user_id}.")
-
-# Запуск клиента и основной функции
+# Запуск основной функции
 async def main():
-    print("Телеграм-сессия запущена для рассылки...")
     await process_scanercall_records()
-    await client.run_until_disconnected()
 
-client.loop.run_until_complete(main())
+# Вызов основной функции
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
