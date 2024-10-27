@@ -51,13 +51,13 @@ def stop_script(pid):
 # Функция для создания inline-кнопок главного меню
 def create_main_menu():
     markup = types.InlineKeyboardMarkup()
-    scaner_status = "Сканер"
-    sender_status = "Рассылка" 
+    scaner_status = "Scaner"
+    sender_status = "Assistent" 
     buttons = [
         types.InlineKeyboardButton(scaner_status, callback_data="scaner_status"),
-        types.InlineKeyboardButton("База рассылки", callback_data="2"),
+        types.InlineKeyboardButton("Contact list", callback_data="2"),
         types.InlineKeyboardButton(sender_status, callback_data="sender_status"),
-        types.InlineKeyboardButton("Настройки", callback_data="4")
+        types.InlineKeyboardButton("Settings", callback_data="4")
     ]
     markup.add(buttons[0], buttons[1])
     markup.add(buttons[2], buttons[3])
