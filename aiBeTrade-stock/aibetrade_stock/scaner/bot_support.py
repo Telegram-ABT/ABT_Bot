@@ -305,6 +305,7 @@ def handle_text_input(message):
         # Запрашиваем описание чата или канала
         bot.send_message(user_id, "Введите описание чата или канала.")
         user_state[user_id]["awaiting_chat_discr"] = id_chat
+        user_state[user_id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
 
     elif state and state.get("awaiting_chat_discr"):
         # Получаем id_chat и описание чата от пользователя
