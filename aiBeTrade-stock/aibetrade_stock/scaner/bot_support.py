@@ -32,11 +32,11 @@ def is_scaner_running():
             return proc.info['pid']
     return None
 
-# Проверка, запущен ли скрипт bot_sender.py
+# Проверка, запущен ли скрипт bot_assistent.py
 def is_sender_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         cmdline = proc.info['cmdline']
-        if cmdline and "bot_sender.py" in cmdline:
+        if cmdline and "bot_assistent.py" in cmdline:
             return proc.info['pid']
     return None
 
@@ -185,7 +185,7 @@ def handle_query(call):
             reply_markup=create_main_menu()
         )
     elif button_id == "start_sender":
-        start_script("bot_sender.py")
+        start_script("bot_assistent.py")
         bot.send_message(
             call.message.chat.id,
             "Сервис успешно запущен.",
@@ -210,7 +210,7 @@ def handle_query(call):
         pid = is_sender_running()
         if pid:
             stop_script(pid)
-        start_script("bot_sender.py")
+        start_script("bot_assistent.py")
         bot.send_message(
             call.message.chat.id,
             "Сервис успешно перезапущен.",
