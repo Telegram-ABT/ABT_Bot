@@ -6,10 +6,19 @@ import psutil
 import subprocess
 import os
 import signal
+from telethon import TelegramClient
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
 bot = telebot.TeleBot(TOKEN)
+
+# Настройки для клиента Telethon
+API_ID = os.getenv('API_ID')
+API_HASH = os.getenv('API_HASH')
+USER_PHONE = os.getenv('USER_PHONE')
+
+# Инициализация клиента Telethon
+client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
@@ -318,6 +327,9 @@ def clear_scanercall(chat_id):
         "Удаление данных прошло успешно",
         reply_markup=create_main_menu()
     )
+
+# Запуск клиента Telethon при старте скрипта
+client.start(phone=USER_PHONE)
 
 # Запуск бота
 bot.polling(none_stop=True)

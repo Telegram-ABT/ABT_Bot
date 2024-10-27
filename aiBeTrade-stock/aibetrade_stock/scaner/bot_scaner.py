@@ -1,26 +1,17 @@
 import os
-from telethon import TelegramClient, events
+from telethon import events
 from pymongo import MongoClient
 from datetime import datetime
-from bot_support import client
+from bot_support import client  # Импортируем клиент из bot_support
 
-# Конфигурация Telegram и MongoDB
-API_ID = os.getenv('API_ID')
-API_HASH = os.getenv('API_HASH')
-USER_PHONE = os.getenv('USER_PHONE') # Номер телефона для сеанса пользователя
-
-# Инициализация клиента Telethon
-# client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
-
-# Подключение к MongoDB
-mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
+# Конфигурация MongoDB
+mongo_url = os.getenv('MONGO_URL')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 collection_scaner_dialog = db["scanerdialog"]
 collection_scaner_chats = db["scanerchats"]
 
 async def main():
-    await client.start(USER_PHONE)
     print("Телеграм-сессия запущена и прослушивает сообщения...")
 
     # Получение ID текущего пользователя
@@ -79,6 +70,5 @@ async def main():
     # Бесконечный цикл для прослушивания сообщений
     await client.run_until_disconnected()
 
-# Запуск клиента и вызов основной функции
-with client:
-    client.loop.run_until_complete(main())
+# Запуск основной функции
+client.loop.run_until_complete(main())

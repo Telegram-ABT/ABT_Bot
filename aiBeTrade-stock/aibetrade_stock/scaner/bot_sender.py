@@ -1,11 +1,11 @@
 from openai import OpenAI
 from pymongo import MongoClient
-from telethon import TelegramClient, events
+from telethon import events
 from telethon.errors import RPCError
 from datetime import datetime
 import time
 import os
-from bot_support import client
+from bot_support import client  # Импортируем клиент из bot_support
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -46,7 +46,7 @@ async def process_scanercall_records():
     print("Запуск скрипта обработки записей")
     records = scanercall_collection.find({"firstcall": False})
     for record in records:
-        print(f"\nПо��учена запись: {record}")
+        print(f"\nПоучена запись: {record}")
         
         user_id = record["user_id"]
         id_chat = record["id_chat"]
@@ -197,7 +197,7 @@ async def handle_incoming_message(event):
 
 # Запуск клиента и основной функции
 async def main():
-    await client.start()
+    print("Телеграм-сессия запущена для рассылки...")
     await process_scanercall_records()
     await client.run_until_disconnected()
 
