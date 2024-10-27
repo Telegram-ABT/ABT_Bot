@@ -56,7 +56,11 @@ async def handle_incoming_message(event):
     chat_name = None
     try:
         chat = await event.get_chat()
-        chat_name = chat.title if hasattr(chat, 'title') else "Личные сообщения"
+        if hasattr(chat, 'title'):
+            chat_name = chat.title
+        else:
+            # Если это личное сообщение, используем имя пользователя
+            chat_name = user_name
     except Exception as e:
         print(f"Ошибка при получении названия чата: {e}")
 
@@ -134,7 +138,7 @@ async def handle_incoming_message(event):
             )
             print(f"Ответ будет отправлен пользователю {from_user_id}: {updated_dialogues}")
 
-            # Отправляем ответ пользователю в Telegram
+            # Отправляем ответ поль��ователю в Telegram
             user_entity = await client.get_entity(from_user_id)
             await client.send_message(user_entity, gpt_response)
             print(f"Ответ отправлен пользователю {from_user_id}: {gpt_response}")
@@ -174,7 +178,7 @@ async def process_scanercall_records():
         )
         print(f"Сформирован текст для отправки: {alltext}")
 
-        # Отправка текста в ChatGPT
+        # Отпр��вка текста в ChatGPT
         print("Отправка запроса в ChatGPT")
         gpt_response = send_to_chatgpt(alltext, texts_message)
 
@@ -197,14 +201,14 @@ async def process_scanercall_records():
                 )
                 print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
             except Exception as e:
-                print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                print(f"Ошибка при отправке ��ообщения пользователю {user_id}: {e}")
                 continue
         else:
             print(f"Ответ от ChatGPT: {gpt_response}. Переход к следующей записи.")
 
     print("Завершение скрипта")
 
-# Запуск кл��ента и основной функции
+# Запуск клиента и основной функции
 async def main():
     await client.start(USER_PHONE)
     await process_scanercall_records()
