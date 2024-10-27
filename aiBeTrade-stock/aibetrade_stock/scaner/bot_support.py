@@ -12,7 +12,7 @@ TOKEN = os.getenv('TOKEN_BOT_SCANER')
 bot = telebot.TeleBot(TOKEN)
 
 # Подключение к MongoDB
-mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
+mongo_url = os.getenv('MONGO_URL_SERV')  # Замените на URL MongoDB сервера
 client = MongoClient(mongo_url)
 db = client["nntcapital"]
 collection = db["support"]
