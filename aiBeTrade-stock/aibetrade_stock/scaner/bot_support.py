@@ -18,12 +18,12 @@ API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
 
 # Инициализация клиента Telethon
-client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
+telethon_client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера
-client = MongoClient(mongo_url)
-db = client["nntcapital"]
+mongo_client = MongoClient(mongo_url)
+db = mongo_client["nntcapital"]
 collection = db["support"]
 scanerchats_collection = db["scanerchats"]
 scanerdialog_collection = db["scanerdialog"]
@@ -324,12 +324,12 @@ def clear_scanercall(chat_id):
     scanercall_collection.delete_many({})
     bot.send_message(
         chat_id,
-        "Удаление данных прошло успешно",
+        "Уда��ение данных прошло успешно",
         reply_markup=create_main_menu()
     )
 
 # Запуск клиента Telethon при старте скрипта
-client.start()
+telethon_client.start(phone=USER_PHONE)
 
 # Запуск бота
 bot.polling(none_stop=True)

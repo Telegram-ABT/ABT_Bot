@@ -2,7 +2,7 @@ import os
 from telethon import events
 from pymongo import MongoClient
 from datetime import datetime
-from bot_support import client  # Импортируем клиент из bot_support
+from bot_support import telethon_client as client  # Импортируем клиент из bot_support
 
 # Конфигурация MongoDB
 mongo_url = os.getenv('MONGO_URL')

@@ -5,7 +5,7 @@ from telethon.errors import RPCError
 from datetime import datetime
 import time
 import os
-from bot_support import client  # Импортируем клиент из bot_support
+from bot_support import telethon_client as client  # Импортируем клиент из bot_support
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -172,7 +172,7 @@ async def handle_incoming_message(event):
     # Отправляем текст в ChatGPT
     gpt_response = send_to_chatgpt(promt, chatgpt_text)
     if gpt_response:
-        # Обновляем поле dialogues, добавляя ответ от ChatGPT
+        # Обновляем поле dialogues, до��авляя ответ от ChatGPT
         updated_dialogues += f"\nЯ ответил пользователю: {gpt_response}"
         scanercall_collection.update_one(
             {"_id": record["_id"]},
