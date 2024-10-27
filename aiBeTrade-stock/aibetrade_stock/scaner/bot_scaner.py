@@ -2,6 +2,7 @@ import os
 from telethon import TelegramClient, events
 from pymongo import MongoClient
 from datetime import datetime
+from bot_support import client
 
 # Конфигурация Telegram и MongoDB
 API_ID = os.getenv('API_ID')
@@ -9,7 +10,7 @@ API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE') # Номер телефона для сеанса пользователя
 
 # Инициализация клиента Telethon
-client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
+# client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL')  # Замените на URL MongoDB сервера

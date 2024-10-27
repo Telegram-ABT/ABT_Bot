@@ -5,6 +5,7 @@ from telethon.errors import RPCError
 from datetime import datetime
 import time
 import os
+from bot_support import client
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -17,13 +18,13 @@ db = mongo_client["nntcapital"]
 scanercall_collection = db["scanercall"]
 scanersettings_collection = db["scanersettings"]
 
-# Настройки для клиента Telethon
-API_ID = os.getenv('API_ID')
-API_HASH = os.getenv('API_HASH')
-USER_PHONE = os.getenv('USER_PHONE')
+# # Настройки для клиента Telethon
+# API_ID = os.getenv('API_ID')
+# API_HASH = os.getenv('API_HASH')
+# USER_PHONE = os.getenv('USER_PHONE')
 
-# Инициализация клиента Telethon
-client = TelegramClient('session_name2', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
+# # Инициализация клиента Telethon
+# client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 client.get_dialogs()
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
@@ -196,7 +197,7 @@ async def handle_incoming_message(event):
 
 # Запуск клиента и основной функции
 async def main():
-    await client.start(USER_PHONE)
+    await client.start()
     await process_scanercall_records()
     await client.run_until_disconnected()
 
