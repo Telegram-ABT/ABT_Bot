@@ -12,7 +12,7 @@ USER_PHONE = os.getenv('USER_PHONE') # Номер телефона для сеа
 client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Подключение к MongoDB
-mongo_url =  "mongodb://Admin:Y@ki22067600132024@159.223.5.4:27017/admin" # Замените на URL MongoDB сервера
+mongo_url = os.getenv('MONGO_URL_SERV')  # Замените на URL MongoDB сервера
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 collection_scaner_dialog = db["scanerdialog"]

@@ -11,9 +11,7 @@ key = os.environ.get('OPENAI_API_KEY')
 openai.api_key = key
 
 # Настройки MongoDB
-# mongo_url = os.getenv('MONGO_URL_SERV')
-mongo_url =  "mongodb://Admin:Y@ki22067600132024@159.223.5.4:27017/admin" # Замените на URL MongoDB сервера
-
+mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 scanercall_collection = db["scanercall"]
