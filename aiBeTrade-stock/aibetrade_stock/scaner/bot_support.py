@@ -243,11 +243,8 @@ def handle_query(call):
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
-    # scanercall_collection.delete_many({})
-
-    chat_info = scanerchats_collection.find_one({"chat_id": selected_chat_id}, {"chat_name": 1, "chat_discr": 1})
+    chat_info = scanerchats_collection.find_one({"chat_id": selected_chat_id}, {"chat_name": 1})
     chat_name = chat_info.get("chat_name", "Неизвестный чат") if chat_info else "Неизвестный чат"
-    chat_discr = chat_info.get("chat_discr", "") if chat_info else ""
 
     pipeline = [
         {"$match": {"id_chat": selected_chat_id}},
@@ -269,7 +266,6 @@ def handle_database_formation(chat_id, selected_chat_id):
             "texts_message": " ".join(result["texts_message"]),
             "chat_name": chat_name,
             "id_chat": selected_chat_id,
-            "chat_discr": chat_discr,
             "firstcall": False
         })
 
@@ -306,9 +302,25 @@ def handle_text_input(message):
             upsert=True
         )
 
-        # Подтверждаем сохранение промта и сбрасываем состояние
-        bot.send_message(user_id, "Ваш ПРОМТ успешно сохранен.", reply_markup=create_main_menu())
-        user_state[user_id]["awaiting_promt"] = None
+        # Запрашиваем описание чата или канала
+        bot.send_message(user_id, "Введите описание чата или канала.")
+        user_state[user_id]["awaiting_chat_discr"] = id_chat
+
+    elif state and state.get("awaiting_chat_discr"):
+        # Получаем id_chat и описание чата от пользователя
+        id_chat = state["awaiting_chat_discr"]
+        chat_discr = message.text
+
+        # Сохраняем или обновляем chat_discr в scanersettings
+        scanersettings_collection.update_one(
+            {"id_chat": id_chat},
+            {"$set": {"chat_discr": chat_discr}},
+            upsert=True
+        )
+
+        # Подтверждаем сохранение описания и сбрасываем состояние
+        bot.send_message(user_id, "Описание чата или канала успешно сохранено.", reply_markup=create_main_menu())
+        user_state[user_id]["awaiting_chat_discr"] = None
 
 # Функция для очистки таблицы scanercall
 def clear_scanercall(chat_id):

@@ -138,7 +138,7 @@ async def handle_incoming_message(event):
             )
             print(f"Ответ будет отправлен пользователю {from_user_id}: {updated_dialogues}")
 
-            # Отправляем ответ поль��ователю в Telegram
+            # Отправляем ответ польователю в Telegram
             user_entity = await client.get_entity(from_user_id)
             await client.send_message(user_entity, gpt_response)
             print(f"Ответ отправлен пользователю {from_user_id}: {gpt_response}")
@@ -155,13 +155,13 @@ async def process_scanercall_records():
         user_id = record["user_id"]
         id_chat = record["id_chat"]
         texts_message = record.get("texts_message", "")
-        chat_discr = record.get("chat_discr", "")
         chat_name = record.get("chat_name", "")
-        
+
         # Получаем настройки из таблицы scanersettings
         settings = scanersettings_collection.find_one({"id_chat": id_chat})
         if settings:
             promt = settings.get("promt", "")
+            chat_discr = settings.get("chat_discr", "")
             print(f"Получен promt: {promt}")
         else:
             print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
@@ -178,7 +178,7 @@ async def process_scanercall_records():
         )
         print(f"Сформирован текст для отправки: {alltext}")
 
-        # Отпр��вка текста в ChatGPT
+        # Отправка текста в ChatGPT
         print("Отправка запроса в ChatGPT")
         gpt_response = send_to_chatgpt(alltext, texts_message)
 
@@ -201,7 +201,7 @@ async def process_scanercall_records():
                 )
                 print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
             except Exception as e:
-                print(f"Ошибка при отправке ��ообщения пользователю {user_id}: {e}")
+                print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
                 continue
         else:
             print(f"Ответ от ChatGPT: {gpt_response}. Переход к следующей записи.")
