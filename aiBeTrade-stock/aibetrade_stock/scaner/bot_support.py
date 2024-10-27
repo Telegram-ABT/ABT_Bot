@@ -329,7 +329,7 @@ def clear_scanercall(chat_id):
     )
 
 # Запуск клиента Telethon при старте скрипта
-client.start(phone=USER_PHONE)
+client.start()
 
 # Запуск бота
 bot.polling(none_stop=True)
