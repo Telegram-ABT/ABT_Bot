@@ -53,7 +53,7 @@ async def handle_incoming_message(event):
     # Например, передать сообщение в bot_scaner или bot_sender для обработки
 
 # Запуск клиента Telethon при старте скрипта
-telethon_client.start(phone=USER_PHONE)
+telethon_client.start()
 
 # Запуск бота
 bot.polling(none_stop=True)
