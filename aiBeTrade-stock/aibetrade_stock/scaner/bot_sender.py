@@ -45,7 +45,7 @@ async def process_scanercall_records():
     print("Запуск скрипта обработки записей")
     records = scanercall_collection.find({"firstcall": False})
     for record in records:
-        print(f"\nПолучена запись: {record}")
+        print(f"\nПо��учена запись: {record}")
         
         user_id = record["user_id"]
         id_chat = record["id_chat"]
@@ -179,10 +179,18 @@ async def handle_incoming_message(event):
         )
         print(f"Ответ будет отправлен пользователю {user_id}: {updated_dialogues}")
 
-        # # Отправляем ответ пользователю в Telegram
-        user_entity = await client.get_entity(user_id)  # Повторно получаем entity перед отправкой
-        await client.send_message(user_entity, gpt_response, id_chat)
-        print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
+        try:
+            # Пытаемся отправить сообщение напрямую, используя event
+            await event.reply(gpt_response)
+            print(f"Ответ отправлен пользователю {user_id}: {gpt_response}")
+        except Exception as e:
+            print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+            try:
+                # Если не удалось отправить через event, пробуем через client.send_message
+                await client.send_message(user_id, gpt_response)
+                print(f"Ответ отправлен пользователю {user_id} через client.send_message: {gpt_response}")
+            except Exception as e2:
+                print(f"Не удалось отправить сообщение пользователю {user_id}: {e2}")
     else:
         print(f"Не удалось получить ответ от ChatGPT для пользователя {user_id}.")
 
