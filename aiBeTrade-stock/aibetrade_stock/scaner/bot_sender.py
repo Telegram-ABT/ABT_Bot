@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 from pymongo import MongoClient
 from telethon import TelegramClient, events
 from telethon.errors import RPCError
@@ -6,9 +6,9 @@ from datetime import datetime
 import time
 import os
 
-# Настройки для ChatGPT API
+# Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
-openai.api_key = key
+client_openai = OpenAI(api_key=key)
 
 # Настройки MongoDB
 mongo_url = os.getenv('MONGO_URL')
@@ -24,18 +24,18 @@ USER_PHONE = os.getenv('USER_PHONE')
 
 # Инициализация клиента Telethon
 client = TelegramClient('session_name2', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
-client
+
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
-        response = openai.ChatCompletion.create(
+        response = client_openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message["content"].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print(f"Ошибка при отправке запроса в ChatGPT: {e}")
         return None
