@@ -12,7 +12,11 @@ TOKEN = os.getenv('TOKEN_BOT_SCANER')
 bot = telebot.TeleBot(TOKEN)
 
 # Подключение к MongoDB
-mongo_url = os.getenv('MONGO_URL_SERV')  # Замените на URL MongoDB сервера
+password = os.getenv("MONGO_URL_SERV")
+encoded_password = quote_plus(password)
+
+mongo_url = f"mongodb://Admin:{encoded_password}@159.223.5.4:27017/admin"
+
 client = MongoClient(mongo_url)
 db = client["nntcapital"]
 collection = db["support"]
