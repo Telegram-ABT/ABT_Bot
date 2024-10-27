@@ -299,3 +299,7 @@ volumes:
   habrdb-data:
   pgadmin-data:
   portainer_data:
+
+networks:
+  postgres:
+    driver: bridge

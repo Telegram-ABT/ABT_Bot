@@ -24,7 +24,7 @@ USER_PHONE = os.getenv('USER_PHONE')
 
 # Инициализация клиента Telethon
 client = TelegramClient('session_name2', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
-
+client.get_dialogs()
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
