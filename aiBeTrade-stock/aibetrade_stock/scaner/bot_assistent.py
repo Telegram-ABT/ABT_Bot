@@ -44,7 +44,41 @@ def send_to_chatgpt(prompt, text):
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
     from_user_id = event.sender_id
+    chat_id = event.chat_id
     message_text = event.raw_text
+
+    # Полу��ение названия чата
+    chat_name = None
+    try:
+        chat = await event.get_chat()
+        chat_name = chat.title if hasattr(chat, 'title') else "Личные сообщения"
+    except Exception as e:
+        print(f"Ошибка при получении названия чата: {e}")
+
+    # Запись данных о сообщении в MongoDB
+    message_record = {
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "id_user": from_user_id,
+        "id_chat": chat_id,
+        "chat_name": chat_name,
+        "message": message_text
+    }
+    collection_scaner_dialog.insert_one(message_record)
+    print("Запись о сообщении успешно добавлена в MongoDB:", message_record)
+
+    # Проверка, существует ли уже запись о чате в базе данных
+    existing_chat = collection_scaner_chats.find_one({"chat_id": chat_id})
+    if not existing_chat:
+        chat_record = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "chat_id": chat_id,
+            "chat_name": chat_name,
+            "chat_discr": ""  # Пустое текстовое поле для описания
+        }
+        collection_scaner_chats.insert_one(chat_record)
+        print("Запись о чате успешно добавлена в MongoDB:", chat_record)
+    else:
+        print("Запись о чате уже существует в MongoDB.")
 
     # Ищем запись в MongoDB по user_id
     record = scanercall_collection.find_one({"user_id": from_user_id})
