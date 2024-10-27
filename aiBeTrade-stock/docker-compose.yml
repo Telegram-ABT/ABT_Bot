@@ -301,4 +301,4 @@ volumes:
 
 networks:
   postgres:
-    driv
+    driver: bridge
