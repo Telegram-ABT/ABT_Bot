@@ -288,7 +288,7 @@ services:
       dockerfile: DockerFile.app.scaner
     environment:
       - TOKEN_BOT_SCANER=${TOKEN_BOT_SCANER}
-      - MONGO_URL=${MONGO_URL}
+      - MONGO_URL_SERV=${MONGO_URL_SERV}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}

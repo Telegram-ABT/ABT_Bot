@@ -11,7 +11,7 @@ key = os.environ.get('OPENAI_API_KEY')
 openai.api_key = key
 
 # Настройки MongoDB
-mongo_url = os.getenv('MONGO_URL')
+mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 scanercall_collection = db["scanercall"]

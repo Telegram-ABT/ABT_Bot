@@ -270,15 +270,18 @@ def wait_until_9am():
 
     # Вычисляем, сколько времени осталось до 9 утра
     time_to_wait = (target_time - now).total_seconds()
-    logger.info(f"Waiting until 9 AM. Time to wait: {time_to_wait // 3600} hours and {(time_to_wait % 3600) // 60} minutes")
+    logger.info(f"Waiting until 9 AM. Time to wait: {int(time_to_wait // 3600)} hours and {int((time_to_wait % 3600) // 60)} minutes")
     
     time.sleep(time_to_wait)
 
 # Основной код
 if __name__ == "__main__":
     while True:
-        # Выполняем основную задачу при запуске
-        main()
+        # Проверяем, если текущее время не 9 утра, переходим в режим ожидания
+        now = datetime.now()
+        if now.hour == 9 and now.minute == 0:
+            # Выполняем основную задачу только в 9 утра
+            main()
 
         # После выполнения основной задачи ждем до следующего 9 утра
         wait_until_9am()
