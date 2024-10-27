@@ -2,6 +2,8 @@ from openai import OpenAI
 from pymongo import MongoClient
 import os
 from bot_support import send_telegram_message  # Импортируем функцию отправки сообщений
+import telebot
+from telebot import apihelper
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -96,3 +98,15 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
+# Укажите токен вашего бота
+TOKEN = os.getenv('TOKEN_BOT_SCANER')
+bot = telebot.TeleBot(TOKEN)
+
+try:
+    bot.polling(none_stop=True)
+except apihelper.ApiTelegramException as e:
+    if "Conflict: terminated by other getUpdates request" in str(e):
+        print("Конфликт: другой экземпляр бота уже запущен.")
+    else:
+        raise
