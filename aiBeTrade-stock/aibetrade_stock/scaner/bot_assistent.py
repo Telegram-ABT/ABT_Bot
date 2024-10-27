@@ -47,7 +47,12 @@ async def handle_incoming_message(event):
     chat_id = event.chat_id
     message_text = event.raw_text
 
-    # Полу��ение названия чата
+    # Получение информации о пользователе
+    user_entity = await client.get_entity(from_user_id)
+    user_name = user_entity.first_name or "Неизвестно"
+    user_login = user_entity.username or "Нет логина"
+
+    # Получение названия чата
     chat_name = None
     try:
         chat = await event.get_chat()
@@ -59,6 +64,8 @@ async def handle_incoming_message(event):
     message_record = {
         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "id_user": from_user_id,
+        "user_name": user_name,
+        "user_login": user_login,
         "id_chat": chat_id,
         "chat_name": chat_name,
         "message": message_text
@@ -197,7 +204,7 @@ async def process_scanercall_records():
 
     print("Завершение скрипта")
 
-# Запуск клиента и основной функции
+# Запуск кл��ента и основной функции
 async def main():
     await client.start(USER_PHONE)
     await process_scanercall_records()
