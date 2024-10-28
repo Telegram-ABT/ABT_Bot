@@ -56,6 +56,14 @@ async def handle_incoming_message(event):
 
     # Проверяем, был ли первый контакт и ожидаем ли мы ответ от пользователя
     if record.get("firstcall", False) and record.get("awaiting_user_response", False):
+        # Получаем последние сообщения из чата с пользователем
+        try:
+            history = await client.get_messages(from_user_id, limit=10)
+            history_text = "\n".join([f"{msg.sender_id}: {msg.text}" for msg in history if msg.text])
+        except Exception as e:
+            print(f"Ошибка при получении истории сообщений: {e}")
+            history_text = "История сообщений недоступна."
+
         # Обновляем диалог только если был первый контакт и ожидаем ответ
         updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {message_text}"
         
@@ -72,6 +80,7 @@ async def handle_incoming_message(event):
         chatgpt_text = (
             f"Ранее у нас была совместная переписка. "
             f"История диалога: {updated_dialogues}. "
+            f"История сообщений: {history_text}. "
             f"Продолжи диалог с пользователем согласно промту: {promt}"
         )
 
@@ -79,6 +88,13 @@ async def handle_incoming_message(event):
         gpt_response = send_to_chatgpt(promt, chatgpt_text)
         if gpt_response and gpt_response.strip().upper() != "STOP":
             try:
+                # Попытка получить сущность пользователя
+                try:
+                    user_entity = await client.get_entity(from_user_id)
+                except ValueError as e:
+                    print(f"Не удалось получить сущность пользователя {from_user_id}: {e}")
+                    return
+                
                 # Обновляем диалог и отправляем ответ
                 updated_dialogues += f"\nЯ ответил: {gpt_response}"
                 scanercall_collection.update_one(
