@@ -30,6 +30,7 @@ scanersettings_collection = db["scanersettings"]
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
+        print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
         response = client_openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -37,7 +38,9 @@ def send_to_chatgpt(prompt, text):
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content.strip()
+        gpt_response = response.choices[0].message.content.strip()
+        print(f"Ответ от ChatGPT: {gpt_response}")
+        return gpt_response
     except Exception as e:
         print(f"Ошибка при отправке запроса в ChatGPT: {e}")
         return None
@@ -83,6 +86,7 @@ async def handle_incoming_message(event):
             f"История сообщений: {history_text}. "
             f"Продолжи диалог с пользователем согласно промту: {promt}"
         )
+        print(f"Сформированный текст для ChatGPT: {chatgpt_text}")
 
         # Получаем ответ от ChatGPT
         gpt_response = send_to_chatgpt(promt, chatgpt_text)
@@ -148,6 +152,7 @@ async def check_new_records():
                     f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
                     f"{promt}"
                 )
+                print(f"Сформированный текст для первого контакта: {alltext}")
 
                 # Отправка текста в ChatGPT и обработка ответа
                 gpt_response = send_to_chatgpt(alltext, texts_message)
