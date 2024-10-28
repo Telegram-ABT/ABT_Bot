@@ -286,7 +286,7 @@ def handle_database_formation(chat_id, selected_chat_id):
         reply_markup=create_main_menu()
     )
 
-if count > 0:
+    if count > 0:
     # Проверяем существующие настройки
     settings = scanersettings_collection.find_one({"id_chat": selected_chat_id})
     if settings and settings.get("promt"):
