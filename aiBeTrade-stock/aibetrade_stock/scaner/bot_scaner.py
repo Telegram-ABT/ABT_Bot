@@ -13,8 +13,8 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
 
-# Инициализация клиента Telethon
-client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
+# Инициализация клиента Telethon с уникальным именем сессии
+client = TelegramClient('user_session_scaner', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
