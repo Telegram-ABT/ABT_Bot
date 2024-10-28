@@ -28,7 +28,7 @@ user_state = {}
 def is_scaner_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         cmdline = proc.info['cmdline']
-        if cmdline and "bot_scaner.py" in cmdline:
+        if cmdline and "bot_assistent.py" in cmdline:  # Изменено на bot_assistent.py
             return proc.info['pid']
     return None
 
@@ -51,7 +51,7 @@ def stop_script(pid):
 # Функция для создания inline-кнопок главного меню
 def create_main_menu():
     markup = types.InlineKeyboardMarkup()
-    scaner_status = "Scaner"
+    scaner_status = "Multi Agent"  # Изменено название кнопки
     sender_status = "Assistent" 
     buttons = [
         types.InlineKeyboardButton(scaner_status, callback_data="scaner_status"),
@@ -146,7 +146,7 @@ def handle_query(call):
     if button_id == "scaner_status":
         bot.send_message(
             call.message.chat.id,
-            "Выберите действие для сканера:",
+            "Выберите действие для Multi Agent:",  # Изменен текст сообщения
             reply_markup=create_scaner_control_menu()
         )
     elif button_id == "sender_status":
@@ -163,10 +163,10 @@ def handle_query(call):
                 reply_markup=create_sender_control_menu()
             )
     elif button_id == "start_scaner":
-        start_script("bot_scaner.py")
+        start_script("bot_assistent.py")  # Изменено на bot_assistent.py
         bot.send_message(
             call.message.chat.id,
-            "Сканер успешно запущен.",
+            "Multi Agent успешно запущен.",  # Изменен текст сообщения
             reply_markup=create_main_menu()
         )
     elif button_id == "stop_scaner":
@@ -175,23 +175,23 @@ def handle_query(call):
             stop_script(pid)
             bot.send_message(
                 call.message.chat.id,
-                "Сканер успешно остановлен.",
+                "Multi Agent успешно остановлен.",  # Изменен текст сообщения
                 reply_markup=create_main_menu()
             )
         else:
             bot.send_message(
                 call.message.chat.id,
-                "Сканер уже остановлен.",
+                "Multi Agent уже остановлен.",  # Изменен текст сообщения
                 reply_markup=create_main_menu()
             )
     elif button_id == "restart_scaner":
         pid = is_scaner_running()
         if pid:
             stop_script(pid)
-        start_script("bot_scaner.py")
+        start_script("bot_assistent.py")  # Изменено на bot_assistent.py
         bot.send_message(
             call.message.chat.id,
-            "Сканер успешно перезапущен.",
+            "Multi Agent успешно перезапущен.",  # Изменен текст сообщения
             reply_markup=create_main_menu()
         )
     elif button_id == "start_sender":
