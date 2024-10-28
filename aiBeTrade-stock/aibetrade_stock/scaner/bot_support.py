@@ -191,7 +191,7 @@ def handle_query(call):
         start_script("bot_scaner.py")
         bot.send_message(
             call.message.chat.id,
-            "Сканер успешно перезапущен.",
+            "��канер успешно перезапущен.",
             reply_markup=create_main_menu()
         )
     elif button_id == "start_sender":
@@ -287,26 +287,26 @@ def handle_database_formation(chat_id, selected_chat_id):
     )
 
     if count > 0:
-    # Проверяем существующие настройки
-    settings = scanersettings_collection.find_one({"id_chat": selected_chat_id})
-    if settings and settings.get("promt"):
-        # Если promt уже заполнен
-        bot.send_message(
-            chat_id,
-            f"Промт уже заполнен: {settings['promt']}",
-            reply_markup=create_edit_buttons("promt")
-        )
-        user_state[chat_id] = {
-            "awaiting_promt": selected_chat_id,
-            "existing_settings": settings
-        }
-    else:
-        # Если promt отсутствует, запрашиваем его
-        bot.send_message(
-            chat_id,
-            "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
-        )
-        user_state[chat_id] = {"awaiting_promt": selected_chat_id}
+        # Проверяем существующие настройки
+        settings = scanersettings_collection.find_one({"id_chat": selected_chat_id})
+        if settings and settings.get("promt"):
+            # Если promt уже заполнен
+            bot.send_message(
+                chat_id,
+                f"Промт уже заполнен: {settings['promt']}",
+                reply_markup=create_edit_buttons("promt")
+            )
+            user_state[chat_id] = {
+                "awaiting_promt": selected_chat_id,
+                "existing_settings": settings
+            }
+        else:
+            # Если promt отсутствует, запрашиваем его
+            bot.send_message(
+                chat_id,
+                "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
+            )
+            user_state[chat_id] = {"awaiting_promt": selected_chat_id}
 
 
 @bot.message_handler(func=lambda message: True)
