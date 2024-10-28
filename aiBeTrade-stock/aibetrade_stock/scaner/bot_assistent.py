@@ -46,114 +46,67 @@ def send_to_chatgpt(prompt, text):
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
     from_user_id = event.sender_id
-    chat_id = event.chat_id
     message_text = event.raw_text
-
-    # Получение информации о пользователе
-    user_entity = await client.get_entity(from_user_id)
-    user_name = user_entity.first_name or "Неизвестно"
-    user_login = user_entity.username or "Нет логина"
-
-    # Получение названия чата
-    chat_name = None
-    try:
-        chat = await event.get_chat()
-        if hasattr(chat, 'title'):
-            chat_name = chat.title
-        else:
-            # Если это личное сообщение, используем имя пользователя
-            chat_name = user_name
-    except Exception as e:
-        print(f"Ошибка при получении названия чата: {e}")
-
-    # Запись данных о сообщении в MongoDB
-    message_record = {
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "id_user": from_user_id,
-        "user_name": user_name,
-        "user_login": user_login,
-        "id_chat": chat_id,
-        "chat_name": chat_name,
-        "message": message_text
-    }
-    collection_scaner_dialog.insert_one(message_record)
-    print("Запись о сообщении успешно добавлена в MongoDB:", message_record)
-
-    # Проверка, существует ли уже запись о чате в базе данных
-    existing_chat = collection_scaner_chats.find_one({"chat_id": chat_id})
-    if not existing_chat:
-        chat_record = {
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "chat_id": chat_id,
-            "chat_name": chat_name,
-            "chat_discr": ""  # Пустое текстовое поле для описания
-        }
-        collection_scaner_chats.insert_one(chat_record)
-        print("Запись о чате успешно добавлена в MongoDB:", chat_record)
-    else:
-        print("Запись о чате уже существует в MongoDB.")
 
     # Ищем запись в MongoDB по user_id
     record = scanercall_collection.find_one({"user_id": from_user_id})
     if not record:
-        print(f"Запись для пользователя {from_user_id} не найдена. Никаких действий не требуется.")
+        print(f"Запись для пользователя {from_user_id} не найдена.")
         return
 
-    # Обновляем поле dialogues, добавляя новый ответ пользователя
-    updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {message_text}"
-    scanercall_collection.update_one(
-        {"_id": record["_id"]},
-        {"$set": {"dialogues": updated_dialogues}}
-    )
-
-    # Если firstcall = true, продолжаем диалог
-    if record.get("firstcall", False):
-        id_chat = record["id_chat"]
-        chat_name = record.get("chat_name", "Личные сообщения")
-        chat_discr = record.get("chat_discr", "Личные сообщения")
-        firstcalltext = record.get("firstcalltext", "")
-        texts_message = record.get("texts_message", "")
-
-        # Получаем promt из таблицы scanersettings
-        settings = scanersettings_collection.find_one({"id_chat": id_chat})
-        if settings:
-            promt = settings.get("promt", "")
-        else:
-            print(f"Настройки для чата {id_chat} не найдены. Пропуск обработки.")
+    # Проверяем, был ли первый контакт и ожидаем ли мы ответ от пользователя
+    if record.get("firstcall", False) and record.get("awaiting_user_response", False):
+        # Обновляем диалог только если был первый контакт и ожидаем ответ
+        updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {message_text}"
+        
+        # Получаем настройки из scanersettings
+        settings = scanersettings_collection.find_one({"id_chat": record["id_chat"]})
+        if not settings:
+            print(f"Настройки не найдены. Пропуск обработки.")
             return
 
+        promt = settings.get("promt", "")
+        chat_discr = settings.get("chat_discr", "")
+        
+        # Формируем текст для ChatGPT
         chatgpt_text = (
-            f"Ранее у нас была совместная переписка в одном из чатов '{chat_name}', "
-            f"чат про '{chat_discr}'. Диалоги пользователя: {texts_message}. "
-            f"Я ему написал: '{firstcalltext}', и он мне ответил: '{updated_dialogues}'. "
-            f"Продолжи диалог с пользователем."
+            f"Ранее у нас была совместная переписка. "
+            f"История диалога: {updated_dialogues}. "
+            f"Продолжи диалог с пользователем согласно промту: {promt}"
         )
 
-        # Отправляем текст в ChatGPT
+        # Получаем ответ от ChatGPT
         gpt_response = send_to_chatgpt(promt, chatgpt_text)
-        if gpt_response:
-            # Обновляем поле dialogues, добавляя ответ от ChatGPT
-            updated_dialogues += f"\nЯ ответил пользователю: {gpt_response}"
-            scanercall_collection.update_one(
-                {"_id": record["_id"]},
-                {"$set": {"dialogues": updated_dialogues}}
-            )
-            print(f"Ответ будет отправлен пользователю {from_user_id}: {updated_dialogues}")
-
-            # Отправляем ответ пользователю в Telegram
-            user_entity = await client.get_entity(from_user_id)
-            await client.send_message(user_entity, gpt_response)
-            print(f"Ответ отправлен пользователю {from_user_id}: {gpt_response}")
+        if gpt_response and gpt_response.strip().upper() != "STOP":
+            try:
+                # Обновляем диалог и отправляем ответ
+                updated_dialogues += f"\nЯ ответил: {gpt_response}"
+                scanercall_collection.update_one(
+                    {"_id": record["_id"]},
+                    {
+                        "$set": {
+                            "dialogues": updated_dialogues,
+                            "awaiting_user_response": False  # Сбрасываем флаг после отправки ответа
+                        }
+                    }
+                )
+                
+                # Отправляем ответ пользователю
+                await client.send_message(from_user_id, gpt_response)
+                print(f"Ответ отправлен пользователю {from_user_id}: {gpt_response}")
+            except Exception as e:
+                print(f"Ошибка при отправке ответа: {e}")
         else:
-            print(f"Не удалось получить ответ от ChatGPT для пользователя {from_user_id}.")
+            print(f"Диалог завершен или получен STOP")
 
 # Функция для периодической проверки новых записей
 async def check_new_records():
     while True:
         try:
+            # Ищем только записи, где не было первого контакта
             records = scanercall_collection.find({"firstcall": False})
             for record in records:
-                print(f"\nПолучена запись: {record}")
+                print(f"\nПолучена запись для первого контакта: {record}")
                 
                 user_id = record["user_id"]
                 id_chat = record["id_chat"]
@@ -170,7 +123,7 @@ async def check_new_records():
                     print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
                     continue
                 
-                # Формируем текст для отправки в ChatGPT
+                # Формируем текст для отправки в ChatGPT только для первого контакта
                 alltext = (
                     f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
                     f"который беседовал в группе с названием '{chat_name}'. "
@@ -188,25 +141,28 @@ async def check_new_records():
                         user_entity = await client.get_entity(user_id)
                         await client.send_message(user_entity, gpt_response)
                         
+                        # Обновляем запись, устанавливая firstcall = True и ожидаем ответ
                         scanercall_collection.update_one(
                             {"_id": record["_id"]},
                             {
                                 "$set": {
                                     "firstcall": True,
                                     "firstcalltext": gpt_response,
-                                    "dialogues": record.get("dialogues", "") + f"\nЯ ответил пользователю: {gpt_response}"
+                                    "dialogues": f"Я начал диалог: {gpt_response}",
+                                    "awaiting_user_response": True  # Устанавливаем флаг ожидания ответа
                                 }
                             }
                         )
+                        print(f"Первое сообщение отправлено пользователю {user_id}")
                     except Exception as e:
-                        print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                        print(f"Ошибка при отправке первого сообщения пользователю {user_id}: {e}")
                         continue
             
             await asyncio.sleep(60)  # Проверка новых записей каждую минуту
             
         except Exception as e:
             print(f"Ошибка при проверке новых записей: {e}")
-            await asyncio.sleep(60)  # В случае ошибки ждем минуту перед следующей попыткой
+            await asyncio.sleep(60)
 
 # Запуск клиента и основных функций
 async def main():
