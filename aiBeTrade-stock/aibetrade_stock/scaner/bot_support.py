@@ -191,7 +191,7 @@ def handle_query(call):
         start_script("bot_scaner.py")
         bot.send_message(
             call.message.chat.id,
-            "��канер успешно перезапущен.",
+            "канер успешно перезапущен.",
             reply_markup=create_main_menu()
         )
     elif button_id == "start_sender":
@@ -308,63 +308,53 @@ def handle_database_formation(chat_id, selected_chat_id):
             )
             user_state[chat_id] = {"awaiting_promt": selected_chat_id}
 
-
-@bot.message_handler(func=lambda message: True)
-def handle_text_input(message):
-    user_id = message.chat.id
+# Обработка нажатий на кнопки Изменить/Оставить
+@bot.callback_query_handler(func=lambda call: call.data.startswith(('edit_', 'keep_')))
+def handle_edit_keep_choice(call):
+    user_id = call.message.chat.id
+    action, field = call.data.split('_')
     state = user_state.get(user_id, {})
-
-    # Проверяем, если ожидается promt или новый promt
-    if state.get("awaiting_promt") or state.get("awaiting_new_promt"):
-        id_chat = state["awaiting_promt"]
-        promt = message.text
-
-        # Сохраняем или обновляем promt в scanersettings
-        scanersettings_collection.update_one(
-            {"id_chat": id_chat},
-            {"$set": {"promt": promt}},
-            upsert=True
-        )
-
-        # Проверяем существующее описание чата
-        settings = scanersettings_collection.find_one({"id_chat": id_chat})
-        if settings and settings.get("chat_discr") and not state.get("awaiting_new_promt"):
+    
+    if field == "promt":
+        if action == "edit":
             bot.send_message(
                 user_id,
-                f"Описание группы уже заполнено: {settings['chat_discr']}",
-                reply_markup=create_edit_buttons("descr")
+                "Введите новый Промт в строку сообщения и отправьте"
             )
-        else:
-            # Если описания нет, запрашиваем его ввод
-            bot.send_message(user_id, "Введите описание чата или канала.")
-            state["awaiting_chat_discr"] = id_chat
+            state["awaiting_new_promt"] = True
+        else:  # keep
+            # Переходим к проверке описания чата
+            settings = state.get("existing_settings", {})
+            if settings and settings.get("chat_discr"):
+                bot.send_message(
+                    user_id,
+                    f"Описание группы уже заполнено: {settings['chat_discr']}",
+                    reply_markup=create_edit_buttons("descr")
+                )
+            else:
+                bot.send_message(
+                    user_id,
+                    "Введите описание чата или канала."
+                )
+            state["awaiting_chat_discr"] = state["awaiting_promt"]
+            state["awaiting_promt"] = None
+    
+    elif field == "descr":
+        if action == "edit":
+            bot.send_message(
+                user_id,
+                "Введите новое Описание группы в строку сообщения и отправьте"
+            )
+            state["awaiting_new_descr"] = True
+        else:  # keep
+            # Завершаем процесс с сохранением текущих настроек
+            finish_settings_process(user_id)
+            return
 
-        # Сбрасываем статус promt
-        state["awaiting_promt"] = None
-        state["awaiting_new_promt"] = None
-        user_state[user_id] = state
+    # Обновляем состояние пользователя
+    user_state[user_id] = state
 
-    # Проверка на наличие ожидаемого описания чата
-    elif state.get("awaiting_chat_discr") or state.get("awaiting_new_descr"):
-        id_chat = state.get("awaiting_chat_discr") or state["awaiting_promt"]
-        chat_discr = message.text
-
-        # Сохраняем или обновляем chat_discr в scanersettings
-        scanersettings_collection.update_one(
-            {"id_chat": id_chat},
-            {"$set": {"chat_discr": chat_discr}},
-            upsert=True
-        )
-
-        # Завершаем процесс и возвращаем к базовому меню
-        bot.send_message(
-            user_id,
-            "Настройки успешно сохранены",
-            reply_markup=create_main_menu()
-        )
-        user_state[user_id].clear()
-
-# Обработка текстовых сообщений от пользователя
+# Обновим обработчик текстовых сообщений
 @bot.message_handler(func=lambda message: True)
 def handle_text_input(message):
     user_id = message.chat.id
@@ -409,11 +399,26 @@ def handle_text_input(message):
         )
 
         # Завершаем процесс
-        bot.send_message(
-            user_id,
-            "Настройки успешно сохранены",
-            reply_markup=create_main_menu()
-        )
+        finish_settings_process(user_id, message.message_id)
+
+# Функция для завершения процесса и возврата к основному меню
+def finish_settings_process(user_id, message_id=None):
+    # Удаляем предыдущее сообщение, если оно есть
+    if message_id:
+        try:
+            bot.delete_message(user_id, message_id)
+        except Exception as e:
+            print(f"Ошибка при удалении сообщения: {e}")
+
+    # Отправляем сообщение с основным меню
+    bot.send_message(
+        user_id,
+        "Настройки успешно сохранены",
+        reply_markup=create_main_menu()
+    )
+    
+    # Очищаем состояние пользователя
+    if user_id in user_state:
         user_state[user_id].clear()
 
 # Функция для очистки таблицы scanercall
