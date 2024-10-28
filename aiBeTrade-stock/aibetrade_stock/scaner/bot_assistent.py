@@ -151,9 +151,10 @@ async def handle_incoming_message(event):
 async def check_new_records():
     while True:
         try:
+            # Ищем только записи, где не было первого контакта
             records = scanercall_collection.find({"firstcall": False})
             for record in records:
-                print(f"\nПолучена запись: {record}")
+                print(f"\nПолучена запись для первого контакта: {record}")
                 
                 user_id = record["user_id"]
                 id_chat = record["id_chat"]
@@ -170,7 +171,7 @@ async def check_new_records():
                     print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
                     continue
                 
-                # Формируем текст для отправки в ChatGPT
+                # Формируем текст для отправки в ChatGPT только для первого контакта
                 alltext = (
                     f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
                     f"который беседовал в группе с названием '{chat_name}'. "
@@ -188,25 +189,27 @@ async def check_new_records():
                         user_entity = await client.get_entity(user_id)
                         await client.send_message(user_entity, gpt_response)
                         
+                        # Обновляем запись, устанавливая firstcall = True
                         scanercall_collection.update_one(
                             {"_id": record["_id"]},
                             {
                                 "$set": {
                                     "firstcall": True,
                                     "firstcalltext": gpt_response,
-                                    "dialogues": record.get("dialogues", "") + f"\nЯ ответил пользователю: {gpt_response}"
+                                    "dialogues": f"Я начал диалог: {gpt_response}"
                                 }
                             }
                         )
+                        print(f"Первое сообщение отправлено пользователю {user_id}")
                     except Exception as e:
-                        print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                        print(f"Ошибка при отправке первого сообщения пользователю {user_id}: {e}")
                         continue
             
             await asyncio.sleep(60)  # Проверка новых записей каждую минуту
             
         except Exception as e:
             print(f"Ошибка при проверке новых записей: {e}")
-            await asyncio.sleep(60)  # В случае ошибки ждем минуту перед следующей попыткой
+            await asyncio.sleep(60)
 
 # Запуск клиента и основных функций
 async def main():
