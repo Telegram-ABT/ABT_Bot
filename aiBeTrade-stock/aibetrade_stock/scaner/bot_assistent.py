@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
 import asyncio
+from threading import Thread
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -93,16 +94,16 @@ async def handle_incoming_message(event):
         print("Запись о чате уже существует в MongoDB.")
 
     # Ищем запись в MongoDB по user_id
-    record = scanercall_collection.find_one({"user_id": from_user_id, "firstcall": True})
-    if not record or not record.get("awaiting_user_response", False):
-        print(f"Запись для пользователя {from_user_id} не найдена или не требуется ответ.")
+    record = scanercall_collection.find_one({"user_id": from_user_id})
+    if not record:
+        print(f"Запись для пользователя {from_user_id} не найдена. Никаких действий не требуется.")
         return
 
     # Обновляем поле dialogues, добавляя новый ответ пользователя
     updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {message_text}"
     scanercall_collection.update_one(
         {"_id": record["_id"]},
-        {"$set": {"dialogues": updated_dialogues, "awaiting_user_response": False}}  # Сбрасываем флаг
+        {"$set": {"dialogues": updated_dialogues}}
     )
 
     # Если firstcall = true, продолжаем диалог
@@ -150,10 +151,9 @@ async def handle_incoming_message(event):
 async def check_new_records():
     while True:
         try:
-            # Ищем только записи, где не было первого контакта
             records = scanercall_collection.find({"firstcall": False})
             for record in records:
-                print(f"\nПолучена запись для первого контакта: {record}")
+                print(f"\nПолучена запись: {record}")
                 
                 user_id = record["user_id"]
                 id_chat = record["id_chat"]
@@ -170,18 +170,43 @@ async def check_new_records():
                     print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
                     continue
                 
-                # Обновляем запись в БД, чтобы ожидать ответа от пользователя
-                scanercall_collection.update_one(
-                    {"_id": record["_id"]},
-                    {"$set": {"firstcall": True, "awaiting_user_response": True}}
+                # Формируем текст для отправки в ChatGPT
+                alltext = (
+                    f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
+                    f"который беседовал в группе с названием '{chat_name}'. "
+                    f"Описание группы: {chat_discr}. Диалоги идут в обратном хронологическом порядке сначала старые внизу новые. "
+                    f"Если диалогов нет, то это твой первый контакт с пользователем, надо написать простое и короткое приветственное сообщение, если диалоги есть, то продолжи диалог."
+                    f"Отправь только ответ без своих внутренних сообщений, как будьто это ты общаешься с пользователем. "
+                    f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
+                    f"{promt}"
                 )
-                print(f"Теперь ожидается ответ от пользователя {user_id} для первого контакта.")
+
+                # Отправка текста в ChatGPT и обработка ответа
+                gpt_response = send_to_chatgpt(alltext, texts_message)
+                if gpt_response and gpt_response.strip().upper() != "STOP":
+                    try:
+                        user_entity = await client.get_entity(user_id)
+                        await client.send_message(user_entity, gpt_response)
+                        
+                        scanercall_collection.update_one(
+                            {"_id": record["_id"]},
+                            {
+                                "$set": {
+                                    "firstcall": True,
+                                    "firstcalltext": gpt_response,
+                                    "dialogues": record.get("dialogues", "") + f"\nЯ ответил пользователю: {gpt_response}"
+                                }
+                            }
+                        )
+                    except Exception as e:
+                        print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                        continue
             
             await asyncio.sleep(60)  # Проверка новых записей каждую минуту
             
         except Exception as e:
             print(f"Ошибка при проверке новых записей: {e}")
-            await asyncio.sleep(60)
+            await asyncio.sleep(60)  # В случае ошибки ждем минуту перед следующей попыткой
 
 # Запуск клиента и основных функций
 async def main():
