@@ -181,7 +181,7 @@ def handle_query(call):
         else:
             bot.send_message(
                 call.message.chat.id,
-                "Multi Agent уже остановлен.",  # Изменен текст сообщения
+                "Multi Agent уже остановлен.",  # И��менен текст сообщения
                 reply_markup=create_main_menu()
             )
     elif button_id == "restart_scaner":
@@ -326,13 +326,14 @@ def handle_edit_keep_choice(call):
         else:  # keep
             # Переходим к проверке описания чата
             settings = state.get("existing_settings", {})
-            if settings.get("chat_discr"):
+            if settings and settings.get("chat_discr"):
                 bot.edit_message_text(
                     f"Описание группы уже заполнено: {settings['chat_discr']}",
                     user_id,
                     call.message.message_id,
                     reply_markup=create_edit_buttons("descr")
                 )
+                state["awaiting_chat_discr"] = state["awaiting_promt"]
             else:
                 bot.edit_message_text(
                     "Введите описание чата или канала.",
@@ -340,7 +341,8 @@ def handle_edit_keep_choice(call):
                     call.message.message_id
                 )
                 state["awaiting_chat_discr"] = state["awaiting_promt"]
-                state["awaiting_promt"] = None
+            
+            state["awaiting_promt"] = None
     
     elif field == "descr":
         if action == "edit":
