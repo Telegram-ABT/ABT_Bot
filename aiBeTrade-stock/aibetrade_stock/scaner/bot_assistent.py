@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
 import asyncio
+from threading import Thread
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -146,78 +147,77 @@ async def handle_incoming_message(event):
         else:
             print(f"Не удалось получить ответ от ChatGPT для пользователя {from_user_id}.")
 
-# Основная функция обработки записей из БД и отправка сообщений
-async def process_scanercall_records():
-    print("Запуск скрипта обработки записей")
+# Функция для периодической проверки новых записей
+async def check_new_records():
     while True:
-        records = scanercall_collection.find({"firstcall": False})
-        for record in records:
-            print(f"\nПолучена запись: {record}")
-            
-            user_id = record["user_id"]
-            id_chat = record["id_chat"]
-            texts_message = record.get("texts_message", "")
-            chat_name = record.get("chat_name", "")
+        try:
+            records = scanercall_collection.find({"firstcall": False})
+            for record in records:
+                print(f"\nПолучена запись: {record}")
+                
+                user_id = record["user_id"]
+                id_chat = record["id_chat"]
+                texts_message = record.get("texts_message", "")
+                chat_name = record.get("chat_name", "")
 
-            # Получаем настройки из таблицы scanersettings
-            settings = scanersettings_collection.find_one({"id_chat": id_chat})
-            if settings:
-                promt = settings.get("promt", "")
-                chat_discr = settings.get("chat_discr", "")
-                print(f"Получен promt: {promt}")
-            else:
-                print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
-                continue
-            
-            # Формируем текст для отправки в ChatGPT с новым форматом
-            alltext = (
-                f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
-                f"который беседовал в группе с названием '{chat_name}'. "
-                f"Описание группы: {chat_discr}. Диалоги идут в обратном хронологическом порядке сначала старые внизу новые. "
-                f"Если диалогов нет, то это твой первый контакт с пользователем, надо написать простое и короткое приветственное сообщение, если диалоги есть, то продолжи диалог."
-                f"Отправь только ответ без своих внутренних сообщений, как будьто это ты общаешься с пользователем. "
-                f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
-                f"{promt}"
-            )
-            print(f"Сформирован текст для отправки: {alltext}")
-
-            # Отправка текста в ChatGPT
-            print("Отправка запроса в ChatGPT")
-            gpt_response = send_to_chatgpt(alltext, texts_message)
-
-            if gpt_response and gpt_response.strip().upper() != "STOP":
-                try:
-                    print(f"Сообщение будет отправлено пользователю {user_id}: {gpt_response} и запись обновлена.")
-                    user_entity = await client.get_entity(user_id)
-                    await client.send_message(user_entity, gpt_response)
-
-                    # Обновляем запись в MongoDB
-                    scanercall_collection.update_one(
-                        {"_id": record["_id"]},
-                        {
-                            "$set": {
-                                "firstcall": True,
-                                "firstcalltext": gpt_response,
-                                "dialogues": record.get("dialogues", "") + f"\nЯ ответил пользователю: {gpt_response}"
-                            }
-                        }
-                    )
-                    print(f"Сообщение успешно отправлено пользователю {user_id} и запись обновлена.")
-                except Exception as e:
-                    print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                # Получаем настройки из таблицы scanersettings
+                settings = scanersettings_collection.find_one({"id_chat": id_chat})
+                if settings:
+                    promt = settings.get("promt", "")
+                    chat_discr = settings.get("chat_discr", "")
+                    print(f"Получен promt: {promt}")
+                else:
+                    print(f"Настройки для чата {id_chat} не найдены. Пропуск записи.")
                     continue
-            else:
-                print(f"Ответ от ChatGPT: {gpt_response}. Переход к следующей записи.")
+                
+                # Формируем текст для отправки в ChatGPT
+                alltext = (
+                    f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
+                    f"который беседовал в группе с названием '{chat_name}'. "
+                    f"Описание группы: {chat_discr}. Диалоги идут в обратном хронологическом порядке сначала старые внизу новые. "
+                    f"Если диалогов нет, то это твой первый контакт с пользователем, надо написать простое и короткое приветственное сообщение, если диалоги есть, то продолжи диалог."
+                    f"Отправь только ответ без своих внутренних сообщений, как будьто это ты общаешься с пользователем. "
+                    f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
+                    f"{promt}"
+                )
 
-        print("Завершение цикла обработки записей. Ожидание 1 минуту перед следующей проверкой.")
-        await asyncio.sleep(60)  # Задержка в 1 минуту перед следующей проверкой
+                # Отправка текста в ChatGPT и обработка ответа
+                gpt_response = send_to_chatgpt(alltext, texts_message)
+                if gpt_response and gpt_response.strip().upper() != "STOP":
+                    try:
+                        user_entity = await client.get_entity(user_id)
+                        await client.send_message(user_entity, gpt_response)
+                        
+                        scanercall_collection.update_one(
+                            {"_id": record["_id"]},
+                            {
+                                "$set": {
+                                    "firstcall": True,
+                                    "firstcalltext": gpt_response,
+                                    "dialogues": record.get("dialogues", "") + f"\nЯ ответил пользователю: {gpt_response}"
+                                }
+                            }
+                        )
+                    except Exception as e:
+                        print(f"Ошибка при отправке сообщения пользователю {user_id}: {e}")
+                        continue
+            
+            await asyncio.sleep(60)  # Проверка новых записей каждую минуту
+            
+        except Exception as e:
+            print(f"Ошибка при проверке новых записей: {e}")
+            await asyncio.sleep(60)  # В случае ошибки ждем минуту перед следующей попыткой
 
-# Запуск клиента и основной функции
+# Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
-    await asyncio.gather(
-        process_scanercall_records(),
-        client.run_until_disconnected()
-    )
+    
+    # Создаем отдельную задачу для проверки новых записей
+    check_records_task = asyncio.create_task(check_new_records())
+    
+    # Запускаем прослушивание сообщений
+    await client.run_until_disconnected()
 
-client.loop.run_until_complete(main())
+if __name__ == "__main__":
+    # Запускаем все асинхронные задачи
+    client.loop.run_until_complete(main())
