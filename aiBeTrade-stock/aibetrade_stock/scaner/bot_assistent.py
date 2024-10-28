@@ -60,15 +60,8 @@ async def handle_incoming_message(event):
     # Проверяем, был ли первый контакт
     if record.get("firstcall", False):
         # Получаем последние сообщения из чата с пользователем
-        try:
-            history = await client.get_messages(from_user_id, limit=10)
-            history_text = "\n".join([f"{msg.sender_id}: {msg.text}" for msg in history if msg.text])
-        except Exception as e:
-            print(f"Ошибка при получении истории сообщений: {e}")
-            history_text = "История сообщений недоступна."
-
         # Обновляем диалог
-        updated_dialogues = record.get("dialogues", "") + f"\nПользователь ответил: {message_text}"
+        updated_dialogues = record.get("dialogues", "") + f"\nПользователь писал ранее: {message_text}"
         
         # Получаем настройки из scanersettings
         settings = scanersettings_collection.find_one({"id_chat": record["id_chat"]})
@@ -80,16 +73,21 @@ async def handle_incoming_message(event):
         chat_discr = settings.get("chat_discr", "")
         
         # Формируем текст для ChatGPT
-        chatgpt_text = (
-            f"Ранее у нас была совместная переписка. "
-            f"История диалога: {updated_dialogues}. "
-            f"История сообщений: {history_text}. "
-            f"Продолжи диалог с пользователем согласно промту: {promt}"
+        alltext = (
+            f"{promt}\n"
+            f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
+            f"который беседовал в группе с названием '{record.get('chat_name', '')}'. "
+            f"Описание группы: {chat_discr}. Диалоги идут в обратном хронологическом порядке сначала старые внизу новые. "
+            f"Если диалогов нет, то это твой первый контакт с пользователем, надо написать простое и короткое приветственное сообщение, если диалоги есть, то продолжи диалог."
+            f"Отправь только ответ без своих внутренних сообщений, как будьто это ты общаешься с пользователем. "
+            f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
+            
         )
-        print(f"Сформированный текст для ChatGPT: {chatgpt_text}")
+        print(f"Сформированный текст для первого контакта: {alltext+'\n'+'Диалоги'+updated_dialogues}")
 
-        # Получаем ответ от ChatGPT
-        gpt_response = send_to_chatgpt(promt, chatgpt_text)
+        # Отправка текста в ChatGPT и обработка ответа
+        gpt_response = send_to_chatgpt(alltext, updated_dialogues)
+
         if gpt_response and gpt_response.strip().upper() != "STOP":
             try:
                 # Попытка получить сущность пользователя
@@ -129,8 +127,10 @@ async def check_new_records():
                 
                 user_id = record["user_id"]
                 id_chat = record["id_chat"]
-                texts_message = record.get("texts_message", "")
+                dialogues = record.get("dialogues", "")
                 chat_name = record.get("chat_name", "")
+                chat_discr = record.get("chat_discr", "")
+                texts_message = record.get("texts_message", "")
 
                 # Получаем настройки из таблицы scanersettings
                 settings = scanersettings_collection.find_one({"id_chat": id_chat})
@@ -143,19 +143,17 @@ async def check_new_records():
                     continue
                 
                 # Формируем текст для отправки в ChatGPT только для первого контакта
-                alltext = (
-                    f"Проанализируй информацию о диалогах пользователя: диалоги внизу промта, "
-                    f"который беседовал в группе с названием '{chat_name}'. "
-                    f"Описание группы: {chat_discr}. Диалоги идут в обратном хронологическом порядке сначала старые внизу новые. "
-                    f"Если диалогов нет, то это твой первый контакт с пользователем, надо написать простое и короткое приветственное сообщение, если диалоги есть, то продолжи диалог."
-                    f"Отправь только ответ без своих внутренних сообщений, как будьто это ты общаешься с пользователем. "
-                    f"Если пользователь отвечает отказом или в отрицательном ключе или не желает продолжать диалог, то не продолжай диалог и ответь 'STOP'. "
-                    f"{promt}"
-                )
-                print(f"Сформированный текст для первого контакта: {alltext}")
 
-                # Отправка текста в ChatGPT и обработка ответа
-                gpt_response = send_to_chatgpt(alltext, texts_message)
+                alltext = (
+                    f"Это твой первый контакт с пользователем. Я наблюдал за его сообщениями в группе с опсанием '{chat_discr}' и названием '{chat_name}'. "
+                    f"История его сообщений: {texts_message}. "
+                    f"Напиши ему приветсвенное и осмысленное сообщение исходя из истории сообщений на том же языке, что и он. "
+                )
+                print(f"Сформированный текст для ChatGPT: {alltext}")
+
+                # Получаем ответ от ChatGPT
+                gpt_response = send_to_chatgpt(promt, alltext)
+
                 if gpt_response and gpt_response.strip().upper() != "STOP":
                     try:
                         user_entity = await client.get_entity(user_id)
@@ -187,7 +185,7 @@ async def check_new_records():
 async def main():
     await client.start(USER_PHONE)
     
-    # Создаем отдельную задачу для проверки новых записей
+    # Создаем отд��льную задачу для проверки новых записей
     check_records_task = asyncio.create_task(check_new_records())
     
     # Запускаем прослушивание сообщений
