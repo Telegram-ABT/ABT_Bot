@@ -24,6 +24,24 @@ promtdialogs_collection = db["promtdialogs"]
 promtcall_collection = db["promtcall"]
 promtsettings_collection = db["promtsettings"]
 
+# Асинхронная функция для отправки текста в ChatGPT и получения ответа
+async def send_to_chatgpt(prompt, text):
+    try:
+        print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
+        response = await client_openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": text}
+            ]
+        )
+        gpt_response = response.choices[0].message.content.strip()
+        print(f"Ответ от ChatGPT: {gpt_response}")
+        return gpt_response
+    except Exception as e:
+        print(f"Ошибка при отправке запроса в ChatGPT: {e}")
+        return None
+
 async def main():
     await client.start(USER_PHONE)
     print("Телеграм-сессия запущена и прослушивает сообщения...")
@@ -98,21 +116,3 @@ async def main():
 # Запуск клиента и вызов основной функции
 with client:
     client.loop.run_until_complete(main())
-
-# Асинхронная функция для отправки текста в ChatGPT и получения ответа
-async def send_to_chatgpt(prompt, text):
-    try:
-        print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
-        response = await client_openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text}
-            ]
-        )
-        gpt_response = response.choices[0].message.content.strip()
-        print(f"Ответ от ChatGPT: {gpt_response}")
-        return gpt_response
-    except Exception as e:
-        print(f"Ошибка при отправке запроса в ChatGPT: {e}")
-        return None
