@@ -46,7 +46,33 @@ def send_to_chatgpt(prompt, text):
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
     from_user_id = event.sender_id
+    chat_id = event.chat_id
     message_text = event.raw_text
+
+    # Получение информации о пользователе
+    try:
+        user_entity = await client.get_entity(from_user_id)
+        user_name = user_entity.first_name or "Неизвестно"
+        user_login = user_entity.username or "Нет логина"
+    except Exception as e:
+        print(f"Ошибка при получении информации о пользователе: {e}")
+        user_name = "Неизвестно"
+        user_login = "Нет логина"
+
+    # Запись данных о сообщении в MongoDB
+    try:
+        message_record = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "id_user": from_user_id,
+            "user_name": user_name,
+            "user_login": user_login,
+            "id_chat": chat_id,
+            "message": message_text
+        }
+        collection_scaner_dialog.insert_one(message_record)
+        print("Запись о сообщении успешно добавлена в MongoDB:", message_record)
+    except Exception as e:
+        print(f"Ошибка при записи сообщения в MongoDB: {e}")
 
     # Ищем запись в MongoDB по user_id
     record = scanercall_collection.find_one({"user_id": from_user_id})
@@ -171,7 +197,7 @@ async def check_new_records():
                         )
                         print(f"Первое сообщение отправлено пользователю {user_id}")
                     except Exception as e:
-                        print(f"Ошибка при отправке первого сообщения пользователю {user_id}: {e}")
+                        print(f"Ошибка пр�� отправке первого сообщения пользователю {user_id}: {e}")
                         continue
             
             await asyncio.sleep(60)  # Проверка новых записей каждую минуту
