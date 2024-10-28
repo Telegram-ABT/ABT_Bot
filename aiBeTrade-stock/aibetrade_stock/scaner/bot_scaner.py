@@ -71,7 +71,7 @@ async def main():
         print(f"Сформированный текст для ChatGPT: {chatgpt_text}")
 
         # Отправка текста в ChatGPT и обработка ответа
-        gpt_response = send_to_chatgpt(promt, chatgpt_text)
+        gpt_response = await send_to_chatgpt(promt, chatgpt_text)
         if gpt_response:
             print(f"Ответ от ChatGPT: {gpt_response}")
             if "YES" in gpt_response:
@@ -99,11 +99,11 @@ async def main():
 with client:
     client.loop.run_until_complete(main())
 
-# Функция для отправки текста в ChatGPT и получения ответа
-def send_to_chatgpt(prompt, text):
+# Асинхронная функция для отправки текста в ChatGPT и получения ответа
+async def send_to_chatgpt(prompt, text):
     try:
         print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
-        response = client_openai.chat.completions.create(
+        response = await client_openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": prompt},
