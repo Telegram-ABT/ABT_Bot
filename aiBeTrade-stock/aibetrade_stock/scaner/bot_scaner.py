@@ -2,6 +2,7 @@ import os
 from telethon import TelegramClient, events
 from pymongo import MongoClient
 from datetime import datetime
+from bot_support import send_telegram_message  # Импортируем функцию отправки сообщений
 
 # Конфигурация Telegram и MongoDB
 API_ID = os.getenv('API_ID')

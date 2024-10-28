@@ -5,6 +5,8 @@ from telethon.errors import RPCError
 from datetime import datetime
 import time
 import os
+import telebot
+from telebot import apihelper
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -25,6 +27,19 @@ USER_PHONE = os.getenv('USER_PHONE')
 # Инициализация клиента Telethon
 client = TelegramClient('user_session', API_ID, API_HASH, system_version="4.16.32-vxCUSTOM", device_model='FastAPI Galaxy S24 Ultra, running Android 14')
 client
+
+# Укажите токен вашего бота
+TOKEN = os.getenv('TOKEN_BOT_SCANER')
+bot = telebot.TeleBot(TOKEN)
+
+try:
+    bot.polling(none_stop=True)
+except apihelper.ApiTelegramException as e:
+    if "Conflict: terminated by other getUpdates request" in str(e):
+        print("Конфликт: другой экземпляр бота уже запущен.")
+    else:
+        raise
+
 # Функция для отправки текста в ChatGPT и получения ответа
         response = client_openai.chat.completions.create(
             model="gpt-3.5-turbo",

@@ -197,7 +197,7 @@ async def check_new_records():
                         )
                         print(f"Первое сообщение отправлено пользователю {user_id}")
                     except Exception as e:
-                        print(f"Ошибка пр�� отправке первого сообщения пользователю {user_id}: {e}")
+                        print(f"Ошибка пр отправке первого сообщения пользователю {user_id}: {e}")
                         continue
             
             await asyncio.sleep(60)  # Проверка новых записей каждую минуту

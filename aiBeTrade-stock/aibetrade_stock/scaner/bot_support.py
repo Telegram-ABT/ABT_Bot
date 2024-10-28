@@ -260,6 +260,18 @@ def handle_database_formation(chat_id, selected_chat_id):
     ]
     results = list(scanerdialog_collection.aggregate(pipeline))
 
+    # Определяем количество записей в результате
+    num_records = len(results)
+    print(f"Количество записей в результате агрегации: {num_records}")
+
+    if num_records > 0:
+        # Если записей больше 0, запрашиваем промт для ChatGPT
+        bot.send_message(
+            chat_id,
+            "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
+        )
+        user_state[chat_id]["awaiting_promt"] = selected_chat_id
+
     for result in results:
         scanercall_collection.insert_one({
             "user_id": result["user_id"],
@@ -269,20 +281,11 @@ def handle_database_formation(chat_id, selected_chat_id):
             "firstcall": False
         })
 
-    count = scanercall_collection.count_documents({})
     bot.send_message(
         chat_id,
-        f"База для рассылки сообщений подготовлена, всего записей: {count}",
+        f"База для рассылки сообщений подготовлена, всего записей: {num_records}",
         reply_markup=create_main_menu()
     )
-
-    if count > 0:
-        # Если записей больше 1, запрашиваем промт для ChatGPT
-        bot.send_message(
-            chat_id,
-            "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
-        )
-        user_state[chat_id]["awaiting_promt"] = selected_chat_id
 
 # Обработка текстовых сообщений от пользователя
 @bot.message_handler(func=lambda message: True)
