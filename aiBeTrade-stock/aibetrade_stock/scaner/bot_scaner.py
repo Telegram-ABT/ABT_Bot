@@ -94,19 +94,23 @@ async def main():
             print(f"Ответ от ChatGPT: {gpt_response}")
             if "YES" in gpt_response:
                 response_to_user = gpt_response.replace("YES", "").strip()
-                await client.send_message(from_user_id, response_to_user)
-                print(f"Ответ отправлен пользователю {from_user_id}: {response_to_user}")
+                try:
+                    user_entity = await client.get_input_entity(from_user_id)
+                    await client.send_message(user_entity, response_to_user)
+                    print(f"Ответ отправлен пользователю {from_user_id}: {response_to_user}")
 
-                # Добавляем пользователя в promtcall
-                promtcall_collection.insert_one({
-                    "user_id": from_user_id,
-                    "texts_message": message_text,
-                    "chat_name": user_name,
-                    "id_chat": chat_id,
-                    "firstcall": True,
-                    "dialogues": f"Я начал диалог: {response_to_user}"
-                })
-                print(f"Пользователь {from_user_id} добавлен в promtcall.")
+                    # Добавляем пользователя в promtcall
+                    promtcall_collection.insert_one({
+                        "user_id": from_user_id,
+                        "texts_message": message_text,
+                        "chat_name": user_name,
+                        "id_chat": chat_id,
+                        "firstcall": True,
+                        "dialogues": f"Я начал диалог: {response_to_user}"
+                    })
+                    print(f"Пользователь {from_user_id} добавлен в promtcall.")
+                except ValueError as e:
+                    print(f"Не удалось отправить сообщение пользователю {from_user_id}: {e}")
             else:
                 print("Ответ от ChatGPT не содержит 'YES'. Никаких действий не требуется.")
 
