@@ -86,7 +86,7 @@ async def handle_incoming_message(event):
             "останови обсуждение и отправь только 'STOP'.\n\n"
             "Ниже представлены сообщения пользователя:"
         )
-        print(f"Сформированный текст для ответного сообщения для контакта: {promt_text+'\n'+'Диалоги'+updated_dialogues}")
+        print(f"Сформированный текст для ответного сообщения для контакта: {promt_text+'\n'+'Диалоги: '+ updated_dialogues}")
 
         # Отправка текста в ChatGPT и обработка ответа
         gpt_response = send_to_chatgpt(promt_text, updated_dialogues)
