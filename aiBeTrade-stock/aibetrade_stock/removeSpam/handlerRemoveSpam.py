@@ -110,6 +110,7 @@ async def delete_and_send_message(msg:Message, text='You have violated the rules
 def check_ref(msg:Message):
     """Проверка на реферальную ссылку true если его нету"""
     text=msg.text
+    
     # Проверяем наличие http или t.me/
     if (
         'http' in text or 't.me/' in text or 'bot' in text or 'BOT' in text or '@' in text or 
