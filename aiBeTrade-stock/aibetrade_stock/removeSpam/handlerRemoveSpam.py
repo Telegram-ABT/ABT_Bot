@@ -118,7 +118,8 @@ def check_ref(msg:Message):
         'airfrop' in text or '❗️❗️❗️❗️❗️❗️❗️❗️' in text or '👍👍👍👍' in text or 
         'Click To Claim' in text or 'AIRDOP' in text or '🆕🆕🆕🆕' in text or 
         '$DОGS' in text or 'JetTon' in text or 'NOTCOIN' in text or 'Empire' in text or 'EMPIRE' in text or
-        '@TON' in text or '🤩🤩🤩🤩' in text or '💎🐶❗️❗️' in text or '💵❗️❗️❗️❗️' in text or '💀💀💀💀' in text
+        '@TON' in text or '🤩🤩🤩🤩' in text or '💎🐶❗️❗️' in text or '💵❗️❗️❗️❗️' in text or '💀💀💀💀' in text or
+        '🔤🔤🔤🔤🔤' in text
     ):        # Проверяем отсутствие aibetrade
             return True
     return False
