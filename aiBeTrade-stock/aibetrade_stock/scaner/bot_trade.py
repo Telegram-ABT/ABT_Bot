@@ -93,8 +93,6 @@ async def handle_incoming_message(event):
             # Обработка ответа
             print(f"Поиск информации о портфеле: {case}")
             # Отладочный вывод всех записей в коллекции
-            all_cases = list(case_collection.find({}, {"case_name": 1}))
-            print(f"Все доступные портфели в БД: {all_cases}")
 
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
