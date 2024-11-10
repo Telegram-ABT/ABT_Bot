@@ -68,7 +68,7 @@ async def handle_incoming_message(event):
 
         if gpt_response:
             print(f"Ответ от ChatGPT получен: {gpt_response}")
-            # Разб��р ответа
+            # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
                 price = float(price)
@@ -92,8 +92,6 @@ async def handle_incoming_message(event):
 
             # Обработка ответа
             print(f"Поиск информации о портфеле: {case}")
-            # Отладочный вывод всех записей в коллекции
-
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
                 print(f"Информация о портфеле {case} не найдена.")
@@ -116,22 +114,18 @@ async def handle_incoming_message(event):
 
                 # Расчет размера ордера
                 if type_op == "BUY":
-                    if not case_share_info:
-                        count_order = int((case_deposit * balance / 100) / price)
-                        print(f"Рассчитанный размер ордера: {count_order}")
-                    else:
-                        count_order = int(((case_deposit * balance / 100) - balance_sum) / price)
-                        print(f"Рассчитанный размер ордера: {count_order}")
+                    count_order = int((case_deposit * balance / 100) / price) if not case_share_info else int(((case_deposit * balance / 100) - balance_sum) / price)
+                    sum = count_order * price
                 elif type_op == "SELL":
                     if not case_share_info:
                         print("Позиция по акции не была сформирована ранее.")
                         return
-                    if balance == 0:
-                        count_order = balance_count
-                        print(f"Рассчитанный размер ордера: {count_order}")
-                    else:
-                        count_order = int(((case_deposit * balance / 100) - balance_sum) / price)
-                        print(f"Рассчитанный размер ордера: {count_order}")
+                    count_order = balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
+                    sum = count_order * price
+                    count_order = -count_order  # Для продажи используем отрицательное значение
+                    sum = -sum
+
+                print(f"Рассчитанный размер ордера: {count_order}")
 
                 # Запись в таблицу trading
                 trading_data = {
@@ -141,15 +135,16 @@ async def handle_incoming_message(event):
                     "type": type_op,
                     "price": price,
                     "count_order": count_order,
-                    "sum": case_deposit * balance / 100 - balance_sum
+                    "sum": sum
                 }
                 trading_collection.insert_one(trading_data)
                 print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
-                # Обновление информации в case_share
+                # Обновление или добавление информации в case_share
                 case_share_collection.update_one(
                     {"case": case, "share": share},
-                    {"$inc": {"balance_count": count_order, "balance_sum": trading_data["sum"]}}
+                    {"$inc": {"balance_count": count_order, "balance_sum": sum}},
+                    upsert=True
                 )
                 print(f"Информация в case_share обновлена для {share} в {case}")
 
