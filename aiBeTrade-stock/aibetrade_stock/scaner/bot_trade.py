@@ -56,7 +56,7 @@ async def handle_incoming_message(event):
             "Преобразуй сообщение в следующую структуру: "
             "Название портфеля без ковычек., Название акции только на латинице без русских названий, "
             "Тип сигнала: BUY или SELL, Цена акции, Процент остатка акции в портфеле без знака процент. "
-            "Д��обные разделители точка. "
+            "Дробные разделители точка. "
             "Структура должна включать в себя разделители данных {} и между разделителями данных не должно быть пробелов. "
             "Особенности сообщения. Иногда сообщение содержит информацию о продаже акции и не содержит ни процента продажи, "
             "ни процента остатка акций в портфеле это означает что продается все что есть и в этом случае процент остатка в портфеле будет 0. "
@@ -80,7 +80,7 @@ async def handle_incoming_message(event):
 
             # Запись в MongoDB
             signal_data = {
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "date": datetime.now(),
                 "case_name": case,
                 "share": share,
                 "type": type_op,
@@ -92,12 +92,15 @@ async def handle_incoming_message(event):
 
             # Обработка ответа
             print(f"Поиск информации о портфеле: {case}")
+            # Отладочный вывод всех записей в коллекции
+            all_cases = list(case_collection.find({}, {"case_name": 1}))
+            print(f"Все доступные портфели в БД: {all_cases}")
+
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
                 print(f"Информация о портфеле {case} не найдена.")
                 return
 
-            case_name = case_info["case_name"]
             case_deposit = case_info["case_deposit"]
             active = case_info["active"]
             print(f"Информация о портфеле: {case_info}")
@@ -131,7 +134,7 @@ async def handle_incoming_message(event):
 
                 # Запись в таблицу trading
                 trading_data = {
-                    "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "date": datetime.now(),
                     "case": case,
                     "share": share,
                     "type": type_op,
