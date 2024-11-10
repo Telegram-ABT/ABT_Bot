@@ -68,7 +68,7 @@ async def handle_incoming_message(event):
 
         if gpt_response:
             print(f"Ответ от ChatGPT получен: {gpt_response}")
-            # Разбор ответа
+            # Разб��р ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
                 price = float(price)
@@ -101,8 +101,8 @@ async def handle_incoming_message(event):
                 print(f"Информация о портфеле {case} не найдена.")
                 return
 
-            case_deposit = case_info["case_deposit"]
-            active = case_info["active"]
+            case_deposit = case_info.get("case_deposit")
+            active = case_info.get("active")
             print(f"Информация о портфеле: {case_info}")
 
             if active:
