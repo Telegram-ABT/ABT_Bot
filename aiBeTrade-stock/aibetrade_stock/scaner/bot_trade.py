@@ -28,6 +28,7 @@ trading_collection = db["trading"]
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
+        print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
         response = client_openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -35,7 +36,9 @@ def send_to_chatgpt(prompt, text):
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content.strip()
+        gpt_response = response.choices[0].message.content.strip()
+        print(f"Ответ от ChatGPT: {gpt_response}")
+        return gpt_response
     except Exception as e:
         print(f"Ошибка при отправке запроса в ChatGPT: {e}")
         return None
@@ -44,18 +47,22 @@ def send_to_chatgpt(prompt, text):
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
     message_text = event.raw_text
+    print(f"Получено сообщение: {message_text}")
 
     if "#push" in message_text:
+        print("Обнаружен #push в сообщении.")
         # Отправка в ChatGPT
         promt = 'https://docs.google.com/document/d/16KdZVK4a_QiM7wmMCmV-42XX9dB9FtsmNvYj4NCAJ7o/edit?usp=sharing'
         gpt_response = send_to_chatgpt(promt, message_text)
 
         if gpt_response:
+            print(f"Ответ от ChatGPT получен: {gpt_response}")
             # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
                 price = float(price)
                 balance = float(balance)
+                print(f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}")
             except Exception as e:
                 print(f"Ошибка при разборе ответа: {e}")
                 return
@@ -72,6 +79,7 @@ async def handle_incoming_message(event):
                 "balance_free": balance
             }
             signal_collection.insert_one(signal_data)
+            print(f"Данные сигнала записаны в MongoDB: {signal_data}")
 
             # Обработка ответа
             case_info = case_collection.find_one({"case_name": case})
@@ -82,6 +90,7 @@ async def handle_incoming_message(event):
             case_name = case_info["case_name"]
             case_deposit = case_info["case_deposit"]
             active = case_info["active"]
+            print(f"Информация о портфеле: {case_info}")
 
             if active:
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
@@ -91,6 +100,7 @@ async def handle_incoming_message(event):
 
                 balance_count = case_share_info["balance_count"]
                 balance_sum = case_share_info["balance_sum"]
+                print(f"Информация по акции: {case_share_info}")
 
                 # Расчет размера ордера
                 if type_op == "BUY":
@@ -107,6 +117,8 @@ async def handle_incoming_message(event):
                     else:
                         count_order = int(((case_deposit * balance / 100) - balance_sum) / price)
 
+                print(f"Рассчитанный размер ордера: {count_order}")
+
                 # Запись в таблицу trading
                 trading_data = {
                     "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -118,12 +130,14 @@ async def handle_incoming_message(event):
                     "sum": case_deposit * balance / 100 - balance_sum
                 }
                 trading_collection.insert_one(trading_data)
+                print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
                 # Обновление информации в case_share
                 case_share_collection.update_one(
                     {"case": case, "share": share},
                     {"$inc": {"balance_count": count_order, "balance_sum": trading_data["sum"]}}
                 )
+                print(f"Информация в case_share обновлена для {share} в {case}")
 
                 # Вывод информации
                 print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case} по цене {price}")
@@ -131,6 +145,7 @@ async def handle_incoming_message(event):
 # Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
+    print("Клиент Telegram запущен.")
     await client.run_until_disconnected()
 
 if __name__ == "__main__":
