@@ -85,9 +85,7 @@ async def handle_incoming_message(event):
                 "share": share,
                 "type": type_op,
                 "price": price,
-                "balance_start": balance,
-                "balance_lock": 0,
-                "balance_free": balance
+                "balance": balance
             }
             signal_collection.insert_one(signal_data)
             print(f"Данные сигнала записаны в MongoDB: {signal_data}")
