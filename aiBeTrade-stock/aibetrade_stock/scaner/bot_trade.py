@@ -20,10 +20,10 @@ client = TelegramClient('user_session_trade', API_ID, API_HASH)
 mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
-signal_collection = db["signal"]
-case_collection = db["case"]
-case_share_collection = db["case_share"]
-trading_collection = db["trading"]
+signal_collection = db["kogan_signal"]
+case_collection = db["kogan_case"]
+case_share_collection = db["kogan_case_share"]
+trading_collection = db["kogan_trading"]
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
@@ -56,7 +56,7 @@ async def handle_incoming_message(event):
             "Преобразуй сообщение в следующую структуру: "
             "Название портфеля без ковычек., Название акции только на латинице без русских названий, "
             "Тип сигнала: BUY или SELL, Цена акции, Процент остатка акции в портфеле без знака процент. "
-            "Дробные разделители точка. "
+            "Д��обные разделители точка. "
             "Структура должна включать в себя разделители данных {} и между разделителями данных не должно быть пробелов. "
             "Особенности сообщения. Иногда сообщение содержит информацию о продаже акции и не содержит ни процента продажи, "
             "ни процента остатка акций в портфеле это означает что продается все что есть и в этом случае процент остатка в портфеле будет 0. "
@@ -81,7 +81,7 @@ async def handle_incoming_message(event):
             # Запись в MongoDB
             signal_data = {
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "case": case,
+                "case_name": case,
                 "share": share,
                 "type": type_op,
                 "price": price,
@@ -91,6 +91,7 @@ async def handle_incoming_message(event):
             print(f"Данные сигнала записаны в MongoDB: {signal_data}")
 
             # Обработка ответа
+            print(f"Поиск информации о портфеле: {case}")
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
                 print(f"Информация о портфеле {case} не найдена.")
@@ -149,7 +150,7 @@ async def handle_incoming_message(event):
                 print(f"Информация в case_share обновлена для {share} в {case}")
 
                 # Вывод информации
-                print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case} по цене {price}")
+                print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case}")
 
 # Запуск клиента и основных функций
 async def main():
