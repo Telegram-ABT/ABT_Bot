@@ -107,28 +107,31 @@ async def handle_incoming_message(event):
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
                 if not case_share_info:
                     print(f"Данных по акции {share} в портфеле {case} не обнаружено.")
-                    return
-
-                balance_count = case_share_info["balance_count"]
-                balance_sum = case_share_info["balance_sum"]
-                print(f"Информация по акции: {case_share_info}")
+                    balance_count = 0
+                    balance_sum = 0
+                else:
+                    balance_count = case_share_info["balance_count"]
+                    balance_sum = case_share_info["balance_sum"]
+                    print(f"Информация по акции: {case_share_info}")
 
                 # Расчет размера ордера
                 if type_op == "BUY":
                     if not case_share_info:
                         count_order = int((case_deposit * balance / 100) / price)
+                        print(f"Рассчитанный размер ордера: {count_order}")
                     else:
                         count_order = int(((case_deposit * balance / 100) - balance_sum) / price)
+                        print(f"Рассчитанный размер ордера: {count_order}")
                 elif type_op == "SELL":
                     if not case_share_info:
                         print("Позиция по акции не была сформирована ранее.")
                         return
                     if balance == 0:
                         count_order = balance_count
+                        print(f"Рассчитанный размер ордера: {count_order}")
                     else:
                         count_order = int(((case_deposit * balance / 100) - balance_sum) / price)
-
-                print(f"Рассчитанный размер ордера: {count_order}")
+                        print(f"Рассчитанный размер ордера: {count_order}")
 
                 # Запись в таблицу trading
                 trading_data = {
