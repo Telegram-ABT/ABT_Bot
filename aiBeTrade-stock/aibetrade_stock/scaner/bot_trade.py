@@ -123,8 +123,6 @@ async def handle_incoming_message(event):
                         return
                     count_order = balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
                     sum = count_order * price
-                    count_order = -count_order  # Для продажи используем отрицательное значение
-                    sum = -sum
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
 
