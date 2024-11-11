@@ -71,6 +71,7 @@ async def handle_incoming_message(event):
             # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
+                share = share.strip()  # Убедитесь, что пробелы не удаляются
                 price = float(price)
                 balance = float(balance)
                 print(f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}")
