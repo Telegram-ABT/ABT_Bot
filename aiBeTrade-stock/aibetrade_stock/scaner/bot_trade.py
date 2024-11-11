@@ -123,8 +123,6 @@ async def handle_incoming_message(event):
                         return
                     count_order = balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
                     sum = count_order * price
-                    count_order = count_order *-1 # Для продажи используем отрицательное значение
-                    sum = sum *-1
 
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
@@ -143,6 +141,9 @@ async def handle_incoming_message(event):
                 print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
                 # Обновление или добавление информации в case_share
+                if type_op == "SELL":
+                    count_order = count_order *-1
+                    sum = sum *-1
                 case_share_collection.update_one(
                     {"case": case, "share": share},
                     {"$inc": {"balance_count": count_order, "balance_sum": sum}},
