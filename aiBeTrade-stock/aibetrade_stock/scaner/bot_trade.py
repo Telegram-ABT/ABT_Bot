@@ -125,6 +125,11 @@ async def handle_incoming_message(event):
                     count_order = -count_order  # Для продажи используем отрицательное значение
                     sum = -sum
 
+                # Проверка на отрицательное количество
+                if count_order <= 0:
+                    print("Количество акций к покупке или продаже меньше или равно 0. Действие не выполняется.")
+                    return
+
                 print(f"Рассчитанный размер ордера: {count_order}")
 
                 # Запись в таблицу trading
