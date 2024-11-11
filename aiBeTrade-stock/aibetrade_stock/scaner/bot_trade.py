@@ -125,7 +125,9 @@ async def handle_incoming_message(event):
                     sum = count_order * price
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
-
+                if balance_count+count_order <= 0:
+                    print(f"Количество акций {share} в портфеле {case} меньше чем размер ордера {count_order}. Действие не выполняется.")
+                    return
                 # Запись в таблицу trading
                 trading_data = {
                     "date": datetime.now(),
