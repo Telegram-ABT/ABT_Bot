@@ -121,11 +121,11 @@ async def handle_incoming_message(event):
                     if not case_share_info:
                         print("Позиция по акции не была сформирована ранее.")
                         return
-                    count_order = balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
+                    count_order = -balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
                     sum = count_order * price
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
-                if balance_count+count_order <= 0:
+                if balance_count+count_order < 0:
                     print(f"Количество акций {share} в портфеле {case} меньше чем размер ордера {count_order}. Действие не выполняется.")
                     return
                 # Запись в таблицу trading
