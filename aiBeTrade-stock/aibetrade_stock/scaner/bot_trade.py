@@ -142,9 +142,12 @@ async def handle_incoming_message(event):
                 print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
                 # Обновление или добавление информации в case_share
+                balance_count = balance_count + count_order
+                balance_sum = balance_sum + sum
+                print(f"Обновленные данные для {share} в {case}: {balance_count} {balance_sum}")
                 case_share_collection.update_one(
                     {"case": case, "share": share},
-                    {"$inc": {"balance_count": count_order, "balance_sum": sum}},
+                    {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}},
                     upsert=True
                 )
                 print(f"Информация в case_share обновлена для {share} в {case}")
