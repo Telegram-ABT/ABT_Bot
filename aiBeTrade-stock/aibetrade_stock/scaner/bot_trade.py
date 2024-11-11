@@ -71,7 +71,7 @@ async def handle_incoming_message(event):
             # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
-                share = share.strip()  # Убедитесь, что пробелы не удаляются
+                share = share.strip()
                 price = float(price)
                 balance = float(balance)
                 print(f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}")
@@ -123,7 +123,8 @@ async def handle_incoming_message(event):
                         return
                     count_order = balance_count if balance == 0 else int(((case_deposit * balance / 100) - balance_sum) / price)
                     sum = count_order * price
-
+                    count_order = -count_order  # Для продажи используем отрицательное значение
+                    sum = -sum
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
 
@@ -141,10 +142,6 @@ async def handle_incoming_message(event):
                 print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
                 # Обновление или добавление информации в case_share
-                if type_op == "SELL":
-                    count_order = -count_order
-                    sum = -sum
-                    print(f"Обновленные данные для продажи: {count_order} {sum}")
                 case_share_collection.update_one(
                     {"case": case, "share": share},
                     {"$inc": {"balance_count": count_order, "balance_sum": sum}},
