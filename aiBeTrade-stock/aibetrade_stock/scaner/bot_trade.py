@@ -142,8 +142,9 @@ async def handle_incoming_message(event):
 
                 # Обновление или добавление информации в case_share
                 if type_op == "SELL":
-                    count_order = count_order *-1
-                    sum = sum *-1
+                    count_order = -count_order
+                    sum = -sum
+                    print(f"Обновленные данные для продажи: {count_order} {sum}")
                 case_share_collection.update_one(
                     {"case": case, "share": share},
                     {"$inc": {"balance_count": count_order, "balance_sum": sum}},
