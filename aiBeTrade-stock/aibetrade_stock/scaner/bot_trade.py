@@ -127,7 +127,7 @@ async def handle_incoming_message(event):
                     sum = sum *-1
 
 
-                print(f"Рассчитанный размер ордера: {count_order}")
+                print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
 
                 # Запись в таблицу trading
                 trading_data = {
