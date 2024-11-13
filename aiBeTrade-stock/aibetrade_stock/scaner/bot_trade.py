@@ -182,7 +182,9 @@ async def handle_incoming_message(event):
                         "type": type_op,
                         "price": price,
                         "count_order": count_order,
-                        "sum": sum
+                        "sum": sum,
+                        "orderId": broker_response[0].get("orderId"),
+                        "broker_response": broker_response
                     }
                     trading_collection.insert_one(trading_data)
                     print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
