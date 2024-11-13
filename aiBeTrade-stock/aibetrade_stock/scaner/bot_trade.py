@@ -89,9 +89,16 @@ async def check_order_status():
             orders = trading_collection.find({"order_status": {"$nin": ["cancelled", "filled", "rejected"]}})
             for order in orders:
                 order_id = order.get("orderId")
-                account_id = order.get("accountId")
-                application_id = order.get("application_id")
-                application_access_key = order.get("application_access_key")
+                case_name = order.get("case")
+
+                # Получаем application_id и application_access_key из kogan_case
+                case_info = case_collection.find_one({"case_name": case_name})
+                if not case_info:
+                    print(f"Информация о портфеле {case_name} не найдена.")
+                    continue
+
+                application_id = case_info.get("application_id")
+                application_access_key = case_info.get("application_access_key")
 
                 # Запрос статуса ордера
                 status_response = requests.get(
