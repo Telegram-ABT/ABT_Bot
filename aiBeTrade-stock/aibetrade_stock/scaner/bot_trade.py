@@ -170,7 +170,10 @@ async def handle_incoming_message(event):
                     return
 
                 # Отправка ордера брокеру
-                broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
+                if count_order > 0:
+                    broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
+                else:
+                    return
                 print(f"Ответ от брокера: {broker_response}")
 
                 if broker_response:
