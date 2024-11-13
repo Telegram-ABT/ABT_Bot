@@ -16,11 +16,6 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
 
-# Учетные данные для брокера
-application_id = '0d261dca-79a2-459c-9949-ad34b0354bf5'
-application_access_key = 'EeYV01iQi5ZkFlsvR3nC'
-account_id = 'RRO1051.002'
-
 # URL для отправки ордеров
 api_url = 'https://api-demo.exante.eu/trade/3.0/orders'
 
@@ -55,7 +50,7 @@ def send_to_chatgpt(prompt, text):
         return None
 
 # Функция для отправки ордера брокеру
-def send_order_to_broker(symbol, side, quantity):
+def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key):
     print(f"Отправка ордера брокеру: {symbol} {side} {quantity}")
     order_data = {
         "accountId": account_id,
@@ -140,6 +135,9 @@ async def handle_incoming_message(event):
                 print(f"Информация о портфеле {case} не найдена.")
                 return
 
+            account_id = case_info.get("account_id")
+            application_id = case_info.get("application_id")
+            application_access_key = case_info.get("application_access_key")
             case_deposit = case_info.get("case_deposit")
             active = case_info.get("active")
             print(f"Информация о портфеле: {case_info}")
@@ -172,7 +170,7 @@ async def handle_incoming_message(event):
                     return
 
                 # Отправка ордера брокеру
-                broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order))
+                broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
                 print(f"Ответ от брокера: {broker_response}")
 
                 if broker_response:
