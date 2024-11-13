@@ -22,7 +22,7 @@ application_access_key = 'EeYV01iQi5ZkFlsvR3nC'
 account_id = 'RRO1051.002'
 
 # URL для отправки ордеров
-api_url = 'https://api-demo.exante.eu/trade/'
+api_url = 'https://api-demo.exante.eu/trade/3.0/orders'
 
 # Инициализация клиента Telethon
 client = TelegramClient('user_session_trade', API_ID, API_HASH)
@@ -73,12 +73,16 @@ def send_order_to_broker(symbol, side, quantity):
         data=json.dumps(order_data)
     )
 
-    if response.status_code == 200:
+    try:
+        response.raise_for_status()
         print("Операция успешно выполнена:")
         return response.json()
-    else:
-        print(f"Ошибка: {response.status_code}")
-        print(response.json())
+    except requests.exceptions.HTTPError as e:
+        print(f"Ошибка HTTP: {e}")
+        print(f"Ответ от сервера: {response.text}")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка запроса: {e}")
         return None
 
 # Обработка всех входящих сообщений
