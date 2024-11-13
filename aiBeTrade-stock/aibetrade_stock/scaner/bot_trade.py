@@ -6,6 +6,7 @@ from telethon import TelegramClient, events
 from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
+import asyncio
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -79,6 +80,61 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
     except requests.exceptions.RequestException as e:
         print(f"Ошибка запроса: {e}")
         return None
+
+# Функция для проверки статуса ордеров
+async def check_order_status():
+    while True:
+        try:
+            # Ищем ордера, которые не завершены
+            orders = trading_collection.find({"order_status": {"$nin": ["cancelled", "filled", "rejected"]}})
+            for order in orders:
+                order_id = order.get("orderId")
+                account_id = order.get("accountId")
+                application_id = order.get("application_id")
+                application_access_key = order.get("application_access_key")
+
+                # Запрос статуса ордера
+                status_response = requests.get(
+                    f"{api_url}/{order_id}",
+                    auth=HTTPBasicAuth(application_id, application_access_key)
+                )
+
+                if status_response.status_code == 200:
+                    order_status = status_response.json()["orderState"]["status"]
+                    print(f"Статус ордера {order_id}: {order_status}")
+
+                    # Обновление статуса ордера в БД
+                    trading_collection.update_one(
+                        {"orderId": order_id},
+                        {"$set": {"order_status": order_status}}
+                    )
+
+                    # Если ордер выполнен, обновляем информацию в case_share
+                    if order_status == "filled":
+                        fills = status_response.json()["orderState"]["fills"]
+                        total_quantity = sum(float(fill["quantity"]) for fill in fills)
+                        total_sum = sum(float(fill["quantity"]) * float(fill["price"]) for fill in fills)
+                        case = order["case"]
+                        share = order["share"]
+
+                        if status_response.json()["orderParameters"]["side"].upper() == "SELL":
+                            total_quantity = total_quantity * (-1)
+                            total_sum = total_sum * (-1)
+
+                        case_share_collection.update_one(
+                            {"case": case, "share": share},
+                            {"$inc": {"balance_count": total_quantity, "balance_sum": total_sum}},
+                            upsert=True
+                        )
+                        print(f"Информация в case_share обновлена для {share} в {case}")
+                else:
+                    print(f"Ошибка при получении статуса ордера {order_id}: {status_response.text}")
+
+            await asyncio.sleep(10)  # Проверка статуса ордеров каждые 10 секунд
+
+        except Exception as e:
+            print(f"Ошибка при проверке статуса ордеров: {e}")
+            await asyncio.sleep(10)
 
 # Обработка всех входящих сообщений
 @client.on(events.NewMessage)
@@ -188,31 +244,20 @@ async def handle_incoming_message(event):
                         "count_order": count_order,
                         "sum": sum,
                         "orderId": broker_response[0].get("orderId"),
-                        "broker_response": broker_response
+                        "broker_response": broker_response,
+                        "order_status": broker_response[0]["orderState"].get("status")
                     }
                     trading_collection.insert_one(trading_data)
                     print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
-
-                    # Обновление или добавление информации в case_share
-                    balance_count = balance_count + count_order
-                    balance_sum = balance_sum + sum
-                    print(f"Обновленные данные для {share} в {case}: {balance_count} {balance_sum}")
-                    case_share_collection.update_one(
-                        {"case": case, "share": share},
-                        {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}},
-                        upsert=True
-                    )
-                    print(f"Информация в case_share обновлена для {share} в {case}")
-
-                    # Вывод информации
-                    print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case}")
-                else:
-                    print("Ошибка при выполнении торговой операции. Данные не записаны в БД.")
 
 # Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
     print("Клиент Telegram запущен.")
+    
+    # Запуск задачи для проверки статуса ордеров
+    asyncio.create_task(check_order_status())
+    
     await client.run_until_disconnected()
 
 if __name__ == "__main__":
