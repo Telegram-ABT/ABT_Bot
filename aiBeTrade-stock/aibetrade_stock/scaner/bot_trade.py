@@ -56,6 +56,7 @@ def send_to_chatgpt(prompt, text):
 
 # Функция для отправки ордера брокеру
 def send_order_to_broker(symbol, side, quantity):
+    print(f"Отправка ордера брокеру: {symbol} {side} {quantity}")
     order_data = {
         "accountId": account_id,
         "symbolId": symbol,
