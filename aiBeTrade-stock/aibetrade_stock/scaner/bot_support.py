@@ -12,7 +12,7 @@ TOKEN = os.getenv('TOKEN_BOT_SCANER')
 bot = telebot.TeleBot(TOKEN)
 
 # Подключение к MongoDB
-mongo_url = os.getenv('MONGO_URL_SERV')  # Замените на URL MongoDB сервера
+mongo_url = os.getenv('MONGO_URL_SERV')
 client = MongoClient(mongo_url)
 db = client["nntcapital"]
 collection = db["support"]
@@ -40,6 +40,14 @@ def is_sender_running():
             return proc.info['pid']
     return None
 
+# Проверка, запущен ли скрипт bot_trade.py
+def is_trade_running():
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        cmdline = proc.info['cmdline']
+        if cmdline and "bot_trade.py" in cmdline:
+            return proc.info['pid']
+    return None
+
 # Функция для запуска скриптов
 def start_script(script_name):
     return subprocess.Popen(["python3", script_name])
@@ -52,66 +60,31 @@ def stop_script(pid):
 def create_main_menu():
     markup = types.InlineKeyboardMarkup()
     scaner_status = "Scaner"
-    sender_status = "Assistent" 
+    sender_status = "Assistent"
+    trading_status = "Trading"
     buttons = [
         types.InlineKeyboardButton(scaner_status, callback_data="scaner_status"),
         types.InlineKeyboardButton("Contact list", callback_data="2"),
         types.InlineKeyboardButton(sender_status, callback_data="sender_status"),
-        types.InlineKeyboardButton("Settings", callback_data="4")
+        types.InlineKeyboardButton(trading_status, callback_data="trading_status")
     ]
     markup.add(buttons[0], buttons[1])
     markup.add(buttons[2], buttons[3])
     return markup
 
-# Функция для создания меню управления сканером
-def create_scaner_control_menu():
-    pid = is_scaner_running()
+# Функция для создания меню управления торговлей
+def create_trading_control_menu():
+    pid = is_trade_running()
     markup = types.InlineKeyboardMarkup(row_width=2)
     if pid:
         buttons = [
-            types.InlineKeyboardButton("Остановить", callback_data="stop_scaner"),
-            types.InlineKeyboardButton("Перезапустить", callback_data="restart_scaner")
+            types.InlineKeyboardButton("Остановить", callback_data="stop_trade"),
+            types.InlineKeyboardButton("Перезапустить", callback_data="restart_trade")
         ]
     else:
-        buttons = [types.InlineKeyboardButton("Запустить сканер", callback_data="start_scaner")]
+        buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_trade")]
     buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
     markup.add(*buttons)
-    return markup
-
-# Функция для создания меню управления рассылкой
-def create_sender_control_menu():
-    pid = is_sender_running()
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    if pid:
-        buttons = [
-            types.InlineKeyboardButton("Остановить", callback_data="stop_sender"),
-            types.InlineKeyboardButton("Перезапустить", callback_data="restart_sender")
-        ]
-    else:
-        buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_sender")]
-    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
-    markup.add(*buttons)
-    return markup
-
-# Функция для создания меню сбора базы данных рассылки
-def create_data_collection_menu():
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    buttons = [
-        types.InlineKeyboardButton("Сформировать БД", callback_data="2.1"),
-        types.InlineKeyboardButton("Очистить БД", callback_data="2.2")
-    ]
-    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
-    markup.add(*buttons)
-    return markup
-
-# Функция для создания кнопок каналов из базы данных
-def create_channel_buttons():
-    markup = types.InlineKeyboardMarkup()
-    channels = scanerchats_collection.find({}, {"chat_id": 1, "chat_name": 1})
-    for channel in channels:
-        button_text = f"{channel['chat_name']} (ID: {channel['chat_id']})"
-        markup.add(types.InlineKeyboardButton(button_text, callback_data=f"channel_{channel['chat_id']}"))
-    print(f"Сгенерированы кнопки для каналов: {[button_text for channel in channels]}")
     return markup
 
 # Обработка команды /start и /menu
@@ -152,6 +125,12 @@ def handle_query(call):
                 "Выберите действие для рассылки:",
                 reply_markup=create_sender_control_menu()
             )
+    elif button_id == "trading_status":
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие для торговли:",
+            reply_markup=create_trading_control_menu()
+        )
     elif button_id == "start_scaner":
         start_script("bot_scaner.py")
         bot.send_message(
@@ -214,6 +193,38 @@ def handle_query(call):
         bot.send_message(
             call.message.chat.id,
             "Сервис успешно перезапущен.",
+            reply_markup=create_main_menu()
+        )
+    elif button_id == "start_trade":
+        start_script("bot_trade.py")
+        bot.send_message(
+            call.message.chat.id,
+            "Торговля успешно запущена.",
+            reply_markup=create_main_menu()
+        )
+    elif button_id == "stop_trade":
+        pid = is_trade_running()
+        if pid:
+            stop_script(pid)
+            bot.send_message(
+                call.message.chat.id,
+                "Торговля успешно остановлена.",
+                reply_markup=create_main_menu()
+            )
+        else:
+            bot.send_message(
+                call.message.chat.id,
+                "Торговля уже остановлена.",
+                reply_markup=create_main_menu()
+            )
+    elif button_id == "restart_trade":
+        pid = is_trade_running()
+        if pid:
+            stop_script(pid)
+        start_script("bot_trade.py")
+        bot.send_message(
+            call.message.chat.id,
+            "Торговля успешно перезапущена.",
             reply_markup=create_main_menu()
         )
     elif button_id == "2":
