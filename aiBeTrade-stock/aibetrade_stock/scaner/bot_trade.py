@@ -1,4 +1,7 @@
 import os
+import requests
+import json
+from requests.auth import HTTPBasicAuth
 from telethon import TelegramClient, events
 from pymongo import MongoClient
 from datetime import datetime
@@ -12,6 +15,14 @@ client_openai = OpenAI(api_key=key)
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
+
+# Учетные данные для брокера
+application_id = '0d261dca-79a2-459c-9949-ad34b0354bf5'
+application_access_key = 'EeYV01iQi5ZkFlsvR3nC'
+account_id = 'RRO1051.002'
+
+# URL для отправки ордеров
+api_url = 'https://api-demo.exante.eu/trade/'
 
 # Инициализация клиента Telethon
 client = TelegramClient('user_session_trade', API_ID, API_HASH)
@@ -41,6 +52,32 @@ def send_to_chatgpt(prompt, text):
         return gpt_response
     except Exception as e:
         print(f"Ошибка при отправке запроса в ChatGPT: {e}")
+        return None
+
+# Функция для отправки ордера брокеру
+def send_order_to_broker(symbol, side, quantity):
+    order_data = {
+        "accountId": account_id,
+        "symbolId": symbol,
+        "side": side,
+        "quantity": str(quantity),
+        "orderType": "market",
+        "duration": "day"
+    }
+
+    response = requests.post(
+        api_url,
+        auth=HTTPBasicAuth(application_id, application_access_key),
+        headers={'Content-Type': 'application/json'},
+        data=json.dumps(order_data)
+    )
+
+    if response.status_code == 200:
+        print("Операция успешно выполнена:")
+        return response.json()
+    else:
+        print(f"Ошибка: {response.status_code}")
+        print(response.json())
         return None
 
 # Обработка всех входящих сообщений
@@ -125,35 +162,43 @@ async def handle_incoming_message(event):
                     sum = count_order * price
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
-                if balance_count+count_order < 0:
+                if balance_count + count_order < 0:
                     print(f"Количество акций {share} в портфеле {case} меньше чем размер ордера {count_order}. Действие не выполняется.")
                     return
-                # Запись в таблицу trading
-                trading_data = {
-                    "date": datetime.now(),
-                    "case": case,
-                    "share": share,
-                    "type": type_op,
-                    "price": price,
-                    "count_order": count_order,
-                    "sum": sum
-                }
-                trading_collection.insert_one(trading_data)
-                print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
 
-                # Обновление или добавление информации в case_share
-                balance_count = balance_count + count_order
-                balance_sum = balance_sum + sum
-                print(f"Обновленные данные для {share} в {case}: {balance_count} {balance_sum}")
-                case_share_collection.update_one(
-                    {"case": case, "share": share},
-                    {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}},
-                    upsert=True
-                )
-                print(f"Информация в case_share обновлена для {share} в {case}")
+                # Отправка ордера брокеру
+                broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order))
+                print(f"Ответ от брокера: {broker_response}")
 
-                # Вывод информации
-                print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case}")
+                if broker_response:
+                    # Запись в таблицу trading
+                    trading_data = {
+                        "date": datetime.now(),
+                        "case": case,
+                        "share": share,
+                        "type": type_op,
+                        "price": price,
+                        "count_order": count_order,
+                        "sum": sum
+                    }
+                    trading_collection.insert_one(trading_data)
+                    print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
+
+                    # Обновление или добавление информации в case_share
+                    balance_count = balance_count + count_order
+                    balance_sum = balance_sum + sum
+                    print(f"Обновленные данные для {share} в {case}: {balance_count} {balance_sum}")
+                    case_share_collection.update_one(
+                        {"case": case, "share": share},
+                        {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}},
+                        upsert=True
+                    )
+                    print(f"Информация в case_share обновлена для {share} в {case}")
+
+                    # Вывод информации
+                    print(f"Операция выполнена: {type_op} {count_order} акций {share} в портфеле {case}")
+                else:
+                    print("Ошибка при выполнении торговой операции. Данные не записаны в БД.")
 
 # Запуск клиента и основных функций
 async def main():
