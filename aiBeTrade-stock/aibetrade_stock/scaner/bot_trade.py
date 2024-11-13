@@ -113,7 +113,12 @@ async def check_order_status():
                     # Обновление статуса ордера в БД
                     trading_collection.update_one(
                         {"orderId": order_id},
-                        {"$set": {"order_status": order_status}}
+                        {
+                            "$set": {
+                                "order_status": order_status,
+                                "order_details": status_response.json()  # Сохраняем полную информацию об ордере
+                            }
+                        }
                     )
 
                     # Если ордер выполнен, обновляем информацию в case_share
