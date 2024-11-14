@@ -135,9 +135,9 @@ async def check_order_status():
 
                 if status_response.status_code == 200:
                     order_status = status_response.json()["orderState"]["status"]
-                    message = f"Статус ордера {order_id}: {order_status}"
-                    print(message)
-                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                    # message = f"Статус ордера {order_id}: {order_status}"
+                    # print(message)
+                    # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
                     # Обновление статуса ордера в БД
                     trading_collection.update_one(
