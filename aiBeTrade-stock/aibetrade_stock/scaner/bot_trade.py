@@ -33,7 +33,7 @@ case_share_collection = db["kogan_case_share"]
 trading_collection = db["kogan_trading"]
 
 # ID получателя в Telegram
-recipient_id = 327475194
+recipient_id = '@igyak'
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
