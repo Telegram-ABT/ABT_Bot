@@ -289,7 +289,7 @@ async def handle_incoming_message(event):
                     print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
                 else:
                     # Отправка сообщения об ошибке в Telegram
-                    message = f"Ошибка!Ордер на {type_op} акции {share} в количестве {abs(count_order)} не размещен. {broker_response.json()['error']['message']}"
+                    message = f"Ошибка!Ордер на {type_op} акции {share} в количестве {abs(count_order)} не размещен. {broker_response.text}"
                     await send_telegram_message(client, recipient_id, message)
 
 # Запуск клиента и основных функций
