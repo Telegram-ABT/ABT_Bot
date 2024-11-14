@@ -88,7 +88,8 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
 # Функция для отправки сообщения в Telegram
 async def send_telegram_message(client, recipient_id, message):
     try:
-        await client.send_message(recipient_id, message)
+        user_entity = await client.get_input_entity(recipient_id)
+        await client.send_message(user_entity, message)
         print(f"Сообщение отправлено пользователю {recipient_id}: {message}")
     except Exception as e:
         print(f"Ошибка при отправке сообщения в Telegram: {e}")
@@ -220,7 +221,7 @@ async def handle_incoming_message(event):
             signal_collection.insert_one(signal_data)
             print(f"Данные сигнала записаны в MongoDB: {signal_data}")
 
-            # Обработк�� ответа
+            # Обработка ответа
             print(f"Поиск информации о портфеле: {case}")
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
