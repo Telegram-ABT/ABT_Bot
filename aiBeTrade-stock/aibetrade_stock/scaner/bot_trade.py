@@ -32,6 +32,9 @@ case_collection = db["kogan_case"]
 case_share_collection = db["kogan_case_share"]
 trading_collection = db["kogan_trading"]
 
+# ID получателя в Telegram
+recipient_id = 327475194
+
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
@@ -80,6 +83,14 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
     except requests.exceptions.RequestException as e:
         print(f"Ошибка запроса: {e}")
         return None
+
+# Функция для отправки сообщения в Telegram
+async def send_telegram_message(client, recipient_id, message):
+    try:
+        await client.send_message(recipient_id, message)
+        print(f"Сообщение отправлено пользователю {recipient_id}: {message}")
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения в Telegram: {e}")
 
 # Функция для проверки статуса ордеров
 async def check_order_status():
@@ -257,6 +268,10 @@ async def handle_incoming_message(event):
                 print(f"Ответ от брокера: {broker_response}")
 
                 if broker_response:
+                    # Отправка сообщения в Telegram
+                    message = f"Успех!Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. {broker_response[0]['orderState']['status']}"
+                    await send_telegram_message(client, recipient_id, message)
+
                     # Запись в таблицу trading
                     trading_data = {
                         "date": datetime.now(),
@@ -272,13 +287,17 @@ async def handle_incoming_message(event):
                     }
                     trading_collection.insert_one(trading_data)
                     print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
+                else:
+                    # Отправка сообщения об ошибке в Telegram
+                    message = f"Ошибка!Ордер на {type_op} акции {share} в количестве {abs(count_order)} не размещен. {broker_response.json()['error']['message']}"
+                    await send_telegram_message(client, recipient_id, message)
 
 # Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
     print("Клиент Telegram запущен.")
     
-    # Зап��ск задачи для проверки статуса ордеров
+    # Запуск задачи для проверки статуса ордеров
     asyncio.create_task(check_order_status())
     
     await client.run_until_disconnected()
