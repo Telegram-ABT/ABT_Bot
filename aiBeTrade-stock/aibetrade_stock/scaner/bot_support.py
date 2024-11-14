@@ -20,6 +20,7 @@ scanerchats_collection = db["scanerchats"]
 scanerdialog_collection = db["scanerdialog"]
 scanercall_collection = db["scanercall"]
 scanersettings_collection = db["scanersettings"]
+case_share_collection = db["kogan_case_share"]
 
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
@@ -83,9 +84,19 @@ def create_trading_control_menu():
         ]
     else:
         buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_trade")]
+    buttons.append(types.InlineKeyboardButton("Список акций", callback_data="list_shares"))
     buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
     markup.add(*buttons)
     return markup
+
+# Функция для создания меню списка акций
+def create_shares_menu():
+    markup = types.InlineKeyboardMarkup()
+    shares = case_share_collection.find()
+    shares_list = [f"{share['case']}: {share['share']} - {share['balance_count']}" for share in shares]
+    shares_text = "\n".join(shares_list)
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
+    return shares_text, markup
 
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
@@ -126,6 +137,19 @@ def handle_query(call):
                 reply_markup=create_sender_control_menu()
             )
     elif button_id == "trading_status":
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие для торговли:",
+            reply_markup=create_trading_control_menu()
+        )
+    elif button_id == "list_shares":
+        shares_text, shares_markup = create_shares_menu()
+        bot.send_message(
+            call.message.chat.id,
+            f"Список акций:\n{shares_text}",
+            reply_markup=shares_markup
+        )
+    elif button_id == "back_to_trading":
         bot.send_message(
             call.message.chat.id,
             "Выберите действие для торговли:",
