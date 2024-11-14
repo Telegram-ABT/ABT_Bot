@@ -264,6 +264,7 @@ async def handle_incoming_message(event):
             # asyncio.create_task(send_telegram_message(client, recipient_id, message))
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
+                signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error", "error_message": "Информация о портфеле не найдена."}})
                 message = f"Информация о портфеле {case} не найдена."
                 print(message)
                 asyncio.create_task(send_telegram_message(client, recipient_id, message))
@@ -281,6 +282,7 @@ async def handle_incoming_message(event):
             if active:
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
                 if not case_share_info:
+                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error", "error_message": "Данных по акции не обнаружено."}})
                     message = f"Данных по акции {share} в портфеле {case} не обнаружено."
                     print(message)
                     asyncio.create_task(send_telegram_message(client, recipient_id, message))
@@ -330,7 +332,7 @@ async def handle_incoming_message(event):
                     await send_telegram_message(client, recipient_id, message)
 
                     # Обновление статуса сигнала на complete
-                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "complete"}})
+                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "complete", "order_details": broker_response, "error_message": None}})
 
                     # Запись в таблицу trading
                     trading_data = {
@@ -351,7 +353,7 @@ async def handle_incoming_message(event):
                     # asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
                     # Обновление статуса сигнала на error
-                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error"}})
+                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error", "error_message": error_message}})
 
                     # Отправка сообщения об ошибке в Telegram
                     await send_telegram_message(client, recipient_id, error_message)
