@@ -180,7 +180,14 @@ async def check_order_status():
                             print(message)
                             asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         else:
-                            message = f"Акция {share} в портфеле {case} не найдена."
+                            # Создание новой записи, если акция не найдена
+                            case_share_collection.insert_one({
+                                "case": case,
+                                "share": share,
+                                "balance_count": total_quantity,
+                                "balance_sum": total_sum
+                            })
+                            message = f"Ордер {order_id} переведен в статус {order_status}. Новая запись создана для {share} в портфеле {case}"
                             print(message)
                             asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
