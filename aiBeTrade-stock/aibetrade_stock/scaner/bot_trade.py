@@ -130,15 +130,26 @@ async def check_order_status():
                         share = order["share"]
 
                         if status_response.json()["orderParameters"]["side"].upper() == "SELL":
-                            total_quantity = total_quantity * (-1)
-                            total_sum = total_sum * (-1)
+                            total_quantity = -total_quantity
+                            total_sum = -total_sum
 
-                        case_share_collection.update_one(
-                            {"case": case, "share": share},
-                            {"$inc": {"balance_count": total_quantity, "balance_sum": total_sum}},
-                            upsert=True
-                        )
-                        print(f"Информация в case_share обновлена для {share} в {case}")
+                        # Поиск акции в БД
+                        share_info = case_share_collection.find_one({"case": case, "share": share})
+                        if share_info:
+                            balance_count = share_info.get("balance_count", 0) + total_quantity
+                            if balance_count == 0:
+                                balance_sum = 0
+                            else:
+                                balance_sum = share_info.get("balance_sum", 0) + total_sum
+
+                            # Обновление записи в БД
+                            case_share_collection.update_one(
+                                {"case": case, "share": share},
+                                {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}}
+                            )
+                            print(f"Информация в case_share обновлена для {share} в {case}")
+                        else:
+                            print(f"Акция {share} в портфеле {case} не найдена.")
                 else:
                     print(f"Ошибка при получении статуса ордера {order_id}: {status_response.text}")
 
@@ -267,7 +278,7 @@ async def main():
     await client.start(USER_PHONE)
     print("Клиент Telegram запущен.")
     
-    # Запуск задачи для проверки статуса ордеров
+    # Зап��ск задачи для проверки статуса ордеров
     asyncio.create_task(check_order_status())
     
     await client.run_until_disconnected()
