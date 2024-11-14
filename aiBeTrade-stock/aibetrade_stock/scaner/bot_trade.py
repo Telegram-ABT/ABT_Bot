@@ -75,14 +75,15 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
     try:
         response.raise_for_status()
         print("Операция успешно выполнена:")
-        return response.json()
+        return response.json(), None
     except requests.exceptions.HTTPError as e:
-        print(f"Ошибка HTTP: {e}")
-        print(f"Ответ от сервера: {response.text}")
-        return None
+        error_message = f"ОШИБКА! Ордер на {side} акции {symbol} в количестве {quantity} не размещен. Ошибка: {response.text}"
+        print(error_message)
+        return None, error_message
     except requests.exceptions.RequestException as e:
-        print(f"Ошибка запроса: {e}")
-        return None
+        error_message = f"Ошибка запроса: {e}"
+        print(error_message)
+        return None, error_message
 
 # Функция для отправки сообщения в Telegram
 async def send_telegram_message(client, recipient_id, message):
@@ -219,7 +220,7 @@ async def handle_incoming_message(event):
             signal_collection.insert_one(signal_data)
             print(f"Данные сигнала записаны в MongoDB: {signal_data}")
 
-            # Обработка ответа
+            # Обработк�� ответа
             print(f"Поиск информации о портфеле: {case}")
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
@@ -262,14 +263,14 @@ async def handle_incoming_message(event):
 
                 # Отправка ордера брокеру
                 if count_order > 0:
-                    broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
+                    broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
                 else:
-                    broker_response = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key)
+                    broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key)
                 print(f"Ответ от брокера: {broker_response}")
 
                 if broker_response:
                     # Отправка сообщения в Telegram
-                    message = f"Успех!Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. {broker_response[0]['orderState']['status']}"
+                    message = f"Успех! Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. {broker_response[0]['orderState']['status']}"
                     await send_telegram_message(client, recipient_id, message)
 
                     # Запись в таблицу trading
@@ -289,8 +290,7 @@ async def handle_incoming_message(event):
                     print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
                 else:
                     # Отправка сообщения об ошибке в Telegram
-                    message = f"Ошибка!Ордер на {type_op} акции {share} в количестве {abs(count_order)} не размещен. {broker_response.text}"
-                    await send_telegram_message(client, recipient_id, message)
+                    await send_telegram_message(client, recipient_id, error_message)
 
 # Запуск клиента и основных функций
 async def main():
