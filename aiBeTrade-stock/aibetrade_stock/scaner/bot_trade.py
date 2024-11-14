@@ -253,7 +253,7 @@ async def handle_incoming_message(event):
                 "balance": balance,
                 "status_signal": "new"
             }
-            signal_collection.insert_one(signal_data)
+            signal_id = signal_collection.insert_one(signal_data).inserted_id
             # message = f"Данные сигнала записаны в MongoDB: {signal_data}"
             # print(message)
             # asyncio.create_task(send_telegram_message(client, recipient_id, message))
