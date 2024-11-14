@@ -40,7 +40,7 @@ def send_to_chatgpt(prompt, text):
     try:
         message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
         print(message)
-        asyncio.create_task(send_telegram_message(client, recipient_id, message))
+        # asyncio.create_task(send_telegram_message(client, recipient_id, message))
         response = client_openai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -201,8 +201,8 @@ async def check_order_status():
 async def handle_incoming_message(event):
     message_text = event.raw_text
     message = f"Получено сообщение: {message_text}"
-    print(message)
-    asyncio.create_task(send_telegram_message(client, recipient_id, message))
+    # print(message)
+    # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
     if "#push" in message_text:
         message = "Обнаружен #push в сообщении."
@@ -234,9 +234,9 @@ async def handle_incoming_message(event):
                 share = share.strip()
                 price = float(price)
                 balance = float(balance)
-                message = f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}"
-                print(message)
-                asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                # message = f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}"
+                # print(message)
+                # asyncio.create_task(send_telegram_message(client, recipient_id, message))
             except Exception as e:
                 message = f"Ошибка при разборе ответа: {e}"
                 print(message)
