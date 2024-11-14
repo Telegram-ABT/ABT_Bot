@@ -82,9 +82,9 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
 
     try:
         response.raise_for_status()
-        message = "Операция успешно выполнена:"
-        print(message)
-        asyncio.create_task(send_telegram_message(client, recipient_id, message))
+        # message = "Операция успешно выполнена:"
+        # print(message)
+        # asyncio.create_task(send_telegram_message(client, recipient_id, message))
         return response.json(), None
     except requests.exceptions.HTTPError as e:
         error_message = f"ОШИБКА! Ордер на {side} акции {symbol} в количестве {quantity} не размещен. Ошибка: {response.text}"
