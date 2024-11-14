@@ -250,7 +250,8 @@ async def handle_incoming_message(event):
                 "share": share,
                 "type": type_op,
                 "price": price,
-                "balance": balance
+                "balance": balance,
+                "status_signal": "new"
             }
             signal_collection.insert_one(signal_data)
             # message = f"Данные сигнала записаны в MongoDB: {signal_data}"
@@ -328,6 +329,9 @@ async def handle_incoming_message(event):
                     message = f"Успех! Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. {broker_response[0]['orderState']['status']}"
                     await send_telegram_message(client, recipient_id, message)
 
+                    # Обновление статуса сигнала на complete
+                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "complete"}})
+
                     # Запись в таблицу trading
                     trading_data = {
                         "date": datetime.now(),
@@ -346,6 +350,9 @@ async def handle_incoming_message(event):
                     # print(message)
                     # asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
+                    # Обновление статуса сигнала на error
+                    signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error"}})
+
                     # Отправка сообщения об ошибке в Telegram
                     await send_telegram_message(client, recipient_id, error_message)
 
