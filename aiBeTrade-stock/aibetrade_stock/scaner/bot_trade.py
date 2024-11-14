@@ -318,6 +318,12 @@ async def handle_incoming_message(event):
                     return
 
                 # Отправка ордера брокеру
+                if count_order == 0:
+                    message = f"Количество акций к покупке {count_order}. Действие не выполняется."
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                    return
+                
                 if count_order > 0:
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
                 else:
