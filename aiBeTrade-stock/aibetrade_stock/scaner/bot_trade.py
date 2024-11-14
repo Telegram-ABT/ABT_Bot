@@ -231,7 +231,7 @@ async def handle_incoming_message(event):
                         print("Позиция по акции не была сформирована ранее.")
                         return
                     count_order = -balance_count if balance == 0 else int(balance_count * balance / 100)
-                    sum = count_order * price
+                    sum = -balance_sum if balance == 0 else count_order * price
 
                 print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
                 if balance_count + count_order < 0:
