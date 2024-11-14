@@ -49,9 +49,9 @@ def send_to_chatgpt(prompt, text):
             ]
         )
         gpt_response = response.choices[0].message.content.strip()
-        message = f"Ответ от ChatGPT: {gpt_response}"
-        print(message)
-        asyncio.create_task(send_telegram_message(client, recipient_id, message))
+        # message = f"Ответ от ChatGPT: {gpt_response}"
+        # print(message)
+        # asyncio.create_task(send_telegram_message(client, recipient_id, message))
         return gpt_response
     except Exception as e:
         message = f"Ошибка при отправке запроса в ChatGPT: {e}"
@@ -176,9 +176,9 @@ async def check_order_status():
                                 {"case": case, "share": share},
                                 {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}}
                             )
-                            message = f"Информация в case_share обновлена для {share} в {case}"
-                            print(message)
-                            asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                            # message = f"Информация в case_share обновлена для {share} в {case}"
+                            # print(message)
+                            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         else:
                             message = f"Акция {share} в портфеле {case} не найдена."
                             print(message)
@@ -205,9 +205,9 @@ async def handle_incoming_message(event):
     # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
     if "#push" in message_text:
-        message = "Обнаружен #push в сообщении."
-        print(message)
-        asyncio.create_task(send_telegram_message(client, recipient_id, message))
+        # message = "Обнаружен #push в сообщении."
+        # print(message)
+        # asyncio.create_task(send_telegram_message(client, recipient_id, message))
         # Новый промт
         promt = (
             "Преобразуй сообщение в следующую структуру: "
@@ -225,9 +225,9 @@ async def handle_incoming_message(event):
         gpt_response = send_to_chatgpt(promt, message_text)
 
         if gpt_response:
-            message = f"Ответ от ChatGPT получен: {gpt_response}"
-            print(message)
-            asyncio.create_task(send_telegram_message(client, recipient_id, message))
+            # message = f"Ответ от ChatGPT получен: {gpt_response}"
+            # print(message)
+            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
             # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
@@ -253,14 +253,14 @@ async def handle_incoming_message(event):
                 "balance": balance
             }
             signal_collection.insert_one(signal_data)
-            message = f"Данные сигнала записаны в MongoDB: {signal_data}"
-            print(message)
-            asyncio.create_task(send_telegram_message(client, recipient_id, message))
+            # message = f"Данные сигнала записаны в MongoDB: {signal_data}"
+            # print(message)
+            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
             # Обработка ответа
-            message = f"Поиск информации о портфеле: {case}"
-            print(message)
-            asyncio.create_task(send_telegram_message(client, recipient_id, message))
+            # message = f"Поиск информации о портфеле: {case}"
+            # print(message)
+            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
                 message = f"Информация о портфеле {case} не найдена."
@@ -273,9 +273,9 @@ async def handle_incoming_message(event):
             application_access_key = case_info.get("application_access_key")
             case_deposit = case_info.get("case_deposit")
             active = case_info.get("active")
-            message = f"Информация о портфеле: {case_info}"
-            print(message)
-            asyncio.create_task(send_telegram_message(client, recipient_id, message))
+            # message = f"Информация о портфеле: {case_info}"
+            # print(message)
+            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
             if active:
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
@@ -319,9 +319,9 @@ async def handle_incoming_message(event):
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
                 else:
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key)
-                message = f"Ответ от брокера: {broker_response}"
-                print(message)
-                asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                # message = f"Ответ от брокера: {broker_response}"
+                # print(message)
+                # asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
                 if broker_response:
                     # Отправка сообщения в Telegram
@@ -342,9 +342,9 @@ async def handle_incoming_message(event):
                         "order_status": broker_response[0]["orderState"].get("status")
                     }
                     trading_collection.insert_one(trading_data)
-                    message = f"Данные торговой операции записаны в MongoDB: {trading_data}"
-                    print(message)
-                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                    # message = f"Данные торговой операции записаны в MongoDB: {trading_data}"
+                    # print(message)
+                    # asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
                     # Отправка сообщения об ошибке в Telegram
                     await send_telegram_message(client, recipient_id, error_message)
