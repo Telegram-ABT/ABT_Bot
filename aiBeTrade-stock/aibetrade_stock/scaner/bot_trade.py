@@ -176,9 +176,9 @@ async def check_order_status():
                                 {"case": case, "share": share},
                                 {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}}
                             )
-                            # message = f"Информация в case_share обновлена для {share} в {case}"
-                            # print(message)
-                            # asyncio.create_task(send_telegram_message(client, recipient_id, message))
+                            message = f"Ордер {order_id} переведен в статус {order_status}. Информация в портфеле {case} обновлена для {share}"
+                            print(message)
+                            asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         else:
                             message = f"Акция {share} в портфеле {case} не найдена."
                             print(message)
