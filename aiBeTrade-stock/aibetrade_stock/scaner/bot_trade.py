@@ -38,7 +38,9 @@ recipient_id = '@igyak'
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
-        print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
+        message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
+        print(message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, message))
         response = client_openai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -47,15 +49,21 @@ def send_to_chatgpt(prompt, text):
             ]
         )
         gpt_response = response.choices[0].message.content.strip()
-        print(f"Ответ от ChatGPT: {gpt_response}")
+        message = f"Ответ от ChatGPT: {gpt_response}"
+        print(message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, message))
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отправке запроса в ChatGPT: {e}")
+        message = f"Ошибка при отправке запроса в ChatGPT: {e}"
+        print(message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, message))
         return None
 
 # Функция для отправки ордера брокеру
 def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key):
-    print(f"Отправка ордера брокеру: {symbol} {side} {quantity}")
+    message = f"Отправка ордера брокеру: {symbol} {side} {quantity}"
+    print(message)
+    asyncio.create_task(send_telegram_message(client, recipient_id, message))
     order_data = {
         "accountId": account_id,
         "symbolId": symbol,
@@ -74,15 +82,19 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
 
     try:
         response.raise_for_status()
-        print("Операция успешно выполнена:")
+        message = "Операция успешно выполнена:"
+        print(message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, message))
         return response.json(), None
     except requests.exceptions.HTTPError as e:
         error_message = f"ОШИБКА! Ордер на {side} акции {symbol} в количестве {quantity} не размещен. Ошибка: {response.text}"
         print(error_message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, error_message))
         return None, error_message
     except requests.exceptions.RequestException as e:
         error_message = f"Ошибка запроса: {e}"
         print(error_message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, error_message))
         return None, error_message
 
 # Функция для отправки сообщения в Telegram
@@ -107,7 +119,9 @@ async def check_order_status():
                 # Получаем application_id и application_access_key из kogan_case
                 case_info = case_collection.find_one({"case_name": case_name})
                 if not case_info:
-                    print(f"Информация о портфеле {case_name} не найдена.")
+                    message = f"Информация о портфеле {case_name} не найдена."
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
                     continue
 
                 application_id = case_info.get("application_id")
@@ -121,7 +135,9 @@ async def check_order_status():
 
                 if status_response.status_code == 200:
                     order_status = status_response.json()["orderState"]["status"]
-                    print(f"Статус ордера {order_id}: {order_status}")
+                    message = f"Статус ордера {order_id}: {order_status}"
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
                     # Обновление статуса ордера в БД
                     trading_collection.update_one(
@@ -160,26 +176,38 @@ async def check_order_status():
                                 {"case": case, "share": share},
                                 {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}}
                             )
-                            print(f"Информация в case_share обновлена для {share} в {case}")
+                            message = f"Информация в case_share обновлена для {share} в {case}"
+                            print(message)
+                            asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         else:
-                            print(f"Акция {share} в портфеле {case} не найдена.")
+                            message = f"Акция {share} в портфеле {case} не найдена."
+                            print(message)
+                            asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
-                    print(f"Ошибка при получении статуса ордера {order_id}: {status_response.text}")
+                    message = f"Ошибка при получении статуса ордера {order_id}: {status_response.text}"
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
             await asyncio.sleep(10)  # Проверка статуса ордеров каждые 10 секунд
 
         except Exception as e:
-            print(f"Ошибка при проверке статуса ордеров: {e}")
+            message = f"Ошибка при проверке статуса ордеров: {e}"
+            print(message)
+            asyncio.create_task(send_telegram_message(client, recipient_id, message))
             await asyncio.sleep(10)
 
 # Обработка всех входящих сообщений
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
     message_text = event.raw_text
-    print(f"Получено сообщение: {message_text}")
+    message = f"Получено сообщение: {message_text}"
+    print(message)
+    asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
     if "#push" in message_text:
-        print("Обнаружен #push в сообщении.")
+        message = "Обнаружен #push в сообщении."
+        print(message)
+        asyncio.create_task(send_telegram_message(client, recipient_id, message))
         # Новый промт
         promt = (
             "Преобразуй сообщение в следующую структуру: "
@@ -197,16 +225,22 @@ async def handle_incoming_message(event):
         gpt_response = send_to_chatgpt(promt, message_text)
 
         if gpt_response:
-            print(f"Ответ от ChatGPT получен: {gpt_response}")
+            message = f"Ответ от ChatGPT получен: {gpt_response}"
+            print(message)
+            asyncio.create_task(send_telegram_message(client, recipient_id, message))
             # Разбор ответа
             try:
                 case, share, type_op, price, balance = gpt_response.strip('{}').split('}{')
                 share = share.strip()
                 price = float(price)
                 balance = float(balance)
-                print(f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}")
+                message = f"Разобранные данные: case={case}, share={share}, type={type_op}, price={price}, balance={balance}"
+                print(message)
+                asyncio.create_task(send_telegram_message(client, recipient_id, message))
             except Exception as e:
-                print(f"Ошибка при разборе ответа: {e}")
+                message = f"Ошибка при разборе ответа: {e}"
+                print(message)
+                asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 return
 
             # Запись в MongoDB
@@ -219,13 +253,19 @@ async def handle_incoming_message(event):
                 "balance": balance
             }
             signal_collection.insert_one(signal_data)
-            print(f"Данные сигнала записаны в MongoDB: {signal_data}")
+            message = f"Данные сигнала записаны в MongoDB: {signal_data}"
+            print(message)
+            asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
             # Обработка ответа
-            print(f"Поиск информации о портфеле: {case}")
+            message = f"Поиск информации о портфеле: {case}"
+            print(message)
+            asyncio.create_task(send_telegram_message(client, recipient_id, message))
             case_info = case_collection.find_one({"case_name": case})
             if not case_info:
-                print(f"Информация о портфеле {case} не найдена.")
+                message = f"Информация о портфеле {case} не найдена."
+                print(message)
+                asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 return
 
             account_id = case_info.get("account_id")
@@ -233,18 +273,24 @@ async def handle_incoming_message(event):
             application_access_key = case_info.get("application_access_key")
             case_deposit = case_info.get("case_deposit")
             active = case_info.get("active")
-            print(f"Информация о портфеле: {case_info}")
+            message = f"Информация о портфеле: {case_info}"
+            print(message)
+            asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
             if active:
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
                 if not case_share_info:
-                    print(f"Данных по акции {share} в портфеле {case} не обнаружено.")
+                    message = f"Данных по акции {share} в портфеле {case} не обнаружено."
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
                     balance_count = 0
                     balance_sum = 0
                 else:
                     balance_count = case_share_info["balance_count"]
                     balance_sum = case_share_info["balance_sum"]
-                    print(f"Информация по акции: {case_share_info}")
+                    message = f"Информация по акции: {case_share_info}"
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
                 # Расчет размера ордера
                 if type_op == "BUY":
@@ -252,14 +298,20 @@ async def handle_incoming_message(event):
                     sum = count_order * price
                 elif type_op == "SELL":
                     if not case_share_info:
-                        print("Позиция по акции не была сформирована ранее.")
+                        message = "Позиция по акции не была сформирована ранее."
+                        print(message)
+                        asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         return
                     count_order = -balance_count if balance == 0 else int(balance_count * balance / 100)
                     sum = -balance_sum if balance == 0 else count_order * price
 
-                print(f"Рассчитанный размер ордера: {count_order} сумма {sum}")
+                message = f"Рассчитанный размер ордера: {count_order} сумма {sum}"
+                print(message)
+                asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 if balance_count + count_order < 0:
-                    print(f"Количество акций {share} в портфеле {case} меньше чем размер ордера {count_order}. Действие не выполняется.")
+                    message = f"Количество акций {share} в портфеле {case} меньше чем размер ордера {count_order}. Действие не выполняется."
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
                     return
 
                 # Отправка ордера брокеру
@@ -267,7 +319,9 @@ async def handle_incoming_message(event):
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
                 else:
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key)
-                print(f"Ответ от брокера: {broker_response}")
+                message = f"Ответ от брокера: {broker_response}"
+                print(message)
+                asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
                 if broker_response:
                     # Отправка сообщения в Telegram
@@ -288,7 +342,9 @@ async def handle_incoming_message(event):
                         "order_status": broker_response[0]["orderState"].get("status")
                     }
                     trading_collection.insert_one(trading_data)
-                    print(f"Данные торговой операции записаны в MongoDB: {trading_data}")
+                    message = f"Данные торговой операции записаны в MongoDB: {trading_data}"
+                    print(message)
+                    asyncio.create_task(send_telegram_message(client, recipient_id, message))
                 else:
                     # Отправка сообщения об ошибке в Telegram
                     await send_telegram_message(client, recipient_id, error_message)
@@ -296,7 +352,9 @@ async def handle_incoming_message(event):
 # Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
-    print("Клиент Telegram запущен.")
+    message = "Клиент Telegram запущен."
+    print(message)
+    asyncio.create_task(send_telegram_message(client, recipient_id, message))
     
     # Запуск задачи для проверки статуса ордеров
     asyncio.create_task(check_order_status())
