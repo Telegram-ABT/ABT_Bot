@@ -7,6 +7,7 @@ from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
 import asyncio
+from bot_set_stock import process_set_stocke_message  # Импортируем функцию из bot_set_stock.py
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -175,7 +176,7 @@ async def check_order_status():
             await asyncio.sleep(10)
 
         except Exception as e:
-            message = f"Ошибка при проверке статуса ордеров: {e}"
+            message = f"Ошибка при проверке ��татуса ордеров: {e}"
             print(message)
             asyncio.create_task(send_telegram_message(client, recipient_id, message))
             await asyncio.sleep(10)
@@ -279,6 +280,8 @@ async def handle_incoming_message(event):
     message_text = event.raw_text
     if "#push" in message_text:
         process_push_message(message_text)
+    elif "#set_stocke" in message_text:
+        asyncio.create_task(process_set_stocke_message(message_text))  # Вызываем функцию из bot_set_stock.py
 
 def process_push_message(message_text):
     message = f"Получено сообщение: {message_text}"
