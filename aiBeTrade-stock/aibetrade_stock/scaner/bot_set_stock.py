@@ -36,25 +36,22 @@ def send_to_chatgpt(prompt, text):
         print(f"Ошибка при отправке запроса в ChatGPT: {e}")
         return None
 
-# Функция для получения текущей цены акции от брокера
-def get_current_price(symbol, api_url, application_id, application_access_key):
-    try:
-        response = requests.get(
-            f"{api_url}3.0/feed/trades/{symbol}",
-            auth=HTTPBasicAuth(application_id, application_access_key)
-        )
-        response.raise_for_status()
+# Функция для получения текущей цены акции через Alpha Vantage
+def get_stock_price_from_alpha_vantage(symbol):
+    api_key = '76478DBVK1EF8HY1'
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&apikey={api_key}'
+    response = requests.get(url)
+    if response.status_code == 200:
         data = response.json()
-        print(f"Полученные данные: {data}")
-        # Попробуем получить price как альтернативу
-        price = data.get("price")
-        if price:
-            return price
-        else:
-            print(f"Не удалось получить цену для символа {symbol}.")
+        try:
+            last_refreshed = data['Meta Data']['3. Last Refreshed']
+            last_price = data['Time Series (1min)'][last_refreshed]['4. close']
+            return float(last_price)
+        except KeyError:
+            print("Ошибка при получении данных о цене акции.")
             return None
-    except requests.exceptions.RequestException as e:
-        print(f"Ошибка при получении цены акции {symbol}: {e}")
+    else:
+        print(f"Ошибка при получении цены акции {symbol}: {response.text}")
         return None
 
 # Функция для отправки ордера брокеру
@@ -121,8 +118,8 @@ async def process_set_stocke_message(message_text):
             active = case_info.get("active")
 
             if active:
-                # Получение текущей цены акции
-                price = get_current_price(share, api_url, application_id, application_access_key)
+                # Получение текущей цены акции через Alpha Vantage
+                price = get_stock_price_from_alpha_vantage(share)
                 if price is None:
                     print(f"Не удалось получить цену для акции {share}.")
                     continue
