@@ -173,5 +173,5 @@ async def process_set_stocke_message(message_text):
                 else:
                     print(error_message)
 
-# Пример вызова функции
+# Пример вызова функции у
 # asyncio.run(process_set_stocke_message("#set_stocke\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
