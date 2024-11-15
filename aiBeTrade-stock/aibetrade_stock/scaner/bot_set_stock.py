@@ -40,11 +40,12 @@ def send_to_chatgpt(prompt, text):
 def get_current_price(symbol, api_url, application_id, application_access_key):
     try:
         response = requests.get(
-            f"{api_url}/price/{symbol}",
+            f"{api_url}/symbols/{symbol}",
             auth=HTTPBasicAuth(application_id, application_access_key)
         )
         response.raise_for_status()
-        return response.json().get("price")
+        data = response.json()
+        return data.get("optionData", {}).get("strikePrice")
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении цены акции {symbol}: {e}")
         return None
