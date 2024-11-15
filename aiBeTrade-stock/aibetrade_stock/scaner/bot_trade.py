@@ -17,9 +17,6 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 USER_PHONE = os.getenv('USER_PHONE')
 
-# URL для отправки ордеров
-api_url = 'https://api-demo.exante.eu/trade/3.0/orders'
-
 # Инициализация клиента Telethon
 client = TelegramClient('user_session_trade', API_ID, API_HASH)
 
@@ -60,7 +57,7 @@ def send_to_chatgpt(prompt, text):
         return None
 
 # Функция для отправки ордера брокеру
-def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key):
+def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key, api_url):
     message = f"Отправка ордера брокеру: {symbol} {side} {quantity}"
     print(message)
     asyncio.create_task(send_telegram_message(client, recipient_id, message))
@@ -116,7 +113,7 @@ async def check_order_status():
                 order_id = order.get("orderId")
                 case_name = order.get("case")
 
-                # Получаем application_id и application_access_key из kogan_case
+                # Получаем application_id, application_access_key и api_url из kogan_case
                 case_info = case_collection.find_one({"case_name": case_name})
                 if not case_info:
                     message = f"Информация о портфеле {case_name} не найдена."
@@ -126,6 +123,7 @@ async def check_order_status():
 
                 application_id = case_info.get("application_id")
                 application_access_key = case_info.get("application_access_key")
+                api_url = case_info.get("api_url")
 
                 # Запрос статуса ордера
                 status_response = requests.get(
@@ -229,6 +227,7 @@ async def retry_new_signals():
                 account_id = case_info.get("account_id")
                 application_id = case_info.get("application_id")
                 application_access_key = case_info.get("application_access_key")
+                api_url = case_info.get("api_url")
                 case_deposit = case_info.get("case_deposit")
                 active = case_info.get("active")
 
@@ -268,9 +267,9 @@ async def retry_new_signals():
                         continue
 
                     if count_order > 0:
-                        broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key)
+                        broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order), account_id, application_id, application_access_key, api_url)
                     else:
-                        broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key)
+                        broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key, api_url)
 
                     if broker_response:
                         # Отправка сообщения в Telegram
