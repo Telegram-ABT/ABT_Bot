@@ -45,7 +45,7 @@ def get_current_price(symbol, api_url, application_id, application_access_key):
         )
         response.raise_for_status()
         data = response.json()
-        print(data)
+        print(response)
         return data.get("optionData", {}).get("strikePrice")
     except requests.exceptions.RequestException as e:
         print(f"Ошибка при получении цены акции {symbol}: {e}")
