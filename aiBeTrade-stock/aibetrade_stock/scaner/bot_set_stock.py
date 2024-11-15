@@ -40,7 +40,7 @@ def send_to_chatgpt(prompt, text):
 def get_current_price(symbol, api_url, application_id, application_access_key):
     try:
         response = requests.get(
-            f"{api_url}/symbols/{symbol}",
+            f"{api_url}/3.0/symbols/{symbol}",
             auth=HTTPBasicAuth(application_id, application_access_key)
         )
         response.raise_for_status()
