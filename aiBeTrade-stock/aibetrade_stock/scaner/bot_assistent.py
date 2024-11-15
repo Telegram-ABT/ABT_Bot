@@ -60,6 +60,13 @@ async def handle_incoming_message(event):
     # Проверяем, был ли первый контакт
     if record.get("firstcall", False):
         # Получаем последние сообщения из чата с пользователем
+        try:
+            history = await client.get_messages(from_user_id, limit=10)
+            history_text = "\n".join([f"{msg.sender_id}: {msg.text}" for msg in history if msg.text])
+        except Exception as e:
+            print(f"Ошибка при получении истории сообщений: {e}")
+            history_text = "История сообщений недоступна."
+
         # Обновляем диалог
         updated_dialogues = record.get("dialogues", "") + f"\nПользователь писал ранее: {message_text}"
         
@@ -86,7 +93,7 @@ async def handle_incoming_message(event):
             "останови обсуждение и отправь только 'STOP'.\n\n"
             "Ниже представлены сообщения пользователя:"
         )
-        print(f"Сформированный текст для ответного сообщения для контакта: {promt_text+'\n'+'Диалоги: '+ updated_dialogues}")
+        print(f"Сформированный текст для ответного сообщения для контакта: {promt_text+'\n'+'Диалоги'+updated_dialogues}")
 
         # Отправка текста в ChatGPT и обработка ответа
         gpt_response = send_to_chatgpt(promt_text, updated_dialogues)
@@ -188,7 +195,7 @@ async def check_new_records():
 async def main():
     await client.start(USER_PHONE)
     
-    # Создаем отд��льную задачу для проверки новых записей
+    # Создаем отдельную задачу для проверки новых записей
     check_records_task = asyncio.create_task(check_new_records())
     
     # Запускаем прослушивание сообщений

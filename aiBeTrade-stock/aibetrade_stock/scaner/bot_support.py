@@ -200,7 +200,7 @@ def handle_query(call):
             stop_script(pid)
             bot.send_message(
                 call.message.chat.id,
-                "Сервис успешно остановлен.",
+                "Сервис успешно останов��ен.",
                 reply_markup=create_main_menu()
             )
         else:
