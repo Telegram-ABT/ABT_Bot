@@ -154,7 +154,8 @@ async def process_set_stocke_message(message_text):
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), abs(count_order*(-1)), account_id, application_id, application_access_key, api_url)
 
                 if broker_response:
-                    order_status = broker_response.get('orderState', {}).get('status', 'unknown')
+                    print(f"broker_response: {broker_response}")
+                    order_status = broker_response.get('orderState', {}).get('status')
                     print(f"Успех! Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. Статус: {order_status}")
 
                     trading_data = {
