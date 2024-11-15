@@ -38,12 +38,15 @@ def send_to_chatgpt(prompt, text):
 
 # Функция для получения текущей цены акции через Alpha Vantage
 def get_stock_price_from_alpha_vantage(symbol):
-    alpha_vantage = '8HLGJJD9X394CZHY'
+    alpha_vantage = '76478DBVK1EF8HY1'
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&apikey={alpha_vantage}'
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         print(f"Полученные данные: {data}")
+        if "Error Message" in data:
+            print(f"Ошибка в API вызове: {data['Error Message']}")
+            return None
         try:
             last_refreshed = data['Meta Data']['3. Last Refreshed']
             last_price = data['Time Series (1min)'][last_refreshed]['4. close']
