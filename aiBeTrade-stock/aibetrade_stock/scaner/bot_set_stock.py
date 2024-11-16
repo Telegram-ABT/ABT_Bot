@@ -59,6 +59,7 @@ def get_stock_price_from_alpha_vantage(symbol):
 # Функция для отправки ордера брокеру
 def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key, api_url):
     print(f"Отправка ордера брокеру: {symbol} {side} {quantity}")
+    return
     order_data = {
         "accountId": account_id,
         "symbolId": symbol,
