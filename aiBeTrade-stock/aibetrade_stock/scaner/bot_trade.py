@@ -66,7 +66,7 @@ def send_order_to_broker(symbol, side, quantity, account_id, application_id, app
         "orderType": "market",
         "duration": "day"
     }
-
+    print(order_data)
     response = requests.post(
         api_url,
         auth=HTTPBasicAuth(application_id, application_access_key),
