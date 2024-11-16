@@ -102,7 +102,7 @@ async def process_set_stocke_message(message_text):
             continue
 
         # Запрос в ChatGPT для получения биржи
-        promt = f"Найди биржу, где торгуется акция {share}, и верни в формате Тикер.Биржа."
+        promt = f"Найди биржу, где торгуется акция {share}, и верни ответ в строгом формате Тикер.Биржа. Если биржу определить не удалось верни только название акции"
         gpt_response = send_to_chatgpt(promt, share)
 
         if gpt_response:
@@ -125,6 +125,8 @@ async def process_set_stocke_message(message_text):
                 if price is None:
                     print(f"Не удалось получить цену для акции {share}.")
                     continue
+                else:
+                    print(f"Цена акции {share} получена: {price}")
 
                 case_share_info = case_share_collection.find_one({"case": case, "share": share})
                 balance_count = 0 if not case_share_info else case_share_info["balance_count"]
