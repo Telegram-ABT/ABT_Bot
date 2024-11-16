@@ -59,7 +59,6 @@ def get_stock_price_from_alpha_vantage(symbol):
 # Функция для отправки ордера брокеру
 def send_order_to_broker(symbol, side, quantity, account_id, application_id, application_access_key, api_url):
     print(f"Отправка ордера брокеру: {symbol} {side} {quantity}")
-    return
     order_data = {
         "accountId": account_id,
         "symbolId": symbol,
@@ -150,9 +149,13 @@ async def process_set_stocke_message(message_text):
                     continue
 
                 if count_order > 0:
-                    broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order), account_id, application_id, application_access_key, api_url)
+                    print(f"Данные которые пытаемся отправить брокеру количество: {count_order} акция {share} тип ордера {type_op}")
+                    return
+                    # broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order), account_id, application_id, application_access_key, api_url)
                 else:
-                    broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order*(-1)), account_id, application_id, application_access_key, api_url)
+                    print(f"Данные которые пытаемся отправить брокеру количество: {count_order} акция {share} тип ордера {type_op}")
+                    return
+                    # broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order*(-1)), account_id, application_id, application_access_key, api_url)
 
                 if broker_response:
                     print(f"broker_response: {broker_response}")
