@@ -157,26 +157,26 @@ async def process_set_stocke_message(message_text):
                     return
                     # broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order*(-1)), account_id, application_id, application_access_key, api_url)
 
-                if broker_response:
-                    print(f"broker_response: {broker_response}")
-                    order_status = broker_response.get('orderState', {}).get('status')
-                    print(f"Успех! Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. Статус: {order_status}")
+                # if broker_response:
+                #     print(f"broker_response: {broker_response}")
+                #     order_status = broker_response.get('orderState', {}).get('status')
+                #     print(f"Успех! Ордер на {type_op} акции {share} в количестве {abs(count_order)} размещен успешно. Статус: {order_status}")
 
-                    trading_data = {
-                        "date": datetime.now(),
-                        "case": case,
-                        "share": share,
-                        "type": type_op,
-                        "price": price,
-                        "count_order": count_order,
-                        "sum": sum,
-                        "orderId": broker_response.get("orderId"),
-                        "broker_response": broker_response,
-                        "order_status": order_status
-                    }
-                    trading_collection.insert_one(trading_data)
-                else:
-                    print(error_message)
+                #     trading_data = {
+                #         "date": datetime.now(),
+                #         "case": case,
+                #         "share": share,
+                #         "type": type_op,
+                #         "price": price,
+                #         "count_order": count_order,
+                #         "sum": sum,
+                #         "orderId": broker_response.get("orderId"),
+                #         "broker_response": broker_response,
+                #         "order_status": order_status
+                #     }
+                #     trading_collection.insert_one(trading_data)
+                # else:
+                #     print(error_message)
 
 # Пример вызова функции
 # asyncio.run(process_set_stocke_message("#set_stocke\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
