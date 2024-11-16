@@ -152,11 +152,9 @@ async def process_set_stocke_message(message_text):
 
                 if count_order > 0:
                     print(f"Данные которые пытаемся отправить брокеру количество: {count_order} акция {share} тип ордера {type_op}")
-                    return
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order), account_id, application_id, application_access_key, api_url)
                 else:
                     print(f"Данные которые пытаемся отправить брокеру количество: {count_order} акция {share} тип ордера {type_op}")
-                    return
                     broker_response, error_message = send_order_to_broker(share, type_op.lower(), str(count_order*(-1)), account_id, application_id, application_access_key, api_url)
 
                 if broker_response:
