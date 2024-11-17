@@ -8,7 +8,7 @@ from datetime import datetime
 from openai import OpenAI
 import asyncio
 from bot_set_stock import process_set_stocke_message  # Импортируем функцию из bot_set_stock.py
-from bot_signal import send_telegram_message
+from bot_signal import process_set_signal_message
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
