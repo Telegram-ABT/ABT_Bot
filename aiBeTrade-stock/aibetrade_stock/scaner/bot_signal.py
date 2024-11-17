@@ -95,5 +95,5 @@ async def process_set_signal_message(message_text):
             signal_collection.insert_one(signal_data)
             print(f"Сигнал для акции {share} успешно создан и сохранен в базе данных.")
 
-# Пример вызова функции
+# Пример вызова функции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
