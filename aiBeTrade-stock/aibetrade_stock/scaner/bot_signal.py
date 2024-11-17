@@ -31,7 +31,7 @@ def send_to_chatgpt(prompt, text):
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отправке запроса в ChatGPT: {e}")
+        print(f"Ошибка при отп��авке запроса в ChatGPT: {e}")
         return None
 
 # Функция для получения текущей цены акции через Alpha Vantage
@@ -96,5 +96,28 @@ async def process_set_signal_message(message_text):
             signal_collection.insert_one(signal_data)
             print(f"Сигнал для акции {share} успешно создан и сохранен в базе данных.")
 
+# Функция для обновления цены акций с status_signal="no_price"
+async def process_set_price_message():
+    # Получение всех записей с status_signal="no_price"
+    signals = signal_collection.find({"status_signal": "no_price"})
+    
+    for signal in signals:
+        share = signal['share']
+        case_name = signal['case_name']
+        
+        # Получение текущей цены акции
+        price = get_stock_price_from_alpha_vantage(share)
+        
+        if price is not None:
+            # Обновление записи в таблице kogan_signal
+            signal_collection.update_one(
+                {"_id": signal["_id"]},
+                {"$set": {"price": price, "status_signal": "setting"}}
+            )
+            print(f"Цена для акции {share} обновлена: {price}")
+        else:
+            print(f"Не удалось обновить цену для акции {share} в портфеле {case_name}.")
+
 # Пример вызова функции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
+# asyncio.run(process_set_price_message())
