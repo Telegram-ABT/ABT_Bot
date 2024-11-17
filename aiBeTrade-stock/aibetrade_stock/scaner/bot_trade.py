@@ -8,6 +8,7 @@ from datetime import datetime
 from openai import OpenAI
 import asyncio
 from bot_set_stock import process_set_stocke_message  # Импортируем функцию из bot_set_stock.py
+from bot_signal import send_telegram_message
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -282,6 +283,8 @@ async def handle_incoming_message(event):
         process_push_message(message_text)
     elif "#set_stocke" in message_text:
         asyncio.create_task(process_set_stocke_message(message_text))  # Вызываем функцию из bot_set_stock.py
+    elif "#set_signal" in message_text:
+        asyncio.create_task(process_set_signal_message(message_text))  # Вызываем функцию из bot_signal.py
 
 def process_push_message(message_text):
     message = f"Получено сообщение: {message_text}"
