@@ -78,7 +78,7 @@ async def process_set_signal_message(message_text):
             price = get_stock_price_from_alpha_vantage(share)
             if price is None:
                 print(f"Не удалось получить цену для акции {share}.")
-                continue
+                price = 0
             else:
                 print(f"Цена акции {share} получена: {price}")
 
