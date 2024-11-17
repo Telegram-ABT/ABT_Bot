@@ -79,7 +79,7 @@ async def process_set_signal_message(message_text):
             if price is None:
                 print(f"Не удалось получить цену для акции {share}.")
                 price = 0
-                status_signal = "no price"
+                status_signal = "no_price"
             else:
                 print(f"Цена акции {share} получена: {price}")
                 status_signal = "setting"
