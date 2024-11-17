@@ -82,7 +82,7 @@ async def process_set_signal_message(message_text):
                 status_signal = "no price"
             else:
                 print(f"Цена акции {share} получена: {price}")
-                status_signal = ""setting""
+                status_signal = "setting"
             # Создание записи в таблице kogan_signal
             signal_data = {
                 "date": datetime.now(),
