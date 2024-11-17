@@ -39,9 +39,11 @@ def get_stock_price_from_alpha_vantage(symbol):
     ticker = symbol.split('.')[0]
     alpha_vantage = '8HLGJJD9X394CZHY'
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={ticker}&interval=1min&apikey={alpha_vantage}'
+    print(f"Отправляю данные по адресу {url}")
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
+        print(data)
         try:
             last_refreshed = data['Meta Data']['3. Last Refreshed']
             last_price = data['Time Series (1min)'][last_refreshed]['4. close']
