@@ -79,9 +79,10 @@ async def process_set_signal_message(message_text):
             if price is None:
                 print(f"Не удалось получить цену для акции {share}.")
                 price = 0
+                status_signal = "no price"
             else:
                 print(f"Цена акции {share} получена: {price}")
-
+                status_signal = ""setting""
             # Создание записи в таблице kogan_signal
             signal_data = {
                 "date": datetime.now(),
@@ -90,7 +91,7 @@ async def process_set_signal_message(message_text):
                 "type": type_op,
                 "price": price,
                 "balance": balance,
-                "status_signal": "setting"
+                "status_signal": status_signal
             }
             signal_collection.insert_one(signal_data)
             print(f"Сигнал для акции {share} успешно создан и сохранен в базе данных.")
