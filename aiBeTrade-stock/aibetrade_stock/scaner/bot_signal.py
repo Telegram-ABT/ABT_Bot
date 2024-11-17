@@ -31,7 +31,7 @@ def send_to_chatgpt(prompt, text):
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отп��авке запроса в ChatGPT: {e}")
+        print(f"Ошибка при отпавке запроса в ChatGPT: {e}")
         return None
 
 # Функция для получения текущей цены акции через Alpha Vantage
@@ -119,6 +119,9 @@ async def process_set_price_message():
             print(f"Цена для акции {share} обновлена: {price}")
         else:
             print(f"Не удалось обновить цену для акции {share} в портфеле {case_name}.")
+
+        # Добавляем задержку между запросами
+        await asyncio.sleep(12)  # 12 секунд задержки между запросами
 
 # Пример вызова функции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
