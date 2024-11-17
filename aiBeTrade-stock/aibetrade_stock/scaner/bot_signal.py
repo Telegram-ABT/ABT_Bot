@@ -31,7 +31,7 @@ def send_to_chatgpt(prompt, text):
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отпавке запроса в ChatGPT: {e}")
+        print(f"Ошибка при отп��вке запроса в ChatGPT: {e}")
         return None
 
 # Функция для получения текущей цены акции через Alpha Vantage
@@ -53,6 +53,23 @@ def get_stock_price_from_alpha_vantage(symbol):
             return None
     else:
         print(f"Ошибка при получении цены акции {ticker}: {response.text}")
+        return None
+
+# Функция для получения текущей цены акции через брокера
+def get_stock_price_from_broker(symbol, account_id, application_id, application_access_key, api_url):
+    try:
+        response = requests.get(
+            f"{api_url}/price/{symbol}",
+            auth=HTTPBasicAuth(application_id, application_access_key)
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return float(data['price'])
+        else:
+            print(f"Ошибка при получении цены акции {symbol} через брокера: {response.text}")
+            return None
+    except Exception as e:
+        print(f"Ошибка при запросе цены акции {symbol} через брокера: {e}")
         return None
 
 # Основная функция для обработки сообщений с #set_signal
@@ -79,12 +96,24 @@ async def process_set_signal_message(message_text):
             # Получение текущей цены акции через Alpha Vantage
             price = get_stock_price_from_alpha_vantage(share)
             if price is None:
-                print(f"Не удалось получить цену для акции {share}.")
+                print(f"Не удалось получить цену для акции {share} через Alpha Vantage.")
+                # Попытка получить цену через брокера
+                case_info = case_collection.find_one({"case_name": case})
+                if case_info:
+                    account_id = case_info.get("account_id")
+                    application_id = case_info.get("application_id")
+                    application_access_key = case_info.get("application_access_key")
+                    api_url = case_info.get("api_url")
+                    price = get_stock_price_from_broker(share, account_id, application_id, application_access_key, api_url)
+                
+            if price is None:
+                print(f"Не удалось получить цену для акции {share} через брокера.")
                 price = 0
                 status_signal = "no_price"
             else:
                 print(f"Цена акции {share} получена: {price}")
                 status_signal = "setting"
+            
             # Создание записи в таблице kogan_signal
             signal_data = {
                 "date": datetime.now(),
