@@ -6,6 +6,7 @@ import psutil
 import subprocess
 import os
 import signal
+from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -86,6 +87,9 @@ def create_trading_control_menu():
         buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_trade")]
     buttons.append(types.InlineKeyboardButton("Список акций", callback_data="list_shares"))
     buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
+    buttons.append(types.InlineKeyboardButton("Set price", callback_data="set_price"))
+    buttons.append(types.InlineKeyboardButton("setting->new", callback_data="set_new"))
+    buttons.append(types.InlineKeyboardButton("complete->new", callback_data="set_complete"))
     markup.add(*buttons)
     return markup
 
@@ -275,6 +279,15 @@ def handle_query(call):
             reply_markup=create_main_menu()
         )
         user_state[call.message.chat.id] = {"section": None, "message_text": ""}
+    elif button_id == "set_price":
+        asyncio.run(process_set_price_message())
+        bot.send_message(call.message.chat.id, "Цены для сигналов обновлены.")
+    elif button_id == "set_new":
+        asyncio.run(process_set_new_message())
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.")
+    elif button_id == "set_complete":
+        asyncio.run(process_set_complete_message())
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.")
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
