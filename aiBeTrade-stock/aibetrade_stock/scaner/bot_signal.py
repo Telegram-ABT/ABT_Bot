@@ -104,7 +104,7 @@ async def process_set_signal_message(message_text):
                     account_id = case_info.get("account_id")
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
-                    api_url = case_info.get("api_url")
+                    api_url = case_info.get("api_url_date")
                     print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
                     price = get_stock_price_from_broker(share, account_id, application_id, application_access_key, api_url)
                 
@@ -146,7 +146,7 @@ async def process_set_price_message():
                 account_id = case_info.get("account_id")
                 application_id = case_info.get("application_id")
                 application_access_key = case_info.get("application_access_key")
-                api_url = case_info.get("api_url")
+                api_url = case_info.get("api_url_date")
                 print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
                 price = get_stock_price_from_broker(share, account_id, application_id, application_access_key, api_url)
 
