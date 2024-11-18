@@ -57,6 +57,9 @@ def get_stock_price_from_alpha_vantage(symbol):
 
 # Функция для получения текущей цены акции через брокера
 def get_stock_price_from_broker(symbol, account_id, application_id, application_access_key, api_url):
+    headers = {
+        "Accept": "application/x-json-stream"  # Указываем тип данных, который ожидаем получить
+    }
     try:
         response = requests.get(
             f"{api_url}3.0/feed/trades/{symbol}",
