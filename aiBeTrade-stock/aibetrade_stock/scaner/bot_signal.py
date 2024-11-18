@@ -44,9 +44,8 @@ def get_price_gpt(share):
             messages=[
             {"role": "system", "content": f"Найди в интернете последнюю цену акции {share}"},
             {"role": "user", "content": "Верни только цену с разделителем дробной части точка, если цена не найдена верни 0"}
-            ],
-            plugins=["web_search"]
-            )
+            ], plugins=["web_search"]
+        )
         gpt_response = response.choices[0].message.content.strip()
         return None if gpt_response == "0" else float(gpt_response)
     except Exception as e:
