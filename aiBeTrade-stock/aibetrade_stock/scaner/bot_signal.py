@@ -165,7 +165,7 @@ async def process_set_price_message():
         else:
             print(f"Не удалось найти информацию о брокере для портфеля {case_name}.")
         # Добавляем задержку между запросами
-        # await asyncio.sleep(12)  # 12 секунд задержки между запросами
+        await asyncio.sleep(15)  # 12 секунд задержки между запросами
 
 # Функция для обновления статуса сигналов с "setting" на "new"
 async def process_set_new_message():
