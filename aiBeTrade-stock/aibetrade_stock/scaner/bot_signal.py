@@ -37,14 +37,13 @@ def send_to_chatgpt(prompt, text):
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def get_price_gpt(share):
-    openai.api_key = key
 
     try:
         response = client_openai.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text}
+            {"role": "system", "content": f"Найди в интернете последнюю цену акции {share}"},
+            {"role": "user", "content": "Верни только цену с разделителем дробной части точка, если цена не найдена верни 0"}
             ],
             plugins=["web_search"]
             )
