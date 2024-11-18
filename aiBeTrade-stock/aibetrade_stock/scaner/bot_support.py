@@ -281,13 +281,13 @@ def handle_query(call):
         user_state[call.message.chat.id] = {"section": None, "message_text": ""}
     elif button_id == "set_price":
         asyncio.run(process_set_price_message())
-        bot.send_message(call.message.chat.id, "Цены для сигналов обновлены.")
+        bot.send_message(call.message.chat.id, "Цены для сигналов обновлены.", reply_markup=create_trading_control_menu())
     elif button_id == "set_new":
         asyncio.run(process_set_new_message())
-        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.")
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "set_complete":
         asyncio.run(process_set_complete_message())
-        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.")
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
