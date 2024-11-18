@@ -283,7 +283,7 @@ def handle_query(call):
     elif button_id == "set_price":
         bot.send_message(call.message.chat.id, "Процедура установки цена для акций запущена.", reply_markup=create_trading_control_menu())
         asyncio.run(process_set_price_message())
-        bot.send_message(call.message.chat.id, "Процедура установки цена для акций завершена.")
+        # bot.send_message(call.message.chat.id, "Процедура установки цена для акций завершена.")
    elif button_id == "set_new":
         asyncio.run(process_set_new_message())
         bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.", reply_markup=create_trading_control_menu())
