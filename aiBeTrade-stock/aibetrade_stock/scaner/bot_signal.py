@@ -59,7 +59,7 @@ def get_stock_price_from_alpha_vantage(symbol):
 def get_stock_price_from_broker(symbol, account_id, application_id, application_access_key, api_url):
     try:
         response = requests.get(
-            f"{api_url}/price/{symbol}",
+            f"{api_url}3.0/feed/trades/{symbol}",
             auth=HTTPBasicAuth(application_id, application_access_key)
         )
         if response.status_code == 200:
@@ -150,7 +150,7 @@ async def process_set_price_message():
             print(f"Не удалось обновить цену для акции {share} в портфеле {case_name}.")
 
         # Добавляем задержку между запросами
-        await asyncio.sleep(12)  # 12 секунд задержки между запросами
+        # await asyncio.sleep(12)  # 12 секунд задержки между запросами
 
 # Функция для обновления статуса сигналов с "setting" на "new"
 async def process_set_new_message():
