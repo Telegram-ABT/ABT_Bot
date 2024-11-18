@@ -6,7 +6,6 @@ from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
 import asyncio
-import openai
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -41,15 +40,15 @@ def get_price_gpt(share):
     openai.api_key = key
 
     try:
-        gpt_response = openai.ChatCompletion.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": f"Найди в интернете последнюю цену акции {share}"},
-            {"role": "user", "content": "Верни только цену с разделителем дробной части точка, если цена не найдена верни 0"}
-        ],
-        plugins=["web_search"]
-        )
-        gpt_response = gpt_response['choices'][0]['message']['content']
+        response = client_openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": text}
+            ],
+            plugins=["web_search"]
+            )
+        gpt_response = response.choices[0].message.content.strip()
         return None if gpt_response == "0" else float(gpt_response)
     except Exception as e:
         print(f"Ошибка при отпвке запроса в ChatGPT: {e}")
