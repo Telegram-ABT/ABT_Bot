@@ -107,7 +107,6 @@ async def process_set_signal_message(message_text):
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
                     api_url = case_info.get("api_url_date")
-                    print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
                     price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
                 
             if price is None:
@@ -148,7 +147,6 @@ async def process_set_price_message():
                 application_id = case_info.get("application_id")
                 application_access_key = case_info.get("application_access_key")
                 api_url = case_info.get("api_url_date")
-                print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
                 price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
 
         if price is not None:
