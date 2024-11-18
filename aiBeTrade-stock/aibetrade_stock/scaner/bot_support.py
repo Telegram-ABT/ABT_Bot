@@ -6,6 +6,7 @@ import psutil
 import subprocess
 import os
 import signal
+import asyncio
 from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
 
 # Укажите токен вашего бота
@@ -204,7 +205,7 @@ def handle_query(call):
             stop_script(pid)
             bot.send_message(
                 call.message.chat.id,
-                "Сервис успешно останов��ен.",
+                "Сервис успешно остановлен.",
                 reply_markup=create_main_menu()
             )
         else:
