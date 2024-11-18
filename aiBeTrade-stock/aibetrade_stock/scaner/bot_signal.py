@@ -36,9 +36,9 @@ def send_to_chatgpt(prompt, text):
         return None
 
 # Функция для получения текущей цены акции через Alpha Vantage
-def get_stock_price_from_alpha_vantage(symbol):
+def get_stock_price_from_alpha_vantage(symbol, alpha_vantage):
     ticker = symbol.split('.')[0]
-    alpha_vantage = '76478DBVK1EF8HY1' #8HLGJJD9X394CZHY'
+    # alpha_vantage = '76478DBVK1EF8HY1' #8HLGJJD9X394CZHY'
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={ticker}&interval=1min&apikey={alpha_vantage}'
     response = requests.get(url)
     if response.status_code == 200:
@@ -95,27 +95,28 @@ async def process_set_signal_message(message_text):
 
         if gpt_response:
             share = gpt_response.strip()
-
-            # Получение текущей цены акции через Alpha Vantage
-            price = get_stock_price_from_alpha_vantage(share)
-            print(f"Цена акции {share} получена через Alpha Vantage: {price}")
-            if price is None:
-                print(f"Не удалось получить цену для акции {share} через Alpha Vantage.")
+            case_info = case_collection.find_one({"case_name": case})
+            if case_info:
+                # Получение текущей цены акции через Alpha Vantage
+                alpha_vantage = case_info.get("alpha_vantage")
+                price = get_stock_price_from_alpha_vantage(share,alpha_vantage)
+                print(f"Цена акции {share} получена через Alpha Vantage: {price}")
+                if price is None:
+                    print(f"Не удалось получить цену для акции {share} через Alpha Vantage.")
                 # Попытка получить цену через брокера
-                case_info = case_collection.find_one({"case_name": case})
-                if case_info:
-                    application_id = case_info.get("application_id")
-                    application_access_key = case_info.get("application_access_key")
-                    api_url = case_info.get("api_url_date")
-                    price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
+                    if case_info:
+                        application_id = case_info.get("application_id")
+                        application_access_key = case_info.get("application_access_key")
+                        api_url = case_info.get("api_url_date")
+                        price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
                 
-            if price is None:
-                print(f"Не удалось получить цену для акции {share} через брокера.")
-                price = 0
-                status_signal = "no_price"
-            else:
-                print(f"Цена акции {share} получена: {price}")
-                status_signal = "setting"
+                if price is None:
+                    print(f"Не удалось получить цену для акции {share} через брокера.")
+                    price = 0
+                    status_signal = "no_price"
+                else:
+                    print(f"Цена акции {share} получена: {price}")
+                    status_signal = "setting"
             
             # Создание записи в таблице kogan_signal
             signal_data = {
@@ -138,27 +139,31 @@ async def process_set_price_message():
     for signal in signals:
         share = signal['share']
         case_name = signal['case_name']
-        
-        # Получение текущей цены акции
-        price = get_stock_price_from_alpha_vantage(share)
-        if price is None:
-            case_info = case_collection.find_one({"case_name": case_name})
-            if case_info:
-                application_id = case_info.get("application_id")
-                application_access_key = case_info.get("application_access_key")
-                api_url = case_info.get("api_url_date")
-                price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
 
-        if price is not None:
-            # Обновление записи в таблице kogan_signal
-            signal_collection.update_one(
-                {"_id": signal["_id"]},
-                {"$set": {"price": price, "status_signal": "setting"}}
-            )
-            print(f"Цена для акции {share} обновлена: {price}")
+        case_info = case_collection.find_one({"case_name": case_name})
+        if case_info:
+            alpha_vantage = case_info.get("alpha_vantage")
+            # Получение текущей цены акции
+            price = get_stock_price_from_alpha_vantage(share, alpha_vantage)
+            if price is None:
+                case_info = case_collection.find_one({"case_name": case_name})
+                if case_info:
+                    application_id = case_info.get("application_id")
+                    application_access_key = case_info.get("application_access_key")
+                    api_url = case_info.get("api_url_date")
+                    price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
+
+                if price is not None:
+                    # Обновление записи в таблице kogan_signal
+                    signal_collection.update_one(
+                        {"_id": signal["_id"]},
+                        {"$set": {"price": price, "status_signal": "setting"}}
+                    )
+                    print(f"Цена для акции {share} обновлена: {price}")
+                else:
+                    print(f"Не удалось обновить цену для акции {share} в портфеле {case_name}.")
         else:
-            print(f"Не удалось обновить цену для акции {share} в портфеле {case_name}.")
-
+            print(f"Не удалось найти информацию о брокере для портфеля {case_name}.")
         # Добавляем задержку между запросами
         # await asyncio.sleep(12)  # 12 секунд задержки между запросами
 
