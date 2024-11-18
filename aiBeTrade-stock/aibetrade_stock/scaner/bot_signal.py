@@ -16,6 +16,7 @@ mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 signal_collection = db["kogan_signal"]
+case_collection = db["kogan_case"]
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
@@ -196,7 +197,7 @@ async def process_set_complete_message():
     except Exception as e:
         print(f"Ошибка при обновлении статуса сигналов: {e}")
 
-# Пример вызова функции 
+# Пример вызова фун��ции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
 # asyncio.run(process_set_price_message())
 # asyncio.run(process_set_new_message())
