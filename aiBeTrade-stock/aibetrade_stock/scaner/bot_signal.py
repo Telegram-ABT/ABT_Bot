@@ -139,7 +139,16 @@ async def process_set_price_message():
         
         # Получение текущей цены акции
         price = get_stock_price_from_alpha_vantage(share)
-        
+        if price is None:
+            case_info = case_collection.find_one({"case_name": case_name})
+            if case_info:
+                account_id = case_info.get("account_id")
+                application_id = case_info.get("application_id")
+                application_access_key = case_info.get("application_access_key")
+                api_url = case_info.get("api_url")
+                print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
+                price = get_stock_price_from_broker(share, account_id, application_id, application_access_key, api_url)
+
         if price is not None:
             # Обновление записи в таблице kogan_signal
             signal_collection.update_one(
