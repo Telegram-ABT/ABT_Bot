@@ -287,6 +287,8 @@ async def handle_incoming_message(event):
         asyncio.create_task(process_set_signal_message(message_text))  # Вызываем функцию из bot_signal.py
     elif "#set_price" in message_text:
         asyncio.create_task(process_set_price_message())  # Вызываем функцию из bot_signal.py
+    elif "#set_new" in message_text:
+        asyncio.create_task(process_set_new_message())  # Вызываем функцию из bot_signal.py
 
 def process_push_message(message_text):
     message = f"Получено сообщение: {message_text}"

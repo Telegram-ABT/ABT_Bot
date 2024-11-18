@@ -31,7 +31,7 @@ def send_to_chatgpt(prompt, text):
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отп��вке запроса в ChatGPT: {e}")
+        print(f"Ошибка при отпвке запроса в ChatGPT: {e}")
         return None
 
 # Функция для получения текущей цены акции через Alpha Vantage
@@ -152,6 +152,24 @@ async def process_set_price_message():
         # Добавляем задержку между запросами
         await asyncio.sleep(12)  # 12 секунд задержки между запросами
 
+# Функция для обновления статуса сигналов с "setting" на "new"
+async def process_set_new_message():
+    try:
+        # Получение всех записей с status_signal="setting"
+        signals = signal_collection.find({"status_signal": "setting"})
+        
+        # Обновление статуса каждой записи на "new"
+        for signal in signals:
+            signal_id = signal["_id"]
+            signal_collection.update_one(
+                {"_id": signal_id},
+                {"$set": {"status_signal": "new"}}
+            )
+            print(f"Статус сигнала для акции {signal['share']} обновлен на 'new'.")
+    except Exception as e:
+        print(f"Ошибка при обновлении статуса сигналов: {e}")
+
 # Пример вызова функции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
 # asyncio.run(process_set_price_message())
+# asyncio.run(process_set_new_message())
