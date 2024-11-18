@@ -104,7 +104,6 @@ async def process_set_signal_message(message_text):
                 # Попытка получить цену через брокера
                 case_info = case_collection.find_one({"case_name": case})
                 if case_info:
-                    account_id = case_info.get("account_id")
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
                     api_url = case_info.get("api_url_date")
@@ -146,7 +145,6 @@ async def process_set_price_message():
         if price is None:
             case_info = case_collection.find_one({"case_name": case_name})
             if case_info:
-                account_id = case_info.get("account_id")
                 application_id = case_info.get("application_id")
                 application_access_key = case_info.get("application_access_key")
                 api_url = case_info.get("api_url_date")
