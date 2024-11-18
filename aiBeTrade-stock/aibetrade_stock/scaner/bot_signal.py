@@ -169,6 +169,23 @@ async def process_set_new_message():
     except Exception as e:
         print(f"Ошибка при обновлении статуса сигналов: {e}")
 
+# Функция для обновления статуса сигналов с "complete" на "new"
+async def process_set_complete_message():
+    try:
+        # Получение всех записей с status_signal="setting"
+        signals = signal_collection.find({"status_signal": "complete"})
+        
+        # Обновление статуса каждой записи на "new"
+        for signal in signals:
+            signal_id = signal["_id"]
+            signal_collection.update_one(
+                {"_id": signal_id},
+                {"$set": {"status_signal": "new"}}
+            )
+            print(f"Статус сигнала для акции {signal['share']} обновлен на 'new'.")
+    except Exception as e:
+        print(f"Ошибка при обновлении статуса сигналов: {e}")
+
 # Пример вызова функции 
 # asyncio.run(process_set_signal_message("#set_signal\nPortfolio1, AAPL, BUY, 50\nPortfolio2, TSLA, SELL, 30"))
 # asyncio.run(process_set_price_message())

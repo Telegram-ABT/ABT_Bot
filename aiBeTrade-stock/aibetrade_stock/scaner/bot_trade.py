@@ -8,7 +8,7 @@ from datetime import datetime
 from openai import OpenAI
 import asyncio
 from bot_set_stock import process_set_stocke_message  # Импортируем функцию из bot_set_stock.py
-from bot_signal import process_set_signal_message, process_set_price_message, process_set_new_message
+from bot_signal import process_set_signal_message, process_set_price_message, process_set_new_message,process_set_complete_message
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -289,6 +289,8 @@ async def handle_incoming_message(event):
         asyncio.create_task(process_set_price_message())  # Вызываем функцию из bot_signal.py
     elif "#set_new" in message_text:
         asyncio.create_task(process_set_new_message())  # Вызываем функцию из bot_signal.py
+    elif "#set_complete" in message_text:
+        asyncio.create_task(process_set_complete_message())  # Вызываем функцию из bot_signal.py
 
 def process_push_message(message_text):
     message = f"Получено сообщение: {message_text}"
