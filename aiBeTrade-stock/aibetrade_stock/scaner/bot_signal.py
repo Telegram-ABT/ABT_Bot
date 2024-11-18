@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from datetime import datetime
 from openai import OpenAI
 import asyncio
+import openai
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -31,6 +32,25 @@ def send_to_chatgpt(prompt, text):
         )
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
+    except Exception as e:
+        print(f"Ошибка при отпвке запроса в ChatGPT: {e}")
+        return None
+
+# Функция для отправки текста в ChatGPT и получения ответа
+def get_price_gpt(share):
+    openai.api_key = key
+
+    try:
+        gpt_response = openai.ChatCompletion.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": f"Найди в интернете последнюю цену акции {share}"},
+            {"role": "user", "content": "Верни только цену с разделителем дробной части точка, если цена не найдена верни 0"}
+        ],
+        plugins=["web_search"]
+        )
+        gpt_response = gpt_response['choices'][0]['message']['content']
+        return None if gpt_response == "0" else float(gpt_response)
     except Exception as e:
         print(f"Ошибка при отпвке запроса в ChatGPT: {e}")
         return None
@@ -139,19 +159,22 @@ async def process_set_price_message():
     for signal in signals:
         share = signal['share']
         case_name = signal['case_name']
-
+        price = None
         case_info = case_collection.find_one({"case_name": case_name})
         if case_info:
             alpha_vantage = case_info.get("alpha_vantage")
             # Получение текущей цены акции
-            price = get_stock_price_from_alpha_vantage(share, alpha_vantage)
+            # Пока закомментим  price = get_stock_price_from_alpha_vantage(share, alpha_vantage)
             if price is None:
                 case_info = case_collection.find_one({"case_name": case_name})
                 if case_info:
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
                     api_url = case_info.get("api_url_date")
-                    price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
+                    # Пока закомментим price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
+                if price is None:
+                    print(f"Цена для акции {share} не найдена, попробуем получить через GPT")
+                    price = get_price_gpt(share)
 
                 if price is not None:
                     # Обновление записи в таблице kogan_signal
