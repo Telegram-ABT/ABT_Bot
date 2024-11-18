@@ -39,7 +39,6 @@ def get_stock_price_from_alpha_vantage(symbol):
     ticker = symbol.split('.')[0]
     alpha_vantage = '76478DBVK1EF8HY1' #8HLGJJD9X394CZHY'
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={ticker}&interval=1min&apikey={alpha_vantage}'
-    print(f"Отправляю данные по адресу {url}")
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
@@ -95,6 +94,7 @@ async def process_set_signal_message(message_text):
 
             # Получение текущей цены акции через Alpha Vantage
             price = get_stock_price_from_alpha_vantage(share)
+            print(f"Цена акции {share} получена через Alpha Vantage: {price}")
             if price is None:
                 print(f"Не удалось получить цену для акции {share} через Alpha Vantage.")
                 # Попытка получить цену через брокера
@@ -104,6 +104,7 @@ async def process_set_signal_message(message_text):
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
                     api_url = case_info.get("api_url")
+                    print(f"Получение цены через брокера для акции {share}, информация о брокере: {account_id}, {application_id}, {application_access_key}, {api_url}")    
                     price = get_stock_price_from_broker(share, account_id, application_id, application_access_key, api_url)
                 
             if price is None:
