@@ -226,13 +226,14 @@ async def process_get_status2_message():
     print(text_message)
 
 async def process_get_status_message():
-    text_message += "Начало выполнения process_get_status_message\n"
+    text_message = "Начало выполнения process_get_status_message\n"
     print("Начало выполнения process_get_status_message")
     
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"get_status": True})
-    print(f"Найдено активных записей: {active_cases.count()}")
-    text_message += f"Найдено активных записей: {active_cases.count()}\n"
+    active_cases_count = case_collection.count_documents({"get_status": True})
+    print(f"Найдено активных записей: {active_cases_count}")
+    text_message += f"Найдено активных записей: {active_cases_count}\n"
 
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     reset_get_status_in_shares([case['case_name'] for case in active_cases])
@@ -283,7 +284,8 @@ async def process_get_status_message():
 
     # 6. Обрабатываем записи с get_status = False
     inactive_shares = find_inactive_shares()
-    print(f"Найдено неактивных записей: {inactive_shares.count()}")
+    inactive_shares_count = case_share_collection.count_documents({"get_status": False})
+    print(f"Найдено неактивных записей: {inactive_shares_count}")
     if inactive_shares:
         for share in inactive_shares:
             print(f"Обработка неактивной записи: {share['share']}")
