@@ -7,7 +7,7 @@ import subprocess
 import os
 import signal
 import asyncio
-from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message, process_get_status_message
+from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message, process_get_status_message,process_get_status_message
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -86,7 +86,7 @@ def create_trading_control_menu():
         ]
     else:
         buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_trade")]
-        
+
     buttons.append(types.InlineKeyboardButton("Список акций", callback_data="list_shares"))
     buttons.append(types.InlineKeyboardButton("Set price", callback_data="set_price"))
     buttons.append(types.InlineKeyboardButton("Get status", callback_data="get_status"))
