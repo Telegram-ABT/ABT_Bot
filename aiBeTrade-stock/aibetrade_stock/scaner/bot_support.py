@@ -7,7 +7,8 @@ import subprocess
 import os
 import signal
 import asyncio
-from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message,process_get_status_message
+from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
+from bot_trade import process_get_status_message
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')

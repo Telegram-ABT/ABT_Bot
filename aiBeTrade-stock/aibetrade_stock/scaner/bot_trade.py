@@ -8,7 +8,7 @@ from datetime import datetime
 from openai import OpenAI
 import asyncio
 from bot_set_stock import process_set_stocke_message  # Импортируем функцию из bot_set_stock.py
-from bot_signal import process_set_signal_message, process_set_price_message, process_set_new_message,process_set_complete_message, process_get_status2_message
+from bot_signal import process_set_signal_message, process_set_price_message, process_set_new_message,process_set_complete_message
 
 # Настройки для OpenAI API
 key = os.environ.get('OPENAI_API_KEY')
@@ -410,6 +410,155 @@ def process_push_message(message_text):
                 signal_collection.update_one({"_id": signal_id}, {"$set": {"status_signal": "error", "error_message": error_message}})
                 asyncio.create_task(send_telegram_message(client, recipient_id, error_message))
 
+# Функция для получения статуса сигналов
+async def process_get_status2_message():
+    text_message = await process_get_status_message()
+    print(text_message)
+
+
+async def process_get_status_message():
+    text_message = "Начало выполнения process_get_status_message\n"
+    print("Начало выполнения process_get_status_message")
+    
+    # 1. Выбираем активные записи из таблицы kogan_case
+    active_cases = case_collection.find({"active": True})
+
+    active_cases_count = case_collection.count_documents({"active": True})
+    print(f"Найдено активных записей: {active_cases_count}")
+    text_message += f"Найдено активных записей: {active_cases_count}\n"
+
+    # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
+    reset_get_status_in_shares([case['case_name'] for case in active_cases])
+
+    print("Обновлены записи в kogan_case_share, get_status установлен в False")
+
+    text_message += "ООООООО!!! Начало запроса данных у брокера.\n"
+
+    for case in active_cases:
+        print(f"Обработка портфеля: {case['case_name']}")
+        
+        # 3. Делаем запрос к брокеру
+        response = await get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'])
+        if response is None:
+            error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
+            print(error_message)
+            text_message += error_message + "\n"
+            continue
+        
+        portfolio_info = response.json()
+        print(f"Получена информация о портфеле: {portfolio_info}")
+        text_message += f"Получена информация о портфеле: {portfolio_info}\n"
+
+        # 4. Формируем начальную часть сообщения
+        text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
+        text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
+        text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
+        text_message += "Расшифровка активов:\n"
+
+        # 5. Обрабатываем позиции
+        for position in portfolio_info['positions']:
+            print(f"Обработка позиции: {position['symbolId']}")
+            share_record = find_share_record(case['case_name'], position['symbolId'])
+
+            if share_record:
+                print(f"Обновление записи для {position['symbolId']}")
+                update_share_record(share_record, position)
+                text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                text_message += f"Цена тек.: {position['price']}\n"
+                text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+            else:
+                print(f"Добавление новой записи для {position['symbolId']}")
+                add_new_share_record(case['case_name'], position)
+                text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                text_message += f"Цена тек.: {position['price']}\n"
+                text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+
+    # 6. Обрабатываем записи с get_status = False
+    inactive_shares = find_inactive_shares()
+    inactive_shares_count = case_share_collection.count_documents({"get_status": False})
+    print(f"Найдено неактивных записей: {inactive_shares_count}")
+    if inactive_shares:
+        for share in inactive_shares:
+            print(f"Обработка неактивной записи: {share['share']}")
+            text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
+            text_message += f"Объем: {share['balance_sum']}\n\n"
+            reset_share_balance(share)
+
+    print("Завершение выполнения process_get_status_message")
+    return text_message
+
+# Примерные функции для взаимодействия с базой данных и API
+def select_active_cases():
+    # Возвращает список активных записей из kogan_case
+    # Здесь нужно реализовать логику для выборки данных из MongoDB
+    pass
+
+def reset_get_status_in_shares(case_names):
+    # Устанавливает get_status = False для всех записей в kogan_case_share
+    # Здесь нужно реализовать логику для обновления данных в MongoDB
+    case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
+
+async def get_broker_info(account_id,application_id, application_access_key, api_url):
+    # Делает асинхронный запрос к API брокера
+    # Здесь нужно реализовать логику для выполнения HTTP-запроса
+    try:
+        response = requests.get(
+            f"{api_url}3.0/summary/{account_id}/usd",
+            auth=HTTPBasicAuth(application_id, application_access_key)
+        )
+        if response.status_code == 200:
+            return response
+        else:
+            print(f"Ошибка при получении ответа от брокера: {response.text}")
+            return None
+    except Exception as e:
+        print(f"Ошибка запроса к брокеру: {e}")
+        return None
+
+def find_share_record(case_name, symbol_id):
+    # Находит запись в kogan_case_share по case_name и symbol_id
+    # Здесь нужно реализовать логику для поиска данных в MongoDB
+    return case_share_collection.find_one({"case_name": case_name, "share": symbol_id})
+
+
+def update_share_record(share_record, position):
+    # Обновляет запись в kogan_case_share
+    # Здесь нужно реализовать логику для обновления данных в MongoDB
+    case_share_collection.update_one(
+        {"_id": share_record["_id"]},
+        {"$set": position, "get_status": True}
+    )
+    if share_record['balance_count']!=position['quantity']:
+        case_share_collection.update_one(
+            {"_id": share_record["_id"]},
+            {"$set": {"balance_count": position['quantity']}}
+        )
+
+def add_new_share_record(case_name, position):
+    # Добавляет новую запись в kogan_case_share
+    # Здесь нужно реализовать логику для добавления данных в MongoDB
+    case_share_collection.insert_one(
+        {"case_name": case_name, "share": position['symbolId'], "get_status": True, "balance_count": position['quantity'], "balance_sum": position['value']}
+    )
+
+
+def find_inactive_shares():
+    # Находит все записи в kogan_case_share с get_status = False
+    # Здесь нужно реализовать логику для поиска данных в MongoDB
+    return case_share_collection.find({"get_status": False})
+
+def reset_share_balance(share):
+    # Обновляет баланс записи в kogan_case_share
+    # Здесь нужно реализовать логику для обновления данных в MongoDB
+    case_share_collection.update_one(
+        {"_id": share["_id"]},
+        {"$set": {"balance_sum": 0, "balance_count": 0}}
+    )
+
+
+# Пример вызова функций
 # Запуск клиента и основных функций
 async def main():
     await client.start(USER_PHONE)
