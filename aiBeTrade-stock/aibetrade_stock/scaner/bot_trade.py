@@ -417,44 +417,30 @@ async def process_get_status2_message():
 
 
 async def process_get_status_message():
-    text_message = "Начало выполнения process_get_status_message\n"
-    print("Начало выполнения process_get_status_message")
+    text_message = "Начало выполнения\n"
 
-    print("Все записи в коллекции:")
-    for case in case_collection.find({}):
-        text_message += f"case_name: {case['case_name']}, active: {case['active']}\n"
-
-    print("Проверка записей с active = True:")
-    active_cases = list(case_collection.find({"active": True}))
-    text_message += f"active_cases: {active_cases}\n"
-    
-    # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"active": True})
 
     active_cases_count = case_collection.count_documents({"active": True})
-    print(f"Найдено активных записей: {active_cases_count}")
+
     text_message += f"Найдено активных записей: {active_cases_count}\n"
 
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     reset_get_status_in_shares([case['case_name'] for case in active_cases])
 
-    print("Обновлены записи в kogan_case_share, get_status установлен в False")
-
-    text_message += "ООООООО!!! Начало запроса данных у брокера.\n"
 
     for case in active_cases:
         print(f"Обработка портфеля: {case['case_name']}")
         
         # 3. Делаем запрос к брокеру
-        response = await get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'])
+        response = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'])
         if response is None:
             error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
-            print(error_message)
             text_message += error_message + "\n"
             continue
         
         portfolio_info = response.json()
-        print(f"Получена информация о портфеле: {portfolio_info}")
+
         text_message += f"Получена информация о портфеле: {portfolio_info}\n"
 
         # 4. Формируем начальную часть сообщения
@@ -508,7 +494,7 @@ def reset_get_status_in_shares(case_names):
     # Здесь нужно реализовать логику для обновления данных в MongoDB
     case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
 
-async def get_broker_info(account_id,application_id, application_access_key, api_url):
+def get_broker_info(account_id,application_id, application_access_key, api_url):
     # Делает асинхронный запрос к API брокера
     # Здесь нужно реализовать логику для выполнения HTTP-запроса
     try:
