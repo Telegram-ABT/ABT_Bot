@@ -226,17 +226,19 @@ async def process_get_status2_message():
     print(text_message)
 
 async def process_get_status_message():
+    text_message += "Начало выполнения process_get_status_message\n"
     print("Начало выполнения process_get_status_message")
     
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"get_status": True})
-    print(f"Найде��о активных записей: {active_cases.count()}")
+    print(f"Найдено активных записей: {active_cases.count()}")
+    text_message += f"Найдено активных записей: {active_cases.count()}\n"
 
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     reset_get_status_in_shares([case['case_name'] for case in active_cases])
     print("Обновлены записи в kogan_case_share, get_status установлен в False")
 
-    text_message = "Начало запроса данных с брокера.\n"
+    text_message += "Начало запроса данных с брокера.\n"
 
     for case in active_cases:
         print(f"Обработка портфеля: {case['case_name']}")
