@@ -433,7 +433,7 @@ async def process_get_status_message():
         print(f"Обработка портфеля: {case['case_name']}")
         
         # 3. Делаем запрос к брокеру
-        response = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'])
+        response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
         if response is None:
             error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
             text_message += error_message + "\n"
@@ -494,7 +494,7 @@ def reset_get_status_in_shares(case_names):
     # Здесь нужно реализовать логику для обновления данных в MongoDB
     case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
 
-def get_broker_info(account_id,application_id, application_access_key, api_url):
+def get_broker_info(account_id,application_id, application_access_key, api_url, text_message):
     # Делает асинхронный запрос к API брокера
     # Здесь нужно реализовать логику для выполнения HTTP-запроса
     try:
@@ -502,14 +502,15 @@ def get_broker_info(account_id,application_id, application_access_key, api_url):
             f"{api_url}3.0/summary/{account_id}/usd",
             auth=HTTPBasicAuth(application_id, application_access_key)
         )
+        text_message += f"Получен ответ от брокера: {response.text}\n"
         if response.status_code == 200:
-            return response
+            return response, text_message
         else:
-            print(f"Ошибка при получении ответа от брокера: {response.text}")
-            return None
+            text_message += f"Ошибка при получении ответа от брокера: {response.text}\n"
+            return None, text_message
     except Exception as e:
-        print(f"Ошибка запроса к брокеру: {e}")
-        return None
+        text_message += f"Ошибка запроса к брокеру: {e}\n"
+        return None, text_message
 
 def find_share_record(case_name, symbol_id):
     # Находит запись в kogan_case_share по case_name и symbol_id
