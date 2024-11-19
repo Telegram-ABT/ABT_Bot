@@ -221,6 +221,10 @@ async def process_set_complete_message():
         print(f"Ошибка при обновлении статуса сигналов: {e}")
 
 # Функция для получения статуса сигналов
+async def process_get_status2_message():
+    text_message = await process_get_status_message()
+    print(text_message)
+
 async def process_get_status_message():
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"get_status": True})

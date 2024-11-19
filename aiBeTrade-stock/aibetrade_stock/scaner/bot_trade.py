@@ -292,7 +292,7 @@ async def handle_incoming_message(event):
     elif "#set_complete" in message_text:
         asyncio.create_task(process_set_complete_message())  # Вызываем функцию из bot_signal.py
     elif "#get_status" in message_text:
-        asyncio.create_task(process_get_status_message())  # Вызываем функцию из bot_signal.py
+        asyncio.create_task(process_get_status2_message())  # Вызываем функцию из bot_signal.py
 
 def process_push_message(message_text):
     message = f"Получено сообщение: {message_text}"
