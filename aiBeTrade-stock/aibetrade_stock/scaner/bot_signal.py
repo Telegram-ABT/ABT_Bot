@@ -12,6 +12,7 @@ key = os.environ.get('OPENAI_API_KEY')
 client_openai = OpenAI(api_key=key)
 
 # Подключение к MongoDB
+
 mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
@@ -239,7 +240,7 @@ async def process_get_status_message():
     reset_get_status_in_shares([case['case_name'] for case in active_cases])
     print("Обновлены записи в kogan_case_share, get_status установлен в False")
 
-    text_message += "ООО!!! Начало запроса данных с брокера.\n"
+    text_message += "ОООООООО!!! Начало запроса данных с брокера.\n"
 
     for case in active_cases:
         print(f"Обработка портфеля: {case['case_name']}")

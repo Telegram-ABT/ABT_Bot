@@ -76,6 +76,7 @@ def create_main_menu():
     return markup
 
 # Функция для создания меню управления торговлей
+
 def create_trading_control_menu():
     pid = is_trade_running()
     markup = types.InlineKeyboardMarkup(row_width=2)

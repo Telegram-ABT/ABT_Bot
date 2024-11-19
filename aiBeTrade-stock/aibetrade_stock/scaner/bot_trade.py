@@ -295,6 +295,7 @@ async def handle_incoming_message(event):
         asyncio.create_task(process_get_status2_message())  # Вызываем функцию из bot_signal.py
 
 def process_push_message(message_text):
+    
     message = f"Получено сообщение: {message_text}"
     print(message)
     asyncio.create_task(send_telegram_message(client, recipient_id, message))
