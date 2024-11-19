@@ -161,14 +161,14 @@ async def process_set_price_message():
         if case_info:
             alpha_vantage = case_info.get("alpha_vantage")
             # Получение текущей цены акции
-            # Пока закомментим  price = get_stock_price_from_alpha_vantage(share, alpha_vantage)
+            price = get_stock_price_from_alpha_vantage(share, alpha_vantage)
             if price is None:
                 case_info = case_collection.find_one({"case_name": case_name})
                 if case_info:
                     application_id = case_info.get("application_id")
                     application_access_key = case_info.get("application_access_key")
                     api_url = case_info.get("api_url_date")
-                    # Пока закомментим price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
+                    price = get_stock_price_from_broker(share, application_id, application_access_key, api_url)
                 if price is None:
                     print(f"Цена для акции {share} не найдена, попробуем получить через GPT")
                     price = get_price_gpt(share)
