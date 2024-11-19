@@ -422,11 +422,11 @@ async def process_get_status_message():
 
     print("Все записи в коллекции:")
     for case in case_collection.find({}):
-    print(case)
+        text_message += f"case_name: {case['case_name']}, active: {case['active']}\n"
 
     print("Проверка записей с active = True:")
     active_cases = list(case_collection.find({"active": True}))
-    print(active_cases)
+    text_message += f"active_cases: {active_cases}\n"
     
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"active": True})
