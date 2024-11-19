@@ -232,15 +232,17 @@ async def process_get_status_message():
     
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"active": True})
-    active_cases_count = case_collection.count_documents({"get_status": True})
+
+    active_cases_count = case_collection.count_documents({"active": True})
     print(f"Найдено активных записей: {active_cases_count}")
     text_message += f"Найдено активных записей: {active_cases_count}\n"
 
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     reset_get_status_in_shares([case['case_name'] for case in active_cases])
+
     print("Обновлены записи в kogan_case_share, get_status установлен в False")
 
-    text_message += "ООООООО!!! Начало запроса данных с брокера.\n"
+    text_message += "ООООООО!!! Начало запроса данных у брокера.\n"
 
     for case in active_cases:
         print(f"Обработка портфеля: {case['case_name']}")
@@ -306,7 +308,7 @@ def select_active_cases():
 def reset_get_status_in_shares(case_names):
     # Устанавливает get_status = False для всех записей в kogan_case_share
     # Здесь нужно реализовать логику для обновления данных в MongoDB
-    case_share_collection.update_many({"case_name": {"$in": case_names}}, {"$set": {"get_status": False}})
+    case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
 
 async def get_broker_info(account_id,application_id, application_access_key, api_url):
     # Делает асинхронный запрос к API брокера
