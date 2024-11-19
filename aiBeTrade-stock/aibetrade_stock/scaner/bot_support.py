@@ -86,6 +86,7 @@ def create_trading_control_menu():
         ]
     else:
         buttons = [types.InlineKeyboardButton("Запустить", callback_data="start_trade")]
+        
     buttons.append(types.InlineKeyboardButton("Список акций", callback_data="list_shares"))
     buttons.append(types.InlineKeyboardButton("Set price", callback_data="set_price"))
     buttons.append(types.InlineKeyboardButton("Get status", callback_data="get_status"))
