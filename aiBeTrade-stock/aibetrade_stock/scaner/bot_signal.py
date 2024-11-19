@@ -226,7 +226,7 @@ async def process_get_status_message():
     active_cases = case_collection.find({"get_status": True})
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
 
-    text_message = ""
+    text_message = "Начало запроса данных с брокера.\n"
 
     for case in active_cases:
         reset_get_status_in_shares(active_cases)
