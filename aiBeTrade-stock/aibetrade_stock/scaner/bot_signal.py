@@ -230,7 +230,7 @@ async def process_get_status_message():
     print("Начало выполнения process_get_status_message")
     
     # 1. Выбираем активные записи из таблицы kogan_case
-    active_cases = case_collection.find({"get_status": True})
+    active_cases = case_collection.find({"active": True})
     active_cases_count = case_collection.count_documents({"get_status": True})
     print(f"Найдено активных записей: {active_cases_count}")
     text_message += f"Найдено активных записей: {active_cases_count}\n"
