@@ -226,54 +226,70 @@ async def process_get_status2_message():
     print(text_message)
 
 async def process_get_status_message():
+    print("Начало выполнения process_get_status_message")
+    
     # 1. Выбираем активные записи из таблицы kogan_case
     active_cases = case_collection.find({"get_status": True})
+    print(f"Найде��о активных записей: {active_cases.count()}")
+
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
+    reset_get_status_in_shares([case['case_name'] for case in active_cases])
+    print("Обновлены записи в kogan_case_share, get_status установлен в False")
 
     text_message = "Начало запроса данных с брокера.\n"
 
     for case in active_cases:
-        reset_get_status_in_shares(active_cases)
-# 3. Делаем запрос к брокеру
-        response = await get_broker_info(case.account_id,case.application_id, case.application_access_key, case.api_url_date)
+        print(f"Обработка портфеля: {case['case_name']}")
+        
+        # 3. Делаем запрос к брокеру
+        response = await get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'])
         if response is None:
-            text_message += f"Ошибка при получении информации о портфеле {case.case_name}."
-        else:
-            portfolio_info = response.json()
+            error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
+            print(error_message)
+            text_message += error_message + "\n"
+            continue
+        
+        portfolio_info = response.json()
+        print(f"Получена информация о портфеле: {portfolio_info}")
+        text_message += f"Получена информация о портфеле: {portfolio_info}\n"
 
-            # 4. Формируем начальную часть сообщения
-            text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
-            text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
-            text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
-            text_message += "Расшифровка активов:\n"
+        # 4. Формируем начальную часть сообщения
+        text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
+        text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
+        text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
+        text_message += "Расшифровка активов:\n"
 
         # 5. Обрабатываем позиции
-            for position in portfolio_info['positions']:
-                share_record = find_share_record(case.case_name, position['symbolId'])
+        for position in portfolio_info['positions']:
+            print(f"Обработка позиции: {position['symbolId']}")
+            share_record = find_share_record(case['case_name'], position['symbolId'])
 
-                if share_record:
-                    # Обновляем существующую запись
-                    update_share_record(share_record, position)
-                    text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                    text_message += f"Цена тек.: {position['price']}\n"
-                    text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                    text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
-                else:
-                    # Добавляем новую запись
-                    add_new_share_record(case.case_name, position)
-                    text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                    text_message += f"Цена тек.: {position['price']}\n"
-                    text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                    text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+            if share_record:
+                print(f"Обновление записи для {position['symbolId']}")
+                update_share_record(share_record, position)
+                text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                text_message += f"Цена тек.: {position['price']}\n"
+                text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+            else:
+                print(f"Добавление новой записи для {position['symbolId']}")
+                add_new_share_record(case['case_name'], position)
+                text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                text_message += f"Цена тек.: {position['price']}\n"
+                text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
 
     # 6. Обрабатываем записи с get_status = False
     inactive_shares = find_inactive_shares()
+    print(f"Найдено неактивных записей: {inactive_shares.count()}")
     if inactive_shares:
         for share in inactive_shares:
+            print(f"Обработка неактивной записи: {share['share']}")
             text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
             text_message += f"Объем: {share['balance_sum']}\n\n"
             reset_share_balance(share)
 
+    print("Завершение выполнения process_get_status_message")
     return text_message
 
 # Примерные функции для взаимодействия с базой данных и API
