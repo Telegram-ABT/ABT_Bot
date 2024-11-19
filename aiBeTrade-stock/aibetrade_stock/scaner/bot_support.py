@@ -293,7 +293,7 @@ def handle_query(call):
         asyncio.run(process_set_complete_message())
         bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "get_status":
-        text_message = awaitprocess_get_status_message()
+        text_message = await process_get_status_message()
         bot.send_message(call.message.chat.id, f"Статус сигналов получен.\n{text_message}", reply_markup=create_trading_control_menu())
 
 # Функция для формирования базы данных
