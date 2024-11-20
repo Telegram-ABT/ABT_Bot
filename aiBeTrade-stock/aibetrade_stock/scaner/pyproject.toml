@@ -13,6 +13,7 @@ telebot = "^0.0.5"
 pymongo = "^4.10.1"
 psutil = "^6.1.0"
 openai = "^1.52.2"
+beautifulsoup4 = "^4.12.2"
 
 [build-system]
 requires = ["poetry-core"]
