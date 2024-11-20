@@ -416,7 +416,7 @@ async def process_get_status2_message():
     print(text_message)
 
 
-async def process_get_status_message():
+async def process_get_status_message(bot,chat_id):
     text_message = "Начало выполнения\n"
 
     active_cases = case_collection.find({"active": True})
@@ -438,7 +438,11 @@ async def process_get_status_message():
                 text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
                 text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
                 text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
-                text_message += "Расшифровка активов:\n"
+                try:
+                    bot.send_message(chat_id, text_message, parse_mode='HTML')
+                    text_message = ""
+                except Exception as e:
+                    print(f"Ошибка отправки сообщения: {e}")
                 print(text_message)
 
                 # 5. Обрабатываем позиции
@@ -453,6 +457,12 @@ async def process_get_status_message():
                         text_message += f"Цена тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                        try:
+                            bot.send_message(chat_id, text_message, parse_mode='HTML')
+                            text_message = ""
+                        except Exception as e:
+                            print(f"Ошибка отправки сообщения: {e}")
+
                     else:
                         print(f"Добавление новой записи для {position['symbolId']}")
                         add_new_share_record(case['case_name'], position)
@@ -460,6 +470,11 @@ async def process_get_status_message():
                         text_message += f"Цена тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                        try:
+                            bot.send_message(chat_id, text_message, parse_mode='HTML')
+                            text_message = ""
+                        except Exception as e:
+                            print(f"Ошибка отправки сообщения: {e}")
             else:
                 text_message += f"Ошибка при получении данных от брокера: {response.status_code}\n"
         except Exception as e:

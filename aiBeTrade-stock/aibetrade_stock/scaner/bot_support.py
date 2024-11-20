@@ -295,7 +295,7 @@ def handle_query(call):
         asyncio.run(process_set_complete_message())
         bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "get_status":
-        text_message = asyncio.run(process_get_status_message())
+        text_message = asyncio.run(process_get_status_message(bot,call.message.chat.id))
         chunks = textwrap.wrap(text_message, 3000)
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
