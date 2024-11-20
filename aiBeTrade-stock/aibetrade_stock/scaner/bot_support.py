@@ -34,7 +34,7 @@ def send_long_message(bot, chat_id, text, markup=None):
     messages = [text[i:i + max_length] for i in range(0, len(text), max_length)]
     if len(messages) > 1:
         for message in messages:
-            bot.send_message(chat_id, message, reply_markup=markup)
+            bot.send_message(chat_id, message)
         bot.send_message(chat_id,"Конец сообщения", reply_markup=markup)
     else:
         bot.send_message(chat_id, text, reply_markup=markup)    
