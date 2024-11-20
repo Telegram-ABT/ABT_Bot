@@ -436,6 +436,7 @@ async def process_get_status_message():
             if response.status_code == 200:
                 portfolio_info = response.json()
                 # text_message += f"Получена информация о портфеле: {portfolio_info}\n"
+                print(portfolio_info)
 
                 # 4. Формируем начальную часть сообщения
                 text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
