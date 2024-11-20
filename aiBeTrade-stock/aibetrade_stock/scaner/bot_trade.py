@@ -436,16 +436,26 @@ async def process_get_status_message():
         # # 3. Делаем запрос к брокеру
         # text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
         # response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
-        response, text_message = get_broker_info("RRO1051.002", case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
-      if response is None:
-            error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
-            text_message += error_message + "\n"
-            continue
+        # response, text_message = get_broker_info("RRO1051.002", case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
         
-        portfolio_info = response.json()
-
-        text_message += f"Получена информация о портфеле: {portfolio_info}\n"
-
+        account_id = "RRO1051.002"
+        application_id = case['application_id']
+        application_access_key = case['application_access_key']
+        api_url = case['api_url_date']
+        
+        try:
+            response = requests.get(
+                f"{api_url}3.0/summary/{account_id}/usd",
+                auth=HTTPBasicAuth(application_id, application_access_key)
+            )
+            text_message += f"Получен ответ от брокера: {response.text}\n"
+            if response.status_code == 200:
+                portfolio_info = response.json()
+                text_message += f"Получена информация о портфеле: {portfolio_info}\n"
+        except Exception as e:
+            text_message += f"Ошибка запроса к брокеру: {e}\n"
+            return None, text_message
+        
         # 4. Формируем начальную часть сообщения
         text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
         text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
@@ -492,24 +502,6 @@ def select_active_cases():
     # Здесь нужно реализовать логику для выборки данных из MongoDB
     pass
 
-
-def get_broker_info(account_id,application_id, application_access_key, api_url, text_message):
-    # Делает асинхронный запрос к API брокера
-    # Здесь нужно реализовать логику для выполнения HTTP-запроса
-    try:
-        response = requests.get(
-            f"{api_url}3.0/summary/{account_id}/usd",
-            auth=HTTPBasicAuth(application_id, application_access_key)
-        )
-        text_message += f"Получен ответ от брокера: {response.text}\n"
-        if response.status_code == 200:
-            return response, text_message
-        else:
-            text_message += f"Ошибка при получении ответа от брокера: {response.text}\n"
-            return None, text_message
-    except Exception as e:
-        text_message += f"Ошибка запроса к брокеру: {e}\n"
-        return None, text_message
 
 def find_share_record(case_name, symbol_id):
     # Находит запись в kogan_case_share по case_name и symbol_id
