@@ -380,20 +380,20 @@ def handle_query(call):
             "Выберите портфель для P&L>20%:",
             reply_markup=create_portfolio_buttons_pnl()
         )
-    elif button_id.startswith("portfolio_pnl_"):
-        case_name = button_id.split("_")[2]
-        if user_state[call.message.chat.id]["section"] == "list_shares_pnl_30":
-            if case_name == "all":
-                message = process_pnl_selection(30)
-            else:
-                message = process_pnl_selection(30, case_name)
-            bot.send_message(call.message.chat.id, message)
-        elif user_state[call.message.chat.id]["section"] == "list_shares_pnl_20":
-            if case_name == "all":
-                message = process_pnl_selection(20)
-            else:
-                message = process_pnl_selection(20, case_name)
-            bot.send_message(call.message.chat.id, message)
+    elif button_id.startswith("portfolio_pnl_30"):
+        case_name = button_id.split("_")[3]
+        if case_name == "all":
+            message = process_pnl_selection(30)
+        else:
+            message = process_pnl_selection(30, case_name)
+        bot.send_message(call.message.chat.id, message)
+    elif button_id.startswith("portfolio_pnl_20"):
+        case_name = button_id.split("_")[3]
+        if case_name == "all":
+            message = process_pnl_selection(20)
+        else:
+            message = process_pnl_selection(20, case_name)
+        bot.send_message(call.message.chat.id, message)
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
