@@ -426,8 +426,13 @@ async def process_get_status_message(bot,chat_id):
         application_id = case['application_id']
         application_access_key = case['application_access_key']
         api_url = case['api_url_date']
-        
+        shares = case_share_collection.find({"case_name": case['case_name']})
+        if shares:
+            for share in shares:
+                case_share_collection.update_one({"_id": share["_id"]}, {"$set": {"get_status": False}})
+
         try:
+
             response = requests.get(
                 f"{api_url}3.0/summary/{account_id}/USD",
                 auth=HTTPBasicAuth(application_id, application_access_key)
@@ -483,25 +488,19 @@ async def process_get_status_message(bot,chat_id):
             continue
 
         # 6. Обрабатываем записи с get_status = False
-        # inactive_shares = find_inactive_shares()
-        # inactive_shares_count = case_share_collection.count_documents({"get_status": False})
-        # print(f"Найдено неактивных записей: {inactive_shares_count}")
-        # if inactive_shares:
-        #     for share in inactive_shares:
-        #         print(f"Обработка неактивной записи: {share['share']}")
-        #         text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
-        #         text_message += f"Объем: {share['balance_sum']}\n\n"
-        #         reset_share_balance(share)
-    text_message += "\n\nЗавершено выполнения обновления статуса."
-    print("Завершение выполнения process_get_status_message")
+        inactive_shares = find_inactive_shares()
+        if inactive_shares:
+            for share in inactive_shares:
+                text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
+                text_message += f"Объем: {share['balance_sum']}\n\n"
+                try:
+                    bot.send_message(chat_id, text_message, parse_mode='HTML')
+                    text_message = ""
+                except Exception as e:
+                    print(f"Ошибка отправки сообщения: {e}")
+                reset_share_balance(share)
+    text_message += "\n\nЗавершено обновление статусов."
     return text_message
-
-# Примерные функции для взаимодействия с базой данных и API
-def select_active_cases():
-    # Возвращает список активных записей из kogan_case
-    # Здесь нужно реализовать логику для выборки данных из MongoDB
-    pass
-
 
 
 def update_share_record(share_record, position):
