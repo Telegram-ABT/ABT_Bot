@@ -422,7 +422,7 @@ async def process_get_status_message():
     active_cases = case_collection.find({"active": True})
 
     for case in active_cases:
-        account_id = "RRO1051.002"
+        account_id = case['account_id']
         application_id = case['application_id']
         application_access_key = case['application_access_key']
         api_url = case['api_url_date']
@@ -443,12 +443,12 @@ async def process_get_status_message():
                 text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
                 text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
                 text_message += "Расшифровка активов:\n"
+                print(text_message)
 
                 # 5. Обрабатываем позиции
                 for position in portfolio_info['positions']:
                     print(f"Обработка позиции: {position['symbolId']}")
-                    share_record = find_share_record(case['case_name'], position['symbolId'])
-
+                    share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
                     if share_record:
                         print(f"Обновление записи для {position['symbolId']}")
                         update_share_record(share_record, position)
@@ -470,15 +470,15 @@ async def process_get_status_message():
             continue
 
         # 6. Обрабатываем записи с get_status = False
-        inactive_shares = find_inactive_shares()
-        inactive_shares_count = case_share_collection.count_documents({"get_status": False})
-        print(f"Найдено неактивных записей: {inactive_shares_count}")
-        if inactive_shares:
-            for share in inactive_shares:
-                print(f"Обработка неактивной записи: {share['share']}")
-                text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
-                text_message += f"Объем: {share['balance_sum']}\n\n"
-                reset_share_balance(share)
+        # inactive_shares = find_inactive_shares()
+        # inactive_shares_count = case_share_collection.count_documents({"get_status": False})
+        # print(f"Найдено неактивных записей: {inactive_shares_count}")
+        # if inactive_shares:
+        #     for share in inactive_shares:
+        #         print(f"Обработка неактивной записи: {share['share']}")
+        #         text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
+        #         text_message += f"Объем: {share['balance_sum']}\n\n"
+        #         reset_share_balance(share)
 
     print("Завершение выполнения process_get_status_message")
     return text_message
@@ -489,11 +489,6 @@ def select_active_cases():
     # Здесь нужно реализовать логику для выборки данных из MongoDB
     pass
 
-
-def find_share_record(case_name, symbol_id):
-    # Находит запись в kogan_case_share по case_name и symbol_id
-    # Здесь нужно реализовать логику для поиска данных в MongoDB
-    return case_share_collection.find_one({"case_name": case_name, "share": symbol_id})
 
 
 def update_share_record(share_record, position):
