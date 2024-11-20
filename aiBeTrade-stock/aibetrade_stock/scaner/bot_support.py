@@ -11,6 +11,7 @@ from bot_signal import process_set_new_message, process_set_complete_message, pr
 from bot_trade import process_get_status_message
 import textwrap
 import time
+from analits import process_pnl_selection
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -80,6 +81,16 @@ def create_main_menu():
     return markup
 
 # Функция для создания меню управления торговлей
+def create_analytics_menu():
+    markup = types.InlineKeyboardMarkup()
+    buttons = [
+        types.InlineKeyboardButton("Список акций P&L>30%", callback_data="list_shares_pnl_30"),
+        types.InlineKeyboardButton("Список акций P&L>20%", callback_data="list_shares_pnl_20")
+    ]
+    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
+    markup.add(*buttons)
+    return markup
+
 def create_trading_control_menu():
     pid = is_trade_running()
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -96,6 +107,7 @@ def create_trading_control_menu():
     buttons.append(types.InlineKeyboardButton("Get status", callback_data="get_status"))
     buttons.append(types.InlineKeyboardButton("setting->new", callback_data="set_new"))
     buttons.append(types.InlineKeyboardButton("complete->new", callback_data="set_complete"))
+    buttons.append(types.InlineKeyboardButton("Аналитика", callback_data="analytics"))
     buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
     markup.add(*buttons)
     return markup
@@ -134,6 +146,14 @@ def create_portfolio_buttons_get_status():
     markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_get_status_all"))
     return markup
 
+def create_portfolio_buttons_pnl():
+    markup = types.InlineKeyboardMarkup()
+    active_cases = case_collection.find({"active": True})
+    for case in active_cases:
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_pnl_{case['case_name']}"))
+    markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_pnl_all"))
+    return markup
+
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
@@ -149,7 +169,6 @@ def send_welcome(message):
 def handle_query(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
-    user_id = call.from_user.id
     button_id = call.data
     user_state[call.message.chat.id] = {"section": button_id, "message_text": ""}
 
@@ -347,6 +366,34 @@ def handle_query(call):
     elif button_id == "get_status":
         text_message = asyncio.run(process_get_status_message(bot,call.message.chat.id))
         bot.send_message(call.message.chat.id, text_message, reply_markup=create_trading_control_menu())
+    elif button_id == "analytics":
+        bot.send_message(call.message.chat.id, "Аналитика", reply_markup=create_analytics_menu())
+    elif button_id == "list_shares_pnl_30":
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите портфель для P&L>30%:",
+            reply_markup=create_portfolio_buttons_pnl()
+        )
+    elif button_id == "list_shares_pnl_20":
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите портфель для P&L>20%:",
+            reply_markup=create_portfolio_buttons_pnl()
+        )
+    elif button_id.startswith("portfolio_pnl_"):
+        case_name = button_id.split("_")[2]
+        if user_state[call.message.chat.id]["section"] == "list_shares_pnl_30":
+            if case_name == "all":
+                message = process_pnl_selection(30)
+            else:
+                message = process_pnl_selection(30, case_name)
+            bot.send_message(call.message.chat.id, message)
+        elif user_state[call.message.chat.id]["section"] == "list_shares_pnl_20":
+            if case_name == "all":
+                message = process_pnl_selection(20)
+            else:
+                message = process_pnl_selection(20, case_name)
+            bot.send_message(call.message.chat.id, message)
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
