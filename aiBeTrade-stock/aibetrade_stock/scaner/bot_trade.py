@@ -429,7 +429,7 @@ async def process_get_status_message():
         
         try:
             response = requests.get(
-                f"{api_url}3.0/summary/{account_id}/EUR",
+                f"{api_url}3.0/summary/{account_id}/USD",
                 auth=HTTPBasicAuth(application_id, application_access_key)
             )
             text_message += f"Получен ответ от брокера: {response.text}\n"
