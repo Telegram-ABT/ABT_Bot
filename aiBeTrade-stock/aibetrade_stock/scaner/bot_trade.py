@@ -311,7 +311,7 @@ def process_push_message(message_text):
         "ни процента остатка акций в портфеле это означает что продается все что есть и в этом случае процент остатка в портфеле будет 0. "
         "В финале проверить на соответствие полученного результата следующей структуре: "
         "{Название портфеля}{Тикер.Биржа}{тип сигнала}{Цена акции}{Процент остатка}. "
-        "В случае, если исходное сообщение не содержит данных по указанной структуре, то данное сообщение игнорировать."
+        "В случае, если исходное сообщение не содержит данн��х по указанной структуре, то данное сообщение игнорировать."
     )
     gpt_response = send_to_chatgpt(promt, message_text)
 
@@ -421,23 +421,7 @@ async def process_get_status_message():
 
     active_cases = case_collection.find({"active": True})
 
-    # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     for case in active_cases:
-        # try:
-        #     share = case_share_collection.find({"case": case['case_name']})
-        #     if share:
-        #         for s in share:
-        #             case_share_collection.update_one({"_id": s["_id"]}, {"$set": {"get_status": False}})
-        #         text_message += "get_status в kogan_case_share обновлены успешно.\n"
-        # except Exception as e:
-        #     text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
-
-
-        # # 3. Делаем запрос к брокеру
-        # text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
-        # response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
-        # response, text_message = get_broker_info("RRO1051.002", case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
-        
         account_id = "RRO1051.002"
         application_id = case['application_id']
         application_access_key = case['application_access_key']
@@ -452,37 +436,39 @@ async def process_get_status_message():
             if response.status_code == 200:
                 portfolio_info = response.json()
                 text_message += f"Получена информация о портфеле: {portfolio_info}\n"
+
+                # 4. Формируем начальную часть сообщения
+                text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
+                text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
+                text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
+                text_message += "Расшифровка активов:\n"
+
+                # 5. Обрабатываем позиции
+                for position in portfolio_info['positions']:
+                    print(f"Обработка позиции: {position['symbolId']}")
+                    share_record = find_share_record(case['case_name'], position['symbolId'])
+
+                    if share_record:
+                        print(f"Обновление записи для {position['symbolId']}")
+                        update_share_record(share_record, position)
+                        text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                        text_message += f"Цена тек.: {position['price']}\n"
+                        text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                    else:
+                        print(f"Добавление новой записи для {position['symbolId']}")
+                        add_new_share_record(case['case_name'], position)
+                        text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
+                        text_message += f"Цена тек.: {position['price']}\n"
+                        text_message += f"Цена позиц.: {position['averagePrice']}\n"
+                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+            else:
+                text_message += f"Ошибка при получении данных от брокера: {response.status_code}\n"
         except Exception as e:
             text_message += f"Ошибка запроса к брокеру: {e}\n"
-            return None, text_message
-        
-        # 4. Формируем начальную часть сообщения
-        text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
-        text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
-        text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
-        text_message += "Расшифровка активов:\n"
+            continue
 
-        # 5. Обрабатываем позиции
-        for position in portfolio_info['positions']:
-            print(f"Обработка позиции: {position['symbolId']}")
-            share_record = find_share_record(case['case_name'], position['symbolId'])
-
-            if share_record:
-                print(f"Обновление записи для {position['symbolId']}")
-                update_share_record(share_record, position)
-                text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                text_message += f"Цена тек.: {position['price']}\n"
-                text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
-            else:
-                print(f"Добавление новой записи для {position['symbolId']}")
-                add_new_share_record(case['case_name'], position)
-                text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                text_message += f"Цена тек.: {position['price']}\n"
-                text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
-
-    # 6. Обрабатываем записи с get_status = False
+        # 6. Обрабатываем записи с get_status = False
         inactive_shares = find_inactive_shares()
         inactive_shares_count = case_share_collection.count_documents({"get_status": False})
         print(f"Найдено неактивных записей: {inactive_shares_count}")
@@ -493,8 +479,8 @@ async def process_get_status_message():
                 text_message += f"Объем: {share['balance_sum']}\n\n"
                 reset_share_balance(share)
 
-        print("Завершение выполнения process_get_status_message")
-        return text_message
+    print("Завершение выполнения process_get_status_message")
+    return text_message
 
 # Примерные функции для взаимодействия с базой данных и API
 def select_active_cases():
