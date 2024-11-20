@@ -433,8 +433,6 @@ async def process_get_status_message():
             text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
 
 
-    for case in active_cases:
-
         # 3. Делаем запрос к брокеру
         text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
         response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
@@ -474,18 +472,18 @@ async def process_get_status_message():
                 text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
 
     # 6. Обрабатываем записи с get_status = False
-    inactive_shares = find_inactive_shares()
-    inactive_shares_count = case_share_collection.count_documents({"get_status": False})
-    print(f"Найдено неактивных записей: {inactive_shares_count}")
-    if inactive_shares:
-        for share in inactive_shares:
-            print(f"Обработка неактивной записи: {share['share']}")
-            text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
-            text_message += f"Объем: {share['balance_sum']}\n\n"
-            reset_share_balance(share)
+        inactive_shares = find_inactive_shares()
+        inactive_shares_count = case_share_collection.count_documents({"get_status": False})
+        print(f"Найдено неактивных записей: {inactive_shares_count}")
+        if inactive_shares:
+            for share in inactive_shares:
+                print(f"Обработка неактивной записи: {share['share']}")
+                text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
+                text_message += f"Объем: {share['balance_sum']}\n\n"
+                reset_share_balance(share)
 
-    print("Завершение выполнения process_get_status_message")
-    return text_message
+        print("Завершение выполнения process_get_status_message")
+        return text_message
 
 # Примерные функции для взаимодействия с базой данных и API
 def select_active_cases():
