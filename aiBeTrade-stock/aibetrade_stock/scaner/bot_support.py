@@ -194,7 +194,7 @@ def handle_query(call):
             else:
                 bot.send_message(call.message.chat.id, chunk)
     elif button_id.startswith("portfolio_get_status_"):
-        case_name = button_id.split("_")[2]
+        case_name = button_id.split("_")[3]
         if case_name == "all":
             text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id))
         else:
