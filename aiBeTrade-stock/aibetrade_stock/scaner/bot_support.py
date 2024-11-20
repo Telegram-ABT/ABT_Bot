@@ -10,6 +10,7 @@ import asyncio
 from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
 from bot_trade import process_get_status_message
 import textwrap
+import time
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -184,12 +185,14 @@ def handle_query(call):
                     bot.send_message(call.message.chat.id, chunk, reply_markup=shares_markup)
                 else:
                     bot.send_message(call.message.chat.id, chunk)
+                time.sleep(1)
         elif user_state[call.message.chat.id]["section"] == "get_status":
             if case_name == "all":
                 text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id))
             else:
                 text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id, case_name))
             bot.send_message(call.message.chat.id, text_message, reply_markup=create_trading_control_menu())
+            time.sleep(1)
     elif button_id == "back_to_trading":
         bot.send_message(
             call.message.chat.id,
@@ -382,7 +385,7 @@ def handle_text_input(message):
     state = user_state.get(user_id)
 
     if state and state.get("awaiting_promt"):
-        # Получаем id_chat и promt от пользователя
+        # Получаем id_chat и promt от польз��вателя
         id_chat = state["awaiting_promt"]
         promt = message.text
 
