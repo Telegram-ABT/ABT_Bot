@@ -234,7 +234,7 @@ async def process_new_signals():
                         continue
 
                     if count_order == 0:
-                        message = f"Количество акций к покупке {count_order}. Действие не выполняет��я."
+                        message = f"Количество акций к покупке {count_order}. Действие не выполняется."
                         print(message)
                         asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         continue
@@ -311,7 +311,7 @@ def process_push_message(message_text):
         "ни процента остатка акций в портфеле это означает что продается все что есть и в этом случае процент остатка в портфеле будет 0. "
         "В финале проверить на соответствие полученного результата следующей структуре: "
         "{Название портфеля}{Тикер.Биржа}{тип сигнала}{Цена акции}{Процент остатка}. "
-        "В случае, если исходное сообщение не содержит даннх по указанной структуре, то данное сообщение игнорировать."
+        "В случае, если исходное сообщение не содержит данн��х по указанной структуре, то данное сообщение игнорировать."
     )
     gpt_response = send_to_chatgpt(promt, message_text)
 
@@ -449,6 +449,7 @@ async def process_get_status_message():
                 for position in portfolio_info['positions']:
                     print(f"Обработка позиции: {position['symbolId']}")
                     share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
+
                     if share_record:
                         print(f"Обновление записи для {position['symbolId']}")
                         update_share_record(share_record, position)
@@ -493,11 +494,12 @@ def select_active_cases():
 
 def update_share_record(share_record, position):
     # Обновляет запись в kogan_case_share
+    # Здесь нужно реализовать логику для обновления данных в MongoDB
     case_share_collection.update_one(
         {"_id": share_record["_id"]},
-        {"$set": {**position, "get_status": True}}
+        {"$set": position, "get_status": True}
     )
-    if share_record['balance_count'] != position['quantity']:
+    if share_record['balance_count']!=position['quantity']:
         case_share_collection.update_one(
             {"_id": share_record["_id"]},
             {"$set": {"balance_count": position['quantity']}}
@@ -505,14 +507,9 @@ def update_share_record(share_record, position):
 
 def add_new_share_record(case_name, position):
     # Добавляет новую запись в kogan_case_share
+    # Здесь нужно реализовать логику для добавления данных в MongoDB
     case_share_collection.insert_one(
-        {
-            "case_name": case_name,
-            "share": position['symbolId'],
-            "get_status": True,
-            "balance_count": position['quantity'],
-            "balance_sum": position['value']
-        }
+        {"case_name": case_name, "share": position['symbolId'], "get_status": True, "balance_count": position['quantity'], "balance_sum": position['value']}
     )
 
 

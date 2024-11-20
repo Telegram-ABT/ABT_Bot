@@ -152,11 +152,17 @@ def handle_query(call):
         )
     elif button_id == "list_shares":
         shares_text, shares_markup = create_shares_menu()
-        bot.send_message(
-            call.message.chat.id,
-            f"Список акций:\n{shares_text}",
-            reply_markup=shares_markup
-        )
+        
+        # Разбиваем текст на части, если он превышает 4096 символов
+        max_length = 4096
+        messages = [shares_text[i:i + max_length] for i in range(0, len(shares_text), max_length)]
+        
+        for message in messages:
+            bot.send_message(
+                call.message.chat.id,
+                f"Список акций:\n{message}",
+                reply_markup=shares_markup
+            )
     elif button_id == "back_to_trading":
         bot.send_message(
             call.message.chat.id,
