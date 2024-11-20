@@ -301,7 +301,7 @@ def process_push_message(message_text):
     asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
     promt = (
-        "Преобразуй сообщение в следующую структуру: "
+        "Преобразуй с��общение в следующую структуру: "
         "Название портфеля без ковычек., "
         "Название акции: нужно найти по названию акции тикер и определить биржу на которой торгуется этот тикер. Вернуть Тикер.Биржа, "
         "Тип сигнала: BUY или SELL, Цена акции, Процент остатка акции в портфеле без знака процент. "
@@ -416,10 +416,13 @@ async def process_get_status2_message():
     print(text_message)
 
 
-async def process_get_status_message(bot,chat_id):
+async def process_get_status_message(bot, chat_id, case_name=None):
     text_message = "Начало выполнения\n"
 
-    active_cases = case_collection.find({"active": True})
+    if case_name:
+        active_cases = case_collection.find({"case_name": case_name, "active": True})
+    else:
+        active_cases = case_collection.find({"active": True})
 
     for case in active_cases:
         account_id = case['account_id']
@@ -432,14 +435,12 @@ async def process_get_status_message(bot,chat_id):
                 case_share_collection.update_one({"_id": share["_id"]}, {"$set": {"get_status": False}})
 
         try:
-
             response = requests.get(
                 f"{api_url}3.0/summary/{account_id}/USD",
                 auth=HTTPBasicAuth(application_id, application_access_key)
             )
             if response.status_code == 200:
                 portfolio_info = response.json()
-                # 4. Формируем начальную часть сообщения
                 text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
                 text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
                 text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
@@ -448,14 +449,11 @@ async def process_get_status_message(bot,chat_id):
                     text_message = ""
                 except Exception as e:
                     print(f"Ошибка отправки сообщения: {e}")
-                print(text_message)
 
-                # 5. Обрабатываем позиции
                 for position in portfolio_info['positions']:
                     print(f"Обработка позиции: {position['symbolId']}")
                     pnl = 0
                     share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
-
 
                     if share_record:
                         print(f"Обновление записи для {position['symbolId']}")
@@ -493,9 +491,7 @@ async def process_get_status_message(bot,chat_id):
                 text_message += f"Ошибка при получении данных от брокера: {response.status_code}\n"
         except Exception as e:
             text_message += f"Ошибка запроса к брокеру: {e}\n"
-            continue
 
-        # 6. Обрабатываем записи с get_status = False
         inactive_shares = find_inactive_shares()
         if inactive_shares:
             for share in inactive_shares:
