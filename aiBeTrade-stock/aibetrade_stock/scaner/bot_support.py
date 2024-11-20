@@ -348,7 +348,7 @@ def handle_database_formation(chat_id, selected_chat_id):
     ]
     results = list(scanerdialog_collection.aggregate(pipeline))
 
-    # Определяем количество записей в результате
+    # Определям количество записей в результате
     num_records = len(results)
     print(f"Количество записей в результате агрегации: {num_records}")
 
