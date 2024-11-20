@@ -25,6 +25,7 @@ scanerdialog_collection = db["scanerdialog"]
 scanercall_collection = db["scanercall"]
 scanersettings_collection = db["scanersettings"]
 case_share_collection = db["kogan_case_share"]
+case_collection = db["kogan_case"]
 
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
@@ -99,9 +100,9 @@ def create_trading_control_menu():
     return markup
 
 # Функция для создания меню списка акций
-def create_shares_menu(call):
+def create_shares_menu(call, case_name):
     markup = types.InlineKeyboardMarkup()
-    shares = case_share_collection.find()
+    shares = case_share_collection.find({"case_name": case_name})
     shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]
     for share in shares_list:
         bot.send_message(call.message.chat.id, share, parse_mode='HTML')
@@ -154,7 +155,14 @@ def handle_query(call):
             reply_markup=create_trading_control_menu()
         )
     elif button_id == "list_shares":
-        shares_text, shares_markup = create_shares_menu(call)
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите портфель:",
+            reply_markup=create_portfolio_buttons()
+        )
+    elif button_id.startswith("portfolio_"):
+        case_name = button_id.split("_")[1]
+        shares_text, shares_markup = create_shares_menu(call, case_name)
         chunks = textwrap.wrap(shares_text, 3000)
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
@@ -180,7 +188,7 @@ def handle_query(call):
             stop_script(pid)
             bot.send_message(
                 call.message.chat.id,
-                "Сканер успешно остановлен.",
+                "Сканер успешно ��становлен.",
                 reply_markup=create_main_menu()
             )
         else:
@@ -235,7 +243,7 @@ def handle_query(call):
         start_script("bot_trade.py")
         bot.send_message(
             call.message.chat.id,
-            "Торговля успешно запущена.",
+            "Торговля успешно заущена.",
             reply_markup=create_main_menu()
         )
     elif button_id == "stop_trade":
@@ -272,7 +280,7 @@ def handle_query(call):
     elif button_id == "2.1":
         bot.send_message(
             call.message.chat.id,
-            "Найденные каналы. Выберите для какого канала сформировать базу для рассылки сообщений",
+            "Най��енные каналы. Выберите для какого канала сформировать базу для рассылки сообщений",
             reply_markup=create_channel_buttons()
         )
     elif button_id.startswith("channel_"):
@@ -396,3 +404,10 @@ def clear_scanercall(chat_id):
 
 # Запуск бота
 bot.polling(none_stop=True)
+
+def create_portfolio_buttons():
+    markup = types.InlineKeyboardMarkup()
+    active_cases = case_collection.find({"active": True})
+    for case in active_cases:
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_{case['case_name']}"))
+    return markup
