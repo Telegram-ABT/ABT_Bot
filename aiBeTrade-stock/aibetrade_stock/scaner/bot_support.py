@@ -185,7 +185,7 @@ def handle_query(call):
             reply_markup=create_portfolio_buttons_get_status()
         )
     elif button_id.startswith("portfolio_list_"):
-        case_name = button_id.split("_")[1]
+        case_name = button_id.split("_")[2]
         shares_text, shares_markup = create_shares_menu(call, case_name)
         chunks = textwrap.wrap(shares_text, 3000)
         for i, chunk in enumerate(chunks):
@@ -194,7 +194,7 @@ def handle_query(call):
             else:
                 bot.send_message(call.message.chat.id, chunk)
     elif button_id.startswith("portfolio_get_status_"):
-        case_name = button_id.split("_")[1]
+        case_name = button_id.split("_")[2]
         if case_name == "all":
             text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id))
         else:
