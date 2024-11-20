@@ -136,6 +136,7 @@ def create_portfolio_buttons_list():
     for case in active_cases:
         markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_list_{case['case_name']}"))
     markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_list_all"))
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
 
 def create_portfolio_buttons_get_status():
@@ -144,6 +145,7 @@ def create_portfolio_buttons_get_status():
     for case in active_cases:
         markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_get_status_{case['case_name']}"))
     markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_get_status_all"))
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
 
 def create_portfolio_buttons_pnl():
@@ -152,6 +154,7 @@ def create_portfolio_buttons_pnl():
     for case in active_cases:
         markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_pnl_{case['case_name']}"))
     markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_pnl_all"))
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
 
 # Обработка команды /start и /menu
