@@ -299,9 +299,9 @@ def handle_query(call):
         chunks = textwrap.wrap(text_message, 3000)
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
-                bot.send_message(call.message.chat.id, chunk, reply_markup=create_trading_control_menu(), parse_mode='Markdown')
+                bot.send_message(call.message.chat.id, chunk, reply_markup=create_trading_control_menu(), parse_mode='HTML')
             else:
-                bot.send_message(call.message.chat.id, chunk, parse_mode='Markdown')
+                bot.send_message(call.message.chat.id, chunk, parse_mode='HTML')
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
