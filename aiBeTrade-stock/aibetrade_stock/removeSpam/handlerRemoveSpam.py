@@ -119,8 +119,8 @@ def check_ref(msg:Message):
         'Click To Claim' in text or 'AIRDOP' in text or '🆕🆕🆕🆕' in text or 
         '$DОGS' in text or 'JetTon' in text or 'NOTCOIN' in text or 'Empire' in text or 'EMPIRE' in text or
         '@TON' in text or '🤩🤩🤩🤩' in text or '💎🐶❗️❗️' in text or '💵❗️❗️❗️❗️' in text or '💀💀💀💀' in text or
-        '🔤🔤🔤🔤🔤' in text
-    ):        # Проверяем отсутствие aibetrade
+        '🔤🔤🔤🔤🔤' in text or 'азино' in text or 'asino' in text or 'link' in text
+    ):        
             return True
     return False
 
