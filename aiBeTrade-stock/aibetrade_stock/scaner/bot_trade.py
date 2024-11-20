@@ -435,10 +435,6 @@ async def process_get_status_message():
 
         # 3. Делаем запрос к брокеру
         text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
-        text_message += f"case['account_id'] = {case['account_id']}\n"
-        text_message += f"case['application_id'] = {case['application_id']}\n"
-        text_message += f"case['application_access_key'] = {case['application_access_key']}\n"
-        text_message += f"case['api_url_date'] = {case['api_url_date']}\n"
         response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
         if response is None:
             error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
