@@ -385,7 +385,7 @@ def handle_text_input(message):
     state = user_state.get(user_id)
 
     if state and state.get("awaiting_promt"):
-        # Получаем id_chat и promt от польз��вателя
+        # Получаем id_chat и promt от пользователя
         id_chat = state["awaiting_promt"]
         promt = message.text
 
@@ -425,6 +425,12 @@ def clear_scanercall(chat_id):
         "Удаление данных прошло успешно",
         reply_markup=create_main_menu()
     )
+
+def create_data_collection_menu():
+    markup = types.InlineKeyboardMarkup()
+    # Добавьте кнопки и логику для меню
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back"))
+    return markup
 
 # Запуск бота
 bot.polling(none_stop=True)
