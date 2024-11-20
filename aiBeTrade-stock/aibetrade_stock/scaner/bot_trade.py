@@ -421,16 +421,14 @@ async def process_get_status_message():
 
     active_cases = case_collection.find({"active": True})
 
-    # active_cases_count = case_collection.count_documents({"active": True})
-
-    # text_message += f"Найдено активных записей: {active_cases_count}\n"
-
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
-    if not reset_get_status_in_shares([case['case_name'] for case in active_cases]):
-        text_message += "Ошибка при обновлении get_status в kogan_case_share.\n"
-        return text_message
-    else:
-        text_message += "get_status в kogan_case_share обновлены успешно.\n"
+    for case in active_cases:
+        try:
+            case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
+            text_message += "get_status в kogan_case_share обновлены успешно.\n"
+        except Exception as e:
+            text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
+
 
     for case in active_cases:
 
@@ -492,14 +490,6 @@ def select_active_cases():
     # Здесь нужно реализовать логику для выборки данных из MongoDB
     pass
 
-def reset_get_status_in_shares(case_names):
-    # Устанавливает get_status = False для всех записей в kogan_case_share
-    # Здесь нужно реализовать логику для обновления данных в MongoDB
-    try:
-        case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
-        return True
-    except Exception as e:
-        return False    
 
 def get_broker_info(account_id,application_id, application_access_key, api_url, text_message):
     # Делает асинхронный запрос к API брокера
