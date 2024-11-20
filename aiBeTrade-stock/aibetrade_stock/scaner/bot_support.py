@@ -102,7 +102,7 @@ def create_trading_control_menu():
 def create_shares_menu():
     markup = types.InlineKeyboardMarkup()
     shares = case_share_collection.find()
-    shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]
+    shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}"+"\n" for share in shares]
     shares_text = "\n".join(shares_list)
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return shares_text, markup
