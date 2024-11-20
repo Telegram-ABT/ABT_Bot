@@ -463,8 +463,9 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
                         text_message += f"Цена тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                        text_message += f"Объем: {position['value']}\n"
-                        text_message += f"<b>PNL: {position['pnl']}</b>"
+                        text_message += f"Объем тек.: {position['value']}\n"
+                        PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['Price'])))*100
+                        text_message += f"<b>PNL: {position['pnl']} ({PerPnl:.2f}%)</b>"
                         pnl = pnl + float(position['pnl'])
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
@@ -478,8 +479,10 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
                         text_message += f"Цена тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                        text_message += f"Объем: {position['value']}\n"
-                        text_message += f"<b>PNL: {position['pnl']}</b>"
+                        text_message += f"Объем тек.: {position['value']}\n"
+                        PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['Price'])))*100
+                        text_message += f"<b>PNL: {position['pnl']} ({PerPnl}%)</b>"
+
                         pnl = pnl + float(position['pnl'])
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
