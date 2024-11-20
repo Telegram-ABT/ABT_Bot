@@ -101,10 +101,16 @@ def create_trading_control_menu():
     return markup
 
 # Функция для создания меню списка акций
-def create_shares_menu(call, case_name):
-    bot.send_message(call.message.chat.id, f"Список акций для {case_name}", parse_mode='HTML')
+def create_shares_menu(call, case_name=None):
+    if case_name:
+        bot.send_message(call.message.chat.id, f"Список акций для {case_name}", parse_mode='HTML')
+    else:
+        bot.send_message(call.message.chat.id, "Список всех акций", parse_mode='HTML')
     markup = types.InlineKeyboardMarkup()
-    shares = case_share_collection.find({"case_name": case_name})
+    if case_name:
+        shares = case_share_collection.find({"case_name": case_name})
+    else:
+        shares = case_share_collection.find({})
     shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]
     for share in shares_list:
         bot.send_message(call.message.chat.id, share, parse_mode='HTML')
@@ -186,7 +192,10 @@ def handle_query(call):
         )
     elif button_id.startswith("portfolio_list_"):
         case_name = button_id.split("_")[2]
-        shares_text, shares_markup = create_shares_menu(call, case_name)
+        if case_name == "all":
+            shares_text, shares_markup = create_shares_menu(call)
+        else:   
+            shares_text, shares_markup = create_shares_menu(call, case_name)
         chunks = textwrap.wrap(shares_text, 3000)
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
