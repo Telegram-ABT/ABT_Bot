@@ -110,6 +110,13 @@ def create_shares_menu(call, case_name):
     shares_text = "Список акций сформирован"
     return shares_text, markup
 
+def create_portfolio_buttons():
+    markup = types.InlineKeyboardMarkup()
+    active_cases = case_collection.find({"active": True})
+    for case in active_cases:
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_{case['case_name']}"))
+    return markup
+
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
@@ -188,7 +195,7 @@ def handle_query(call):
             stop_script(pid)
             bot.send_message(
                 call.message.chat.id,
-                "Сканер успешно ��становлен.",
+                "Сканер успешно остановлен.",
                 reply_markup=create_main_menu()
             )
         else:
@@ -280,7 +287,7 @@ def handle_query(call):
     elif button_id == "2.1":
         bot.send_message(
             call.message.chat.id,
-            "Най��енные каналы. Выберите для какого канала сформировать базу для рассылки сообщений",
+            "Найенные каналы. Выберите для какого канала сформировать базу для рассылки сообщений",
             reply_markup=create_channel_buttons()
         )
     elif button_id.startswith("channel_"):
@@ -404,10 +411,3 @@ def clear_scanercall(chat_id):
 
 # Запуск бота
 bot.polling(none_stop=True)
-
-def create_portfolio_buttons():
-    markup = types.InlineKeyboardMarkup()
-    active_cases = case_collection.find({"active": True})
-    for case in active_cases:
-        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_{case['case_name']}"))
-    return markup
