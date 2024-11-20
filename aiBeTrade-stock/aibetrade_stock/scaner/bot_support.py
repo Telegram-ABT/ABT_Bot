@@ -447,6 +447,5 @@ def create_data_collection_menu():
     # Добавьте кнопки и логику для меню
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back"))
     return markup
-
 # Запуск бота
 bot.polling(none_stop=True)
