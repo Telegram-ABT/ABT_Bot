@@ -147,13 +147,13 @@ async def check_order_status():
                             total_quantity = -total_quantity
                             total_sum = -total_sum
 
-                        share_info = case_share_collection.find_one({"case": case, "share": share})
+                        share_info = case_share_collection.find_one({"case_name": case, "share": share})
                         if share_info:
                             balance_count = share_info.get("balance_count", 0) + total_quantity
                             balance_sum = 0 if balance_count == 0 else share_info.get("balance_sum", 0) + total_sum
 
                             case_share_collection.update_one(
-                                {"case": case, "share": share},
+                                {"case_name": case, "share": share},
                                 {"$set": {"balance_count": balance_count, "balance_sum": balance_sum}}
                             )
                             message = f"Ордер {order_id} переведен в статус {order_status}. Информация в портфеле {case} обновлена для {share}"
@@ -161,7 +161,7 @@ async def check_order_status():
                             asyncio.create_task(send_telegram_message(client, recipient_id, message))
                         else:
                             case_share_collection.insert_one({
-                                "case": case,
+                                "case_name": case,
                                 "share": share,
                                 "balance_count": total_quantity,
                                 "balance_sum": total_sum
@@ -211,7 +211,7 @@ async def process_new_signals():
                 active = case_info.get("active")
 
                 if active:
-                    case_share_info = case_share_collection.find_one({"case": case, "share": share})
+                    case_share_info = case_share_collection.find_one({"case_name": case, "share": share})
                     balance_count = 0 if not case_share_info else case_share_info["balance_count"]
                     balance_sum = 0 if not case_share_info else case_share_info["balance_sum"]
 
@@ -354,7 +354,7 @@ def process_push_message(message_text):
         active = case_info.get("active")
 
         if active:
-            case_share_info = case_share_collection.find_one({"case": case, "share": share})
+            case_share_info = case_share_collection.find_one({"case_name": case, "share": share})
             balance_count = 0 if not case_share_info else case_share_info["balance_count"]
             balance_sum = 0 if not case_share_info else case_share_info["balance_sum"]
 

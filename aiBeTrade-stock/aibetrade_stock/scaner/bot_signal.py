@@ -18,7 +18,6 @@ mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 signal_collection = db["kogan_signal"]
 case_collection = db["kogan_case"]
-case_share_collection = db["kogan_case_share"]
 
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
