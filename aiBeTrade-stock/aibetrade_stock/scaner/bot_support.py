@@ -111,12 +111,20 @@ def create_shares_menu(call, case_name):
     shares_text = "Список акций сформирован"
     return shares_text, markup
 
-def create_portfolio_buttons():
+def create_portfolio_buttons_list():
     markup = types.InlineKeyboardMarkup()
     active_cases = case_collection.find({"active": True})
     for case in active_cases:
-        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_{case['case_name']}"))
-    markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_all"))
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_list_{case['case_name']}"))
+    markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_list_all"))
+    return markup
+
+def create_portfolio_buttons_get_status():
+    markup = types.InlineKeyboardMarkup()
+    active_cases = case_collection.find({"active": True})
+    for case in active_cases:
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_get_status_{case['case_name']}"))
+    markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_get_status_all"))
     return markup
 
 # Обработка команды /start и /menu
@@ -167,32 +175,30 @@ def handle_query(call):
         bot.send_message(
             call.message.chat.id,
             "Выберите портфель:",
-            reply_markup=create_portfolio_buttons()
+            reply_markup=create_portfolio_buttons_list()
         )
     elif button_id == "get_status":
         bot.send_message(
             call.message.chat.id,
             "Выберите портфель для получения статуса:",
-            reply_markup=create_portfolio_buttons()
+            reply_markup=create_portfolio_buttons_get_status()
         )
-    elif button_id.startswith("portfolio_"):
+    elif button_id.startswith("portfolio_list_"):
         case_name = button_id.split("_")[1]
-        if user_state[call.message.chat.id]["section"] == "list_shares":
-            shares_text, shares_markup = create_shares_menu(call, case_name)
-            chunks = textwrap.wrap(shares_text, 3000)
-            for i, chunk in enumerate(chunks):
-                if i == len(chunks) - 1:
-                    bot.send_message(call.message.chat.id, chunk, reply_markup=shares_markup)
-                else:
-                    bot.send_message(call.message.chat.id, chunk)
-                time.sleep(1)
-        elif user_state[call.message.chat.id]["section"] == "get_status":
-            if case_name == "all":
-                text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id))
+        shares_text, shares_markup = create_shares_menu(call, case_name)
+        chunks = textwrap.wrap(shares_text, 3000)
+        for i, chunk in enumerate(chunks):
+            if i == len(chunks) - 1:
+                bot.send_message(call.message.chat.id, chunk, reply_markup=shares_markup)
             else:
-                text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id, case_name))
-            bot.send_message(call.message.chat.id, text_message, reply_markup=create_trading_control_menu())
-            time.sleep(1)
+                bot.send_message(call.message.chat.id, chunk)
+    elif button_id.startswith("portfolio_get_status_"):
+        case_name = button_id.split("_")[1]
+        if case_name == "all":
+            text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id))
+        else:
+            text_message = asyncio.run(process_get_status_message(bot, call.message.chat.id, case_name))
+        bot.send_message(call.message.chat.id, text_message, reply_markup=create_trading_control_menu())
     elif button_id == "back_to_trading":
         bot.send_message(
             call.message.chat.id,
