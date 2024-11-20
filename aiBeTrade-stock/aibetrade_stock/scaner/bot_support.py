@@ -296,7 +296,12 @@ def handle_query(call):
         bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "get_status":
         text_message = asyncio.run(process_get_status_message())
-        bot.send_message(call.message.chat.id, f"Статус сигналов получен.\n{text_message}", reply_markup=create_trading_control_menu())
+        chunks = textwrap.wrap(text_message, 3000)
+        for i, chunk in enumerate(chunks):
+            if i == len(chunks) - 1:
+                bot.send_message(call.message.chat.id, chunk, reply_markup=create_trading_control_menu())
+            else:
+                bot.send_message(call.message.chat.id, chunk)
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
