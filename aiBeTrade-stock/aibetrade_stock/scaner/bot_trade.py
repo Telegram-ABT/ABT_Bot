@@ -429,7 +429,8 @@ async def process_get_status_message():
     if not reset_get_status_in_shares([case['case_name'] for case in active_cases]):
         text_message += "Ошибка при обновлении get_status в kogan_case_share.\n"
         return text_message
-
+    else:
+        text_message += "get_status в kogan_case_share обновлены успешно.\n"
 
     for case in active_cases:
 
