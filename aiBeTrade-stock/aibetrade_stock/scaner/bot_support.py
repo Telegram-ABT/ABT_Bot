@@ -102,6 +102,7 @@ def create_trading_control_menu():
 
 # Функция для создания меню списка акций
 def create_shares_menu(call, case_name):
+    bot.send_message(call.message.chat.id, f"Список акций для {case_name}", parse_mode='HTML')
     markup = types.InlineKeyboardMarkup()
     shares = case_share_collection.find({"case_name": case_name})
     shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]

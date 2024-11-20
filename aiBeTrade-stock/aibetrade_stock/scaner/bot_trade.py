@@ -301,7 +301,7 @@ def process_push_message(message_text):
     asyncio.create_task(send_telegram_message(client, recipient_id, message))
 
     promt = (
-        "Преобразуй с��общение в следующую структуру: "
+        "Преобразуй сообщение в следующую структуру: "
         "Название портфеля без ковычек., "
         "Название акции: нужно найти по названию акции тикер и определить биржу на которой торгуется этот тикер. Вернуть Тикер.Биржа, "
         "Тип сигнала: BUY или SELL, Цена акции, Процент остатка акции в портфеле без знака процент. "
@@ -417,7 +417,10 @@ async def process_get_status2_message():
 
 
 async def process_get_status_message(bot, chat_id, case_name=None):
-    text_message = "Начало выполнения\n"
+    text_message = f"Начало выполнения {case_name}"
+    pnl = 0  # Инициализация переменной
+    bot.send_message(chat_id, text_message, parse_mode='HTML')
+    text_message = ""
 
     if case_name:
         active_cases = case_collection.find({"case_name": case_name, "active": True})
@@ -452,7 +455,6 @@ async def process_get_status_message(bot, chat_id, case_name=None):
 
                 for position in portfolio_info['positions']:
                     print(f"Обработка позиции: {position['symbolId']}")
-                    pnl = 0
                     share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
 
                     if share_record:
@@ -464,7 +466,7 @@ async def process_get_status_message(bot, chat_id, case_name=None):
                         text_message += f"Объем тек.: {position['value']}\n"
                         PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['price'])))*100
                         text_message += f"<b>PNL: {position['pnl']} ({PerPnl:.2f}%)</b>"
-                        pnl = pnl + float(position['pnl'])
+                        pnl += float(position['pnl'])
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
                             text_message = ""
@@ -481,7 +483,7 @@ async def process_get_status_message(bot, chat_id, case_name=None):
                         PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['price'])))*100
                         text_message += f"<b>PNL: {position['pnl']} ({PerPnl:.2f}%)</b>"
 
-                        pnl = pnl + float(position['pnl'])
+                        pnl += float(position['pnl'])
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
                             text_message = ""
