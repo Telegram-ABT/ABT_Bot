@@ -102,9 +102,11 @@ def create_trading_control_menu():
 def create_shares_menu():
     markup = types.InlineKeyboardMarkup()
     shares = case_share_collection.find()
-    shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}"+"\n" for share in shares]
-    shares_text = "\n".join(shares_list)
+    shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]
+    for share in shares_list:
+        bot.send_message(call.message.chat.id, share, parse_mode='HTML')
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
+    shares_text = "Список акций сформирован"
     return shares_text, markup
 
 # Обработка команды /start и /menu
