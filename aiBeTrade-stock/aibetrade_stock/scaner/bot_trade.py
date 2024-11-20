@@ -423,20 +423,21 @@ async def process_get_status_message():
 
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     for case in active_cases:
-        try:
-            share = case_share_collection.find({"case": case['case_name']})
-            if share:
-                for s in share:
-                    case_share_collection.update_one({"_id": s["_id"]}, {"$set": {"get_status": False}})
-                text_message += "get_status в kogan_case_share обновлены успешно.\n"
-        except Exception as e:
-            text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
+        # try:
+        #     share = case_share_collection.find({"case": case['case_name']})
+        #     if share:
+        #         for s in share:
+        #             case_share_collection.update_one({"_id": s["_id"]}, {"$set": {"get_status": False}})
+        #         text_message += "get_status в kogan_case_share обновлены успешно.\n"
+        # except Exception as e:
+        #     text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
 
 
-        # 3. Делаем запрос к брокеру
-        text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
-        response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
-        if response is None:
+        # # 3. Делаем запрос к брокеру
+        # text_message += f"{case['case_name']}!!! Начало запроса данных у брокера.\n"
+        # response, text_message = get_broker_info(case['account_id'], case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
+        response, text_message = get_broker_info("RRO1051.002", case['application_id'], case['application_access_key'], case['api_url_date'], text_message)
+      if response is None:
             error_message = f"Ошибка при получении информации о портфеле {case['case_name']}."
             text_message += error_message + "\n"
             continue
