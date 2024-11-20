@@ -481,7 +481,7 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"Объем тек.: {position['value']}\n"
                         PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['price'])))*100
-                        text_message += f"<b>PNL: {position['pnl']} ({PerPnl}%)</b>"
+                        text_message += f"<b>PNL: {position['pnl']} ({PerPnl:.2f}%)</b>"
 
                         pnl = pnl + float(position['pnl'])
                         try:
