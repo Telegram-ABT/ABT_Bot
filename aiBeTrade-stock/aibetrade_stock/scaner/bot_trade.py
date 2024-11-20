@@ -455,6 +455,7 @@ async def process_get_status_message(bot,chat_id):
                     print(f"Обработка позиции: {position['symbolId']}")
                     share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
 
+
                     if share_record:
                         print(f"Обновление записи для {position['symbolId']}")
                         update_share_record(share_record, position)
