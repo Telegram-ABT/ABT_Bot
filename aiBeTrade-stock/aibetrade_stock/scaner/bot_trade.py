@@ -469,7 +469,8 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
                         text_message += f"Цена тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                        text_message += f"Объем: {position['value']}\n"
+                        text_message += f"<b>PNL: {position['pnl']}</b>"
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
                             text_message = ""
