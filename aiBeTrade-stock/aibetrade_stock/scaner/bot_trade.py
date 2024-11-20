@@ -417,7 +417,7 @@ async def process_get_status2_message():
 
 
 async def process_get_status_message():
-    text_message = "Начало выполнения\n"
+    text_message = "Начало выполнения<br>"
 
     active_cases = case_collection.find({"active": True})
 
@@ -435,10 +435,10 @@ async def process_get_status_message():
             if response.status_code == 200:
                 portfolio_info = response.json()
                 # 4. Формируем начальную часть сообщения
-                text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:\n\n"
-                text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd\n"
-                text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd\n\n"
-                text_message += "Расшифровка активов:\n"
+                text_message += f"Инфомация о портфеле {portfolio_info['accountId']} по состоянию на {datetime.fromtimestamp(portfolio_info['timestamp'] / 1000)}:<br><br>"
+                text_message += f"Объем активов: {portfolio_info['netAssetValue']} usd<br>"
+                text_message += f"Объем свободных средств: {portfolio_info['freeMoney']} usd<br><br>"
+                text_message += "Расшифровка активов:<br>"
                 print(text_message)
 
                 # 5. Обрабатываем позиции
@@ -449,21 +449,21 @@ async def process_get_status_message():
                     if share_record:
                         print(f"Обновление записи для {position['symbolId']}")
                         update_share_record(share_record, position)
-                        text_message += f"\n<b>{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                        text_message += f"Цена тек.: {position['price']}\n"
-                        text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                        text_message += f"<br><b>{position['symbolId']}</b> - {position['quantity']} шт.<br>"
+                        text_message += f"Цена тек.: {position['price']}<br>"
+                        text_message += f"Цена позиц.: {position['averagePrice']}<br>"
+                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}<br><br>"
                     else:
                         print(f"Добавление новой записи для {position['symbolId']}")
                         add_new_share_record(case['case_name'], position)
-                        text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                        text_message += f"Цена тек.: {position['price']}\n"
-                        text_message += f"Цена позиц.: {position['averagePrice']}\n"
-                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}\n\n"
+                        text_message += f"<br><b> +++{position['symbolId']}</b> - {position['quantity']} шт.<br>"
+                        text_message += f"Цена тек.: {position['price']}<br>"
+                        text_message += f"Цена позиц.: {position['averagePrice']}<br>"
+                        text_message += f"PNL: {position['pnl']}, Объем: {position['value']}<br><br>"
             else:
-                text_message += f"Ошибка при получении данных от брокера: {response.status_code}\n"
+                text_message += f"Ошибка при получении данных от брокера: {response.status_code}<br>"
         except Exception as e:
-            text_message += f"Ошибка запроса к брокеру: {e}\n"
+            text_message += f"Ошибка запроса к брокеру: {e}<br>"
             continue
 
         # 6. Обрабатываем записи с get_status = False
