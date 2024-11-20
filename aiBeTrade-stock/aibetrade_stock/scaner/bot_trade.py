@@ -453,6 +453,7 @@ async def process_get_status_message(bot,chat_id):
                 # 5. Обрабатываем позиции
                 for position in portfolio_info['positions']:
                     print(f"Обработка позиции: {position['symbolId']}")
+                    pnl = 0
                     share_record = case_share_collection.find_one({"case_name": case['case_name'], "share": position['symbolId']})
 
 
@@ -464,6 +465,7 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"Объем: {position['value']}\n"
                         text_message += f"<b>PNL: {position['pnl']}</b>"
+                        pnl += position['pnl']
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
                             text_message = ""
@@ -478,6 +480,7 @@ async def process_get_status_message(bot,chat_id):
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"Объем: {position['value']}\n"
                         text_message += f"<b>PNL: {position['pnl']}</b>"
+                        pnl += position['pnl']
                         try:
                             bot.send_message(chat_id, text_message, parse_mode='HTML')
                             text_message = ""
@@ -501,7 +504,7 @@ async def process_get_status_message(bot,chat_id):
                 except Exception as e:
                     print(f"Ошибка отправки сообщения: {e}")
                 reset_share_balance(share)
-    text_message += "\n\nЗавершено обновление статусов."
+    text_message += f"\n\nЗавершено обновление статусов. Общий PNL: {pnl}"
     return text_message
 
 
