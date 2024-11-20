@@ -28,18 +28,6 @@ case_share_collection = db["kogan_case_share"]
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
 
-def send_long_message(bot, chat_id, text, markup=None):
-    max_length = 3000
-    # Разбиваем текст на части
-    messages = [text[i:i + max_length] for i in range(0, len(text), max_length)]
-    if len(messages) > 1:
-        for message in messages:
-            bot.send_message(chat_id, message)
-        bot.send_message(chat_id,"Конец сообщения", reply_markup=markup)
-    else:
-        bot.send_message(chat_id, text, reply_markup=markup)    
-    
-
 # Проверка, запущен ли скрипт bot_scaner.py
 def is_scaner_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -121,7 +109,11 @@ def create_shares_menu():
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
-    send_long_message(bot, message.chat.id, "Привет! Выберите одну из опций:", create_main_menu())
+    bot.send_message(
+        message.chat.id,
+        "Привет! Выберите одну из опций:",
+        reply_markup=create_main_menu()
+    )
     user_state[message.chat.id] = {"section": None, "message_text": ""}
 
 # Обработка нажатия inline-кнопок
@@ -134,91 +126,175 @@ def handle_query(call):
     user_state[call.message.chat.id] = {"section": button_id, "message_text": ""}
 
     if button_id == "scaner_status":
-        send_long_message(bot, call.message.chat.id, "Выберите действие для сканера:", create_scaner_control_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие для сканера:",
+            reply_markup=create_scaner_control_menu()
+        )
     elif button_id == "sender_status":
         if is_scaner_running():
-            send_long_message(bot, call.message.chat.id, "Запущен сканер, запуск Рассылки невозможен", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Запущен сканер, запуск Рассылки невозможен",
+                reply_markup=create_main_menu()
+            )
         else:
-            send_long_message(bot, call.message.chat.id, "Выберите действие для рассылки:", create_sender_control_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Выберите действие для рассылки:",
+                reply_markup=create_sender_control_menu()
+            )
     elif button_id == "trading_status":
-        send_long_message(bot, call.message.chat.id, "Выберите действие для торговли:", create_trading_control_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие для торговли:",
+            reply_markup=create_trading_control_menu()
+        )
     elif button_id == "list_shares":
         shares_text, shares_markup = create_shares_menu()
-        send_long_message(bot, call.message.chat.id, f"Список акций:\n{shares_text}", shares_markup)
+        bot.send_message(
+            call.message.chat.id,
+            f"Список акций:\n{shares_text}",
+            reply_markup=shares_markup
+        )
     elif button_id == "back_to_trading":
-        send_long_message(bot, call.message.chat.id, "Выберите действие для торговли:", create_trading_control_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие для торговли:",
+            reply_markup=create_trading_control_menu()
+        )
     elif button_id == "start_scaner":
         start_script("bot_scaner.py")
-        send_long_message(bot, call.message.chat.id, "Сканер успешно запущен.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Сканер успешно запущен.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "stop_scaner":
         pid = is_scaner_running()
         if pid:
             stop_script(pid)
-            send_long_message(bot, call.message.chat.id, "Сканер успешно остановлен.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Сканер успешно остановлен.",
+                reply_markup=create_main_menu()
+            )
         else:
-            send_long_message(bot, call.message.chat.id, "Сканер уже остановлен.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Сканер уже остановлен.",
+                reply_markup=create_main_menu()
+            )
     elif button_id == "restart_scaner":
         pid = is_scaner_running()
         if pid:
             stop_script(pid)
         start_script("bot_scaner.py")
-        send_long_message(bot, call.message.chat.id, "Сканер успешно перезапущен.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Сканер успешно перезапущен.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "start_sender":
         start_script("bot_assistent.py")
-        send_long_message(bot, call.message.chat.id, "Сервис успешно запущен.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Сервис успешно запущен.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "stop_sender":
         pid = is_sender_running()
         if pid:
             stop_script(pid)
-            send_long_message(bot, call.message.chat.id, "Сервис успешно остановлен.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Сервис успешно остановлен.",
+                reply_markup=create_main_menu()
+            )
         else:
-            send_long_message(bot, call.message.chat.id, "Сервис уже остановлен.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Сервис уже остановлен.",
+                reply_markup=create_main_menu()
+            )
     elif button_id == "restart_sender":
         pid = is_sender_running()
         if pid:
             stop_script(pid)
         start_script("bot_assistent.py")
-        send_long_message(bot, call.message.chat.id, "Сервис успешно перезапущен.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Сервис успешно перезапущен.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "start_trade":
         start_script("bot_trade.py")
-        send_long_message(bot, call.message.chat.id, "Торговля успешно запущена.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Торговля успешно запущена.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "stop_trade":
         pid = is_trade_running()
         if pid:
             stop_script(pid)
-            send_long_message(bot, call.message.chat.id, "Торговля успешно остановлена.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Торговля успешно остановлена.",
+                reply_markup=create_main_menu()
+            )
         else:
-            send_long_message(bot, call.message.chat.id, "Торговля уже остановлена.", create_main_menu())
+            bot.send_message(
+                call.message.chat.id,
+                "Торговля уже остановлена.",
+                reply_markup=create_main_menu()
+            )
     elif button_id == "restart_trade":
         pid = is_trade_running()
         if pid:
             stop_script(pid)
         start_script("bot_trade.py")
-        send_long_message(bot, call.message.chat.id, "Торговля успешно перезапущена.", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Торговля успешно перезапущена.",
+            reply_markup=create_main_menu()
+        )
     elif button_id == "2":
-        send_long_message(bot, call.message.chat.id, "Выберите действие:", create_data_collection_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите действие:",
+            reply_markup=create_data_collection_menu()
+        )
     elif button_id == "2.1":
-        send_long_message(bot, call.message.chat.id, "Найденные каналы. Выберите для какого канала сформировать базу для рассылки сообщений", create_channel_buttons())
+        bot.send_message(
+            call.message.chat.id,
+            "Найденные каналы. Выберите для какого канала сформировать базу для рассылки сообщений",
+            reply_markup=create_channel_buttons()
+        )
     elif button_id.startswith("channel_"):
         chat_id = int(button_id.split("_")[1])
         handle_database_formation(call.message.chat.id, chat_id)
     elif button_id == "2.2":
         clear_scanercall(call.message.chat.id)
     elif button_id == "back":
-        send_long_message(bot, call.message.chat.id, "Выберите одну из опций:", create_main_menu())
+        bot.send_message(
+            call.message.chat.id,
+            "Выберите одну из опций:",
+            reply_markup=create_main_menu()
+        )
         user_state[call.message.chat.id] = {"section": None, "message_text": ""}
     elif button_id == "set_price":
-        send_long_message(bot, call.message.chat.id, "Процедура установки цена для акций запущена.", create_trading_control_menu())
+        bot.send_message(call.message.chat.id, "Процедура установки цена для акций запущена.", reply_markup=create_trading_control_menu())
         asyncio.run(process_set_price_message())
     elif button_id == "set_new":
         asyncio.run(process_set_new_message())
-        send_long_message(bot, call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.", create_trading_control_menu())
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "set_complete":
         asyncio.run(process_set_complete_message())
-        send_long_message(bot, call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", create_trading_control_menu())
+        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "get_status":
         text_message = asyncio.run(process_get_status_message())
-        send_long_message(bot, call.message.chat.id, f"Статус сигналов получен.\n{text_message}", create_trading_control_menu())
+        bot.send_message(call.message.chat.id, f"Статус сигналов получен.\n{text_message}", reply_markup=create_trading_control_menu())
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
@@ -245,7 +321,10 @@ def handle_database_formation(chat_id, selected_chat_id):
 
     if num_records > 0:
         # Если записей больше 0, запрашиваем промт для ChatGPT
-        send_long_message(bot, chat_id, "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями.")
+        bot.send_message(
+            chat_id,
+            "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
+        )
         user_state[chat_id]["awaiting_promt"] = selected_chat_id
 
     for result in results:
@@ -257,7 +336,11 @@ def handle_database_formation(chat_id, selected_chat_id):
             "firstcall": False
         })
 
-    send_long_message(bot, chat_id, f"База для рассылки сообщений подготовлена, всего записей: {num_records}", create_main_menu())
+    bot.send_message(
+        chat_id,
+        f"База для рассылки сообщений подготовлена, всего записей: {num_records}",
+        reply_markup=create_main_menu()
+    )
 
 # Обработка текстовых сообщений от пользователя
 @bot.message_handler(func=lambda message: True)
@@ -278,7 +361,7 @@ def handle_text_input(message):
         )
 
         # Запрашиваем описание чата или канала
-        send_long_message(bot, user_id, "Введите описание чата или канала.")
+        bot.send_message(user_id, "Введите описание чата или канала.")
         user_state[user_id]["awaiting_chat_discr"] = id_chat
         user_state[user_id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
 
@@ -295,13 +378,17 @@ def handle_text_input(message):
         )
 
         # Подтверждаем сохранение описания и сбрасываем состояние
-        send_long_message(bot, user_id, "Описание чата или канала успешно сохранено.", create_main_menu())
+        bot.send_message(user_id, "Описание чата или канала успешно сохранено.", reply_markup=create_main_menu())
         user_state[user_id]["awaiting_chat_discr"] = None
 
 # Функция для очистки таблицы scanercall
 def clear_scanercall(chat_id):
     scanercall_collection.delete_many({})
-    send_long_message(bot, chat_id, "Удаление данных прошло успешно", create_main_menu())
+    bot.send_message(
+        chat_id,
+        "Удаление данных прошло успешно",
+        reply_markup=create_main_menu()
+    )
 
 # Запуск бота
 bot.polling(none_stop=True)
