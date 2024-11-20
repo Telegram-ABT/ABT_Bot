@@ -28,7 +28,7 @@ accounts = [
         "api_secret": os.getenv('API_BYBIT_SEC_CR_1'),
         "strategy_id": "constantin_strat",
         "strategy_name": "ABT BITS PRO_NOM",
-        "start_deposit": 4050,  # Начальный депозит для второго аккаунта
+        "start_deposit": 3265,  # Начальный депозит для второго аккаунта
         "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для второго аккаунта
     },
     {
@@ -36,7 +36,7 @@ accounts = [
         "api_secret": os.getenv('API_BYBIT_SEC_CR_2'),
         "strategy_id": "news_strat",
         "strategy_name": "ABT BITS PRO_NEWS",
-        "start_deposit": 2350,  # Начальный депозит для третьего аккаунта
+        "start_deposit": 4350,  # Начальный депозит для третьего аккаунта
         "channel_id": os.getenv('ID_CH_CR')  # ID Telegram канала для третьего аккаунта
     }
 ]
