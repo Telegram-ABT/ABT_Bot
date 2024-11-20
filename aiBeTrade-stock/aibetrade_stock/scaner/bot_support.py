@@ -99,7 +99,7 @@ def create_trading_control_menu():
     return markup
 
 # Функция для создания меню списка акций
-def create_shares_menu():
+def create_shares_menu(call):
     markup = types.InlineKeyboardMarkup()
     shares = case_share_collection.find()
     shares_list = [f"{share['case_name']}: {share['share']} - {share['balance_count']}" for share in shares]
@@ -154,7 +154,7 @@ def handle_query(call):
             reply_markup=create_trading_control_menu()
         )
     elif button_id == "list_shares":
-        shares_text, shares_markup = create_shares_menu()
+        shares_text, shares_markup = create_shares_menu(call)
         chunks = textwrap.wrap(shares_text, 3000)
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
