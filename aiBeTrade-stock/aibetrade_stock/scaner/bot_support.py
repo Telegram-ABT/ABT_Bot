@@ -9,6 +9,7 @@ import signal
 import asyncio
 from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
 from bot_trade import process_get_status_message
+import textwrap
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -152,11 +153,12 @@ def handle_query(call):
         )
     elif button_id == "list_shares":
         shares_text, shares_markup = create_shares_menu()
-        bot.send_message(
-            call.message.chat.id,
-            f"Список акций:\n{shares_text}",
-            reply_markup=shares_markup
-        )
+        chunks = textwrap.wrap(shares_text, 3000)
+        for i, chunk in enumerate(chunks):
+            if i == len(chunks) - 1:
+                bot.send_message(call.message.chat.id, chunk, reply_markup=shares_markup)
+            else:
+                bot.send_message(call.message.chat.id, chunk)
     elif button_id == "back_to_trading":
         bot.send_message(
             call.message.chat.id,
