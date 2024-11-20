@@ -492,7 +492,7 @@ async def process_get_status_message(bot,chat_id):
         #         text_message += f"\n<b> ---{share['share']}</b> - {share['balance_count']} шт.\n"
         #         text_message += f"Объем: {share['balance_sum']}\n\n"
         #         reset_share_balance(share)
-
+    text_message += "\n\nЗавершено выполнения обновления статуса."
     print("Завершение выполнения process_get_status_message")
     return text_message
 
