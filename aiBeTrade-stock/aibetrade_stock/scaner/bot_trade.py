@@ -424,8 +424,11 @@ async def process_get_status_message():
     # 2. Обновляем записи в kogan_case_share, устанавливая get_status = False
     for case in active_cases:
         try:
-            case_share_collection.update_many({"case": {"$in": case_names}}, {"$set": {"get_status": False}})
-            text_message += "get_status в kogan_case_share обновлены успешно.\n"
+            share = case_share_collection.find({"case": case['case_name']})
+            if share:
+                for s in share:
+                    case_share_collection.update_one({"_id": s["_id"]}, {"$set": {"get_status": False}})
+                text_message += "get_status в kogan_case_share обновлены успешно.\n"
         except Exception as e:
             text_message += f"Ошибка при обновлении get_status в kogan_case_share: {e}\n"
 
