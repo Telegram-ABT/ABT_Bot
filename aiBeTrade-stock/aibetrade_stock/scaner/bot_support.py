@@ -384,24 +384,25 @@ def handle_query(call):
             "Выберите портфель для P&L>20%:",
             reply_markup=create_portfolio_buttons_pnl()
         )
-    elif button_id.startswith("portfolio_pnl_30"):
+    elif button_id.startswith("portfolio_pnl_"):
         case_name = button_id.split("_")[3]
+        present_pnl = 30 if button_id.startswith("portfolio_pnl_30") else 20
         if case_name == "all":
-            bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>30% для всех портфелей")
-            message = process_pnl_selection(30)
+            bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для всех портфелей")
+            message = process_pnl_selection(present_pnl)
         else:
-            bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>30% для портфеля {case_name}")
-            message = process_pnl_selection(30, case_name)
+            bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для портфеля {case_name}")
+            message = process_pnl_selection(present_pnl, case_name)
         bot.send_message(call.message.chat.id, message)
-    elif button_id.startswith("portfolio_pnl_20"):
-        case_name = button_id.split("_")[3]
-        if case_name == "all":
-            bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>20% для всех портфелей")
-            message = process_pnl_selection(20)
-        else:
-            bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>20% для портфеля {case_name}")
-            message = process_pnl_selection(20, case_name)
-        bot.send_message(call.message.chat.id, message)
+    # elif button_id.startswith("portfolio_pnl_20"):
+    #     case_name = button_id.split("_")[3]
+    #     if case_name == "all":
+    #         bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>20% для всех портфелей")
+    #         message = process_pnl_selection(20)
+    #     else:
+    #         bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>20% для портфеля {case_name}")
+    #         message = process_pnl_selection(20, case_name)
+    #     bot.send_message(call.message.chat.id, message)
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
