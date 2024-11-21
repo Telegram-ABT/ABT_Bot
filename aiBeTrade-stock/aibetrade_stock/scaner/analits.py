@@ -18,7 +18,7 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     query = {"case_name": case_name} if case_name else {}
     shares = case_share_collection.find(query)
     for share in shares:
-        bot.send_message(chat_id, f"Акция {share['case_name']} {share['symbol']}")
+        bot.send_message(chat_id, f"Акция {share['case_name']} {share['symbolId']}")
         quantity = share.get('quantity', 0)
         average_price = share.get('averagePrice', 0)
         price = share.get('price', 0)
