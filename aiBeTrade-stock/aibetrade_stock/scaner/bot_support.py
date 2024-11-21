@@ -198,8 +198,25 @@ def handle_query(call):
     elif button_id == "trading_status":
         bot.send_message(
             call.message.chat.id,
+            "<b>Приветствуем вас в боте по управлению торговлей!</b>\n\n"
+            "Что умеет этот бот:\n\n"
+            "Если запущен бот Торговли, то он ожидает сигналы от телеграм-каналов и контактов "
+            "в формате хэш тега. Поддерживаемые тэги\n\n"
+            "push - это сигнал от телеграм-бота подписки Бит-Коган\n\n"
+            "set_signal - это сигнал формирования базы собственных сигналов на покупку или продажу акций. Принимается в формате "
+            "{Название портфеля}{Тикер.Биржа (APPE,MOEX)}{тип сигнала (BUY или SELL)}{Цена акции}{Процент остатка}. Пример (Антикризисный,APPE,BUY,3)"
+            "Формирует сигналы в статусе 'setting'. Для выполнения сигнала необходимо отправить команду set_new\n\n"
+            "set_stocke - это сигнал для прямой покупки акций. Принимается в формате "
+            "{Название портфеля}{Тикер.Биржа (APPE,MOEX)}{тип сигнала (BUY или SELL)}{Цена акции}{Процент остатка}. Пример (Антикризисный,APPE,BUY,3)\n\n"
+            "set_price - это сигнал для проверки актуальных цен акции в портфеле\n\n"
+            "set_new - это сигнал для установки статуса сигнала в портфеле от 'setting' на 'new'\n\n"
+            "set_complete - это сигнал для установки статуса сигнала в портфеле от 'complete' на 'new'\n\n"
+            "get_status - это сигнал для обновления состояний портфелей от брокера\n\n"
+            "Управление торговлей\n"
+            "2. Управление портфелями\n"
+            "3. Аналитика\n\n"
             "Выберите действие для торговли:",
-            reply_markup=create_trading_control_menu()
+            reply_markup=create_trading_control_menu(), parse_mode='HTML'
         )
     elif button_id == "list_shares":
         bot.send_message(
@@ -395,15 +412,6 @@ def handle_query(call):
             bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для портфеля {case_name}")
             message = process_pnl_selection(bot,call.message.chat.id,present_pnl,case_name)
         bot.send_message(call.message.chat.id, message,reply_markup=create_trading_control_menu())
-    # elif button_id.startswith("portfolio_pnl_20"):
-    #     case_name = button_id.split("_")[3]
-    #     if case_name == "all":
-    #         bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>20% для всех портфелей")
-    #         message = process_pnl_selection(20)
-    #     else:
-    #         bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>20% для портфеля {case_name}")
-    #         message = process_pnl_selection(20, case_name)
-    #     bot.send_message(call.message.chat.id, message)
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
