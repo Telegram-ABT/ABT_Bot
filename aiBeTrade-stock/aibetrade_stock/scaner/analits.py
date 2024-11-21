@@ -28,6 +28,6 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
               # Добавляем акции в kogan_sell_position
                 share_copy = share.copy()
                 share_copy.pop('_id', None)
-                sell_position_collection.insert_one({**share_copy,"share_sell":False})
+                sell_position_collection.insert_one({**share_copy,"share_sell":False},"pnl_persent":pnl)
 
     return "База акций сформирована"
