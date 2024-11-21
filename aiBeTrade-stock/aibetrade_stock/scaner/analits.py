@@ -19,10 +19,11 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
                 process_pnl_set(bot,chat_id,threshold, case['case_name'])
         else:
             bot.send_message(chat_id, "Портфели не найдены")
+    return "База акций сформирована"
 
 def process_pnl_set(bot,chat_id,threshold, case_name=None):
     # Удаляем все записи из kogan_sell_position
-    bot.send_message(chat_id, "Начало формирования базы данных")
+    bot.send_message(chat_id, f"Начало формирования базы данных {case_name}")
     sell_position_collection.delete_many({'case_name':case_name,'share_sell':False})
 
     # Выбираем акции с PNL больше заданного порога
@@ -41,4 +42,4 @@ def process_pnl_set(bot,chat_id,threshold, case_name=None):
                 share_copy = share.copy()
                 share_copy.pop('_id', None)
                 sell_position_collection.insert_one({**share_copy,"share_sell":False,"pnl_persent":pnl})
-    return "База акций сформирована"
+    return
