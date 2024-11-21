@@ -89,7 +89,7 @@ def create_analytics_menu():
         types.InlineKeyboardButton("Назад", callback_data="back_to_trading")
     ]
     markup.add(buttons[0], buttons[1])
-    markup.add(buttons[3])
+    markup.add(buttons[2])
     return markup
 
 def create_trading_control_menu():
