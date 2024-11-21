@@ -26,6 +26,8 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
             if pnl > threshold:
                 bot.send_message(chat_id, f"Акция {share['symbolId']} кол. {quantity} P&L {pnl:.2f}")
               # Добавляем акции в kogan_sell_position
-                sell_position_collection.insert_one({**share,"share_sell":False})
+                share_copy = share.copy()
+                share_copy.pop('_id', None)
+                sell_position_collection.insert_one({**share_copy,"share_sell":False})
 
     return "База акций сформирована"
