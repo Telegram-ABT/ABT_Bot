@@ -19,9 +19,9 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     shares = case_share_collection.find(query)
     for share in shares:
         bot.send_message(chat_id, f"Акция {share['case_name']} {share['symbolId']}")
-        quantity = share.get('quantity', 0)
-        average_price = share.get('averagePrice', 0)
-        price = share.get('price', 0)
+        quantity = float(share.get('quantity', 0))
+        average_price = float(share.get('averagePrice', 0))
+        price = float(share.get('price', 0))
 
         if quantity > 0 and price > 0:
             pnl = (1 - (quantity * average_price) / (quantity * price)) * 100
