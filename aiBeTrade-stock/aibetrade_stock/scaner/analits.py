@@ -24,7 +24,7 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
         if quantity > 0 and price > 0:
             pnl = (1 - (quantity * average_price) / (quantity * price)) * 100
             if pnl > threshold:
-                bot.send_message(chat_id, f"Акция {share['symbolId']} кол. {quantity} P&L {pnl}")
+                bot.send_message(chat_id, f"Акция {share['symbolId']} кол. {quantity} P&L {pnl:.2f}")
               # Добавляем акции в kogan_sell_position
                 sell_position_collection.insert_one(share)
 
