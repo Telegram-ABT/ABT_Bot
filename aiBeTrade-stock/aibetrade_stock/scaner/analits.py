@@ -22,6 +22,7 @@ def process_pnl_selection(bot,chat_id,threshold, case_name=None):
         quantity = float(share.get('quantity', 0))
         average_price = float(share.get('averagePrice', 0))
         price = float(share.get('price', 0))
+        bot.send_message(chat_id, f"Количество {quantity} средняя цена {average_price} цена {price}")
 
         if quantity > 0 and price > 0:
             pnl = (1 - (quantity * average_price) / (quantity * price)) * 100
