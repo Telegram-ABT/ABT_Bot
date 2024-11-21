@@ -149,12 +149,12 @@ def create_portfolio_buttons_get_status():
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
 
-def create_portfolio_buttons_pnl():
+def create_portfolio_buttons_pnl(pnl_value):
     markup = types.InlineKeyboardMarkup()
     active_cases = case_collection.find({"active": True})
     for case in active_cases:
-        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_pnl_{case['case_name']}"))
-    markup.add(types.InlineKeyboardButton("Все портфели", callback_data="portfolio_pnl_all"))
+        markup.add(types.InlineKeyboardButton(case['case_name'], callback_data=f"portfolio_pnl_{pnl_value}_{case['case_name']}"))
+    markup.add(types.InlineKeyboardButton("Все портфели", callback_data=f"portfolio_pnl_{pnl_value}_all"))
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
 
@@ -376,16 +376,16 @@ def handle_query(call):
         bot.send_message(
             call.message.chat.id,
             "Выберите портфель для P&L>30%:",
-            reply_markup=create_portfolio_buttons_pnl()
+            reply_markup=create_portfolio_buttons_pnl(30)
         )
     elif button_id == "list_shares_pnl_20":
         bot.send_message(
             call.message.chat.id,
             "Выберите портфель для P&L>20%:",
-            reply_markup=create_portfolio_buttons_pnl()
+            reply_markup=create_portfolio_buttons_pnl(20)
         )
     elif button_id.startswith("portfolio_pnl_"):
-        case_name = button_id.split("_")[2]
+        case_name = button_id.split("_")[3]
         bot.send_message(call.message.chat.id, f"Выбран портфель {case_name} индекс кнопки {button_id}")
         present_pnl = 30 if button_id.startswith("portfolio_pnl_30") else 20
         if case_name == "all":
