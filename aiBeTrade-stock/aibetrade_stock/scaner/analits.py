@@ -8,7 +8,7 @@ db = mongo_client["nntcapital"]
 case_share_collection = db["kogan_case_share"]
 sell_position_collection = db["kogan_sell_position"]
 
-def process_pnl_selection(threshold, case_name=None):
+def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     # Удаляем все записи из kogan_sell_position
     sell_position_collection.delete_many({})
 
@@ -16,6 +16,7 @@ def process_pnl_selection(threshold, case_name=None):
     query = {"case_name": case_name} if case_name else {}
     shares = case_share_collection.find(query)
     for share in shares:
+        bot.send_message(chat_id, f"Акция {share['case_name']} {share['symbol']}")
         quantity = share.get('quantity', 0)
         average_price = share.get('averagePrice', 0)
         price = share.get('price', 0)
