@@ -88,7 +88,8 @@ def create_analytics_menu():
         types.InlineKeyboardButton("Список акций P&L>20%", callback_data="list_shares_pnl_20"),
         types.InlineKeyboardButton("Назад", callback_data="back_to_trading")
     ]
-    markup.add(*buttons)
+    markup.add(buttons[0], buttons[1])
+    markup.add(buttons[3])
     return markup
 
 def create_trading_control_menu():

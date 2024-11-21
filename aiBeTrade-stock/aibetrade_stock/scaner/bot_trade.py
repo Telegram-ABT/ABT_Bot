@@ -505,7 +505,7 @@ async def process_get_status_message(bot, chat_id, case_name=None):
                 except Exception as e:
                     print(f"Ошибка отправки сообщения: {e}")
                 reset_share_balance(share)
-    text_message += f"\n\nЗавершено обновление статусов. Общий PNL: {pnl}"
+    text_message += f"\n\nЗавершено обновление статусов. Общий PNL: {pnl:.2f}"
     return text_message
 
 
