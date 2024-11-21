@@ -160,13 +160,6 @@ def create_portfolio_buttons_pnl(pnl_value):
     markup.add(types.InlineKeyboardButton("Все портфели", callback_data=f"portfolio_pnl_{pnl_value}_all"))
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back_to_trading"))
     return markup
-def create_channel_buttons():
-    markup = types.InlineKeyboardMarkup()
-    channels = scanerchats_collection.find({}, {"chat_id": 1, "chat_name": 1})
-    for channel in channels:
-        button_text = f"{channel['chat_name']} (ID: {channel['chat_id']})"
-        markup.add(types.InlineKeyboardButton(button_text, callback_data=f"channel_{channel['chat_id']}"))
-    return markup
 
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
@@ -448,12 +441,14 @@ def handle_database_formation(chat_id, selected_chat_id):
             "texts_message": {"$slice": ["$texts_message", 10]}
         }}
     ]
-    results = list(scanercall_collection.aggregate(pipeline))
+    results = list(scanerdialog_collection.aggregate(pipeline))
 
+    # Определям количество записей в результате
     num_records = len(results)
     print(f"Количество записей в результате агрегации: {num_records}")
 
     if num_records > 0:
+        # Если записей больше 0, запрашиваем промт для ChatGPT
         bot.send_message(
             chat_id,
             "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
@@ -474,6 +469,7 @@ def handle_database_formation(chat_id, selected_chat_id):
         f"База для рассылки сообщений подготовлена, всего записей: {num_records}",
         reply_markup=create_main_menu()
     )
+
 # Обработка текстовых сообщений от пользователя
 @bot.message_handler(func=lambda message: True)
 def handle_text_input(message):
@@ -526,29 +522,20 @@ def clear_scanercall(chat_id):
         reply_markup=create_main_menu()
     )
 
-# Функция для создания меню сбора базы данных рассылки
 def create_data_collection_menu():
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    buttons = [
-        types.InlineKeyboardButton("Сформировать БД", callback_data="2.1"),
-        types.InlineKeyboardButton("Очистить БД", callback_data="2.2")
-    ]
-    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
-    markup.add(*buttons)
+    markup = types.InlineKeyboardMarkup()
+    # Добавьте кнопки и логику для меню
+    markup.add(types.InlineKeyboardButton("Назад", callback_data="back"))
     return markup
 
-# Функция для создания меню управления сканером
 def create_scaner_control_menu():
-    pid = is_scaner_running()
     markup = types.InlineKeyboardMarkup(row_width=2)
-    if pid:
-        buttons = [
-            types.InlineKeyboardButton("Остановить", callback_data="stop_scaner"),
-            types.InlineKeyboardButton("Перезапустить", callback_data="restart_scaner")
-        ]
-    else:
-        buttons = [types.InlineKeyboardButton("Запустить сканер", callback_data="start_scaner")]
-    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
+    buttons = [
+        types.InlineKeyboardButton("Запустить сканер", callback_data="start_scaner"),
+        types.InlineKeyboardButton("Остановить сканер", callback_data="stop_scaner"),
+        types.InlineKeyboardButton("Перезапустить сканер", callback_data="restart_scaner"),
+        types.InlineKeyboardButton("Назад", callback_data="back")
+    ]
     markup.add(*buttons)
     return markup
 
