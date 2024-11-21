@@ -32,6 +32,9 @@ case_collection = db["kogan_case"]
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
 
+# Разрешенный пользователь
+ALLOWED_USER_ID = 327475194
+
 # Проверка, запущен ли скрипт bot_scaner.py
 def is_scaner_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -161,6 +164,10 @@ def create_portfolio_buttons_pnl(pnl_value):
 # Обработка команды /start и /menu
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
+    if message.from_user.id != ALLOWED_USER_ID:
+        bot.send_message(message.chat.id, "Access Denied")
+        return
+
     bot.send_message(
         message.chat.id,
         "Привет! Выберите одну из опций:",
@@ -435,7 +442,7 @@ def handle_database_formation(chat_id, selected_chat_id):
     print(f"Количество записей в результате агрегации: {num_records}")
 
     if num_records > 0:
-        # Если записей больше 0, запрашиваем промт для ChatGPT
+        # Если запи��ей больше 0, запрашиваем промт для ChatGPT
         bot.send_message(
             chat_id,
             "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
@@ -460,6 +467,10 @@ def handle_database_formation(chat_id, selected_chat_id):
 # Обработка текстовых сообщений от пользователя
 @bot.message_handler(func=lambda message: True)
 def handle_text_input(message):
+    if message.from_user.id != ALLOWED_USER_ID:
+        bot.send_message(message.chat.id, "Access Denied")
+        return
+
     user_id = message.chat.id
     state = user_state.get(user_id)
 
