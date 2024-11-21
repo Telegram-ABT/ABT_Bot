@@ -395,7 +395,7 @@ def handle_query(call):
         else:
             bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для портфеля {case_name}")
             message = process_pnl_selection(bot,call.message.chat.id,present_pnl,case_name)
-        bot.send_message(call.message.chat.id, message)
+        bot.send_message(call.message.chat.id, message,reply_markup=create_trading_control_menu())
     # elif button_id.startswith("portfolio_pnl_20"):
     #     case_name = button_id.split("_")[3]
     #     if case_name == "all":
