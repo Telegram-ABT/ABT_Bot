@@ -170,7 +170,7 @@ def send_welcome(message):
 
 # Обработка нажатия inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
-def handle_query(call):
+async def handle_query(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
     button_id = call.data
@@ -389,12 +389,12 @@ def handle_query(call):
         present_pnl = int(button_id.split("_")[2])
         bot.send_message(call.message.chat.id, f"Выбран портфель {case_name} с параметром P&L больше {present_pnl}%")
         if case_name == "all":
-            bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для всех портфелей")
-            message = process_pnl_selection(bot,call.message.chat.id,present_pnl)
+            bot.send_message(call.message.chat.id, f"Формируем базу акций с {present_pnl}% для всех портфелей")
+            message = await process_pnl_selection(bot, call.message.chat.id, present_pnl)
         else:
-            bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для портфеля {case_name}")
-            message = process_pnl_selection(bot,call.message.chat.id,present_pnl,case_name)
-        bot.send_message(call.message.chat.id, message,reply_markup=create_trading_control_menu())
+            bot.send_message(call.message.chat.id, f"Формируем базу акций с {present_pnl}% для портфеля {case_name}")
+            message = await process_pnl_selection(bot, call.message.chat.id, present_pnl, case_name)
+        bot.send_message(call.message.chat.id, message, reply_markup=create_trading_control_menu())
     # elif button_id.startswith("portfolio_pnl_20"):
     #     case_name = button_id.split("_")[3]
     #     if case_name == "all":
