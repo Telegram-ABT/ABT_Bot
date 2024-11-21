@@ -6,12 +6,24 @@ mongo_url = os.getenv('MONGO_URL_SERV')
 mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 case_share_collection = db["kogan_case_share"]
+case_collection = db["kogan_case"]
 sell_position_collection = db["kogan_sell_position"]
 
 def process_pnl_selection(bot,chat_id,threshold, case_name=None):
+    if case_name:
+        process_pnl_set(bot,chat_id,threshold, case_name)
+    else:
+        cases = case_collection.find({"active":True})
+        if cases:
+            for case in cases:
+                process_pnl_set(bot,chat_id,threshold, case['case_name'])
+        else:
+            bot.send_message(chat_id, "Портфели не найдены")
+
+def process_pnl_set(bot,chat_id,threshold, case_name=None):
     # Удаляем все записи из kogan_sell_position
     bot.send_message(chat_id, "Начало формирования базы данных")
-    sell_position_collection.delete_many({"share_sell": False})
+    sell_position_collection.delete_many({'case_name':case_name,'share_sell':False})
 
     # Выбираем акции с PNL больше заданного порога
     query = {"case_name": case_name,} if case_name else {}
