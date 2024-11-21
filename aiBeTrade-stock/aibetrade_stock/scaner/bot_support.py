@@ -366,7 +366,7 @@ async def handle_query(call):
         bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'setting' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "set_complete":
         asyncio.run(process_set_complete_message())
-        bot.send_message(call.message.chat.id, "Статус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
+        bot.send_message(call.message.chat.id, "��татус сигналов обновлен с 'complete' на 'new'.", reply_markup=create_trading_control_menu())
     elif button_id == "get_status":
         text_message = asyncio.run(process_get_status_message(bot,call.message.chat.id))
         bot.send_message(call.message.chat.id, text_message, reply_markup=create_trading_control_menu())
