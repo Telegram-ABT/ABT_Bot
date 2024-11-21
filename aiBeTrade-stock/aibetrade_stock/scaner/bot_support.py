@@ -175,7 +175,7 @@ def send_welcome(message):
     )
     user_state[message.chat.id] = {"section": None, "message_text": ""}
 
-# Обработка нажатия inline-кнопок
+# Обработка н��жатия inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -442,7 +442,7 @@ def handle_database_formation(chat_id, selected_chat_id):
     print(f"Количество записей в результате агрегации: {num_records}")
 
     if num_records > 0:
-        # Если запи��ей больше 0, запрашиваем промт для ChatGPT
+        # Если записей больше 0, запрашиваем промт для ChatGPT
         bot.send_message(
             chat_id,
             "Пришлите ПРОМТ для chatGPT, чтобы оптимально вступить и поддерживать диалог с пользователями."
@@ -521,5 +521,28 @@ def create_data_collection_menu():
     # Добавьте кнопки и логику для меню
     markup.add(types.InlineKeyboardButton("Назад", callback_data="back"))
     return markup
+
+def create_scaner_control_menu():
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    buttons = [
+        types.InlineKeyboardButton("Запустить сканер", callback_data="start_scaner"),
+        types.InlineKeyboardButton("Остановить сканер", callback_data="stop_scaner"),
+        types.InlineKeyboardButton("Перезапустить сканер", callback_data="restart_scaner"),
+        types.InlineKeyboardButton("Назад", callback_data="back")
+    ]
+    markup.add(*buttons)
+    return markup
+
+def create_sender_control_menu():
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    buttons = [
+        types.InlineKeyboardButton("Запустить рассылку", callback_data="start_sender"),
+        types.InlineKeyboardButton("Остановить рассылку", callback_data="stop_sender"),
+        types.InlineKeyboardButton("Перезапустить рассылку", callback_data="restart_sender"),
+        types.InlineKeyboardButton("Назад", callback_data="back")
+    ]
+    markup.add(*buttons)
+    return markup
+
 # Запуск бота
 bot.polling(none_stop=True)
