@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import os
 from bot_trade import  process_get_status_message
+import asyncio
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -10,21 +11,21 @@ case_share_collection = db["kogan_case_share"]
 case_collection = db["kogan_case"]
 sell_position_collection = db["kogan_sell_position"]
 
-def process_pnl_selection(bot,chat_id,threshold, case_name=None):
+async def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     if case_name:
-        process_get_status_message(bot, chat_id, case_name)
-        process_pnl_set(bot,chat_id,threshold, case_name)
+        await process_get_status_message(bot, chat_id, case_name)
+        await process_pnl_set(bot,chat_id,threshold, case_name)
     else:
         cases = case_collection.find({"active":True})
         if cases:
             for case in cases:
-                process_get_status_message(bot, chat_id, case['case_name'])
-                process_pnl_set(bot,chat_id,threshold, case['case_name'])
+                await process_get_status_message(bot, chat_id, case['case_name'])
+                await process_pnl_set(bot,chat_id,threshold, case['case_name'])
         else:
             bot.send_message(chat_id, "Портфели не найдены")
     return "База акций сформирована"
 
-def process_pnl_set(bot,chat_id,threshold, case_name=None):
+async def process_pnl_set(bot,chat_id,threshold, case_name=None):
     # Удаляем все записи из kogan_sell_position
     bot.send_message(chat_id, f"Начало формирования базы данных {case_name}")
     sell_position_collection.delete_many({'case_name':case_name,'share_sell':False})
