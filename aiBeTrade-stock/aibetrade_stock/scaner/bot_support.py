@@ -32,6 +32,9 @@ case_collection = db["kogan_case"]
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
 
+# Разрешенный пользователь
+ALLOWED_USER = '@igyak'
+
 # Проверка, запущен ли скрипт bot_scaner.py
 def is_scaner_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -201,7 +204,7 @@ def handle_query(call):
             "<b>Приветствуем вас в боте по управлению торговлей!</b>\n\n"
             "Что умеет этот бот:\n\n"
             "Если запущен бот Торговли, то он ожидает сигналы от телеграм-каналов и контактов "
-            "в формате хэш тега. Поддерживаемые тэги\n\n"
+            "в формат�� хэш тега. Поддерживаемые тэги\n\n"
             "push - это сигнал от телеграм-бота подписки Бит-Коган\n\n"
             "set_signal - это сигнал формирования базы собственных сигналов на покупку или продажу акций. Принимается в формате "
             "{Название портфеля}{Тикер.Биржа (APPE,MOEX)}{тип сигнала (BUY или SELL)}{Цена акции}{Процент остатка}. Пример (Антикризисный,APPE,BUY,3)"
@@ -462,8 +465,13 @@ def handle_database_formation(chat_id, selected_chat_id):
 # Обработка текстовых сообщений от пользователя
 @bot.message_handler(func=lambda message: True)
 def handle_text_input(message):
-    user_id = message.chat.id
-    state = user_state.get(user_id)
+    user_id = message.from_user.username
+
+    if user_id != ALLOWED_USER:
+        bot.send_message(message.chat.id, "У вас нет доступа к этому боту.")
+        return
+
+    state = user_state.get(message.chat.id)
 
     if state and state.get("awaiting_promt"):
         # Получаем id_chat и promt от пользователя
@@ -478,9 +486,9 @@ def handle_text_input(message):
         )
 
         # Запрашиваем описание чата или канала
-        bot.send_message(user_id, "Введите описание чата или канала.")
-        user_state[user_id]["awaiting_chat_discr"] = id_chat
-        user_state[user_id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
+        bot.send_message(message.chat.id, "Введите описание чата или канала.")
+        user_state[message.chat.id]["awaiting_chat_discr"] = id_chat
+        user_state[message.chat.id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
 
     elif state and state.get("awaiting_chat_discr"):
         # Получаем id_chat и описание чата от пользователя
@@ -495,8 +503,8 @@ def handle_text_input(message):
         )
 
         # Подтверждаем сохранение описания и сбрасываем состояние
-        bot.send_message(user_id, "Описание чата или канала успешно сохранено.", reply_markup=create_main_menu())
-        user_state[user_id]["awaiting_chat_discr"] = None
+        bot.send_message(message.chat.id, "Описание чата или канала успешно сохранено.", reply_markup=create_main_menu())
+        user_state[message.chat.id]["awaiting_chat_discr"] = None
 
 # Функция для очистки таблицы scanercall
 def clear_scanercall(chat_id):

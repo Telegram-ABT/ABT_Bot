@@ -34,6 +34,9 @@ trading_collection = db["kogan_trading"]
 # ID получателя в Telegram
 recipient_id = '@igyak'
 
+# Разрешенный пользователь
+ALLOWED_USER = '@igyak'
+
 # Функция для отправки текста в ChatGPT и получения ответа
 def send_to_chatgpt(prompt, text):
     try:
@@ -278,6 +281,12 @@ async def process_new_signals():
 # Обработка всех входящих сообщений
 @client.on(events.NewMessage)
 async def handle_incoming_message(event):
+    user_id = event.sender.username
+
+    if user_id != ALLOWED_USER:
+        await event.respond("У вас нет доступа к этому боту.")
+        return
+
     message_text = event.raw_text
     if "#push" in message_text:
         process_push_message(message_text)
