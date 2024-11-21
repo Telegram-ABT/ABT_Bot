@@ -433,6 +433,7 @@ def handle_query(call):
 
 # Функция для формирования базы данных
 def handle_database_formation(chat_id, selected_chat_id):
+    print(f"Формирование базы данных для канала с ID: {selected_chat_id}")
     chat_info = scanerchats_collection.find_one({"chat_id": selected_chat_id}, {"chat_name": 1})
     chat_name = chat_info.get("chat_name", "Неизвестный чат") if chat_info else "Неизвестный чат"
 
