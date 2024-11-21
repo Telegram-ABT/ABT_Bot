@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import os
+from bot_trade import  process_get_status_message
 
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -11,11 +12,13 @@ sell_position_collection = db["kogan_sell_position"]
 
 def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     if case_name:
+        process_get_status_message(bot, chat_id, case_name)
         process_pnl_set(bot,chat_id,threshold, case_name)
     else:
         cases = case_collection.find({"active":True})
         if cases:
             for case in cases:
+                process_get_status_message(bot, chat_id, case['case_name'])
                 process_pnl_set(bot,chat_id,threshold, case['case_name'])
         else:
             bot.send_message(chat_id, "Портфели не найдены")
