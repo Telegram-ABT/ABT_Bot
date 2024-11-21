@@ -84,8 +84,8 @@ def create_main_menu():
 def create_analytics_menu():
     markup = types.InlineKeyboardMarkup()
     buttons = [
-        types.InlineKeyboardButton("Список акций P&L>30%", callback_data="list_shares_pnl_30"),
-        types.InlineKeyboardButton("Список акций P&L>20%", callback_data="list_shares_pnl_20"),
+        types.InlineKeyboardButton("Акций P&L>30%", callback_data="list_shares_pnl_30"),
+        types.InlineKeyboardButton("Акций P&L>20%", callback_data="list_shares_pnl_20"),
         types.InlineKeyboardButton("Назад", callback_data="back_to_trading")
     ]
     markup.add(buttons[0], buttons[1])
