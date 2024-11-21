@@ -386,8 +386,8 @@ def handle_query(call):
         )
     elif button_id.startswith("portfolio_pnl_"):
         case_name = button_id.split("_")[3]
-        bot.send_message(call.message.chat.id, f"Выбран портфель {case_name} индекс кнопки {button_id}")
-        present_pnl = 30 if button_id.startswith("portfolio_pnl_30") else 20
+        present_pnl = int(button_id.split("_")[2])
+        bot.send_message(call.message.chat.id, f"Выбран портфель {case_name} с параметром P&L больше {present_pnl}%")
         if case_name == "all":
             bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для всех портфелей")
             message = process_pnl_selection(present_pnl)
