@@ -385,7 +385,7 @@ def handle_query(call):
             reply_markup=create_portfolio_buttons_pnl()
         )
     elif button_id.startswith("portfolio_pnl_"):
-        case_name = button_id.split("_")[3]
+        case_name = button_id.split("_")[2]
         bot.send_message(call.message.chat.id, f"Выбран портфель {case_name}")
         present_pnl = 30 if button_id.startswith("portfolio_pnl_30") else 20
         if case_name == "all":
