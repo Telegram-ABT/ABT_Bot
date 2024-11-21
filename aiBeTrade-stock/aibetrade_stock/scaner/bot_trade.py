@@ -281,8 +281,8 @@ async def handle_incoming_message(event):
     message_text = event.raw_text
     if "#push" in message_text:
         process_push_message(message_text)
-    elif "#set_stocke" in message_text:
-        asyncio.create_task(process_set_stocke_message(message_text))  # Вызываем функцию из bot_set_stock.py
+    # elif "#set_stocke" in message_text:
+    #     asyncio.create_task(process_set_stocke_message(message_text))  # Вызываем функцию из bot_set_stock.py
     elif "#set_signal" in message_text:
         asyncio.create_task(process_set_signal_message(message_text))  # Вызываем функцию из bot_signal.py
     elif "#set_price" in message_text:
