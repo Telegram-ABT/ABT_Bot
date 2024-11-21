@@ -387,15 +387,19 @@ def handle_query(call):
     elif button_id.startswith("portfolio_pnl_30"):
         case_name = button_id.split("_")[3]
         if case_name == "all":
+            bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>30% для всех портфелей")
             message = process_pnl_selection(30)
         else:
+            bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>30% для портфеля {case_name}")
             message = process_pnl_selection(30, case_name)
         bot.send_message(call.message.chat.id, message)
     elif button_id.startswith("portfolio_pnl_20"):
         case_name = button_id.split("_")[3]
         if case_name == "all":
+            bot.send_message(call.message.chat.id, "Формруем базу акций с P&L>20% для всех портфелей")
             message = process_pnl_selection(20)
         else:
+            bot.send_message(call.message.chat.id, f"Формруем базу акций с P&L>20% для портфеля {case_name}")
             message = process_pnl_selection(20, case_name)
         bot.send_message(call.message.chat.id, message)
 
