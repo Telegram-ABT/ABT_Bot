@@ -10,7 +10,9 @@ sell_position_collection = db["kogan_sell_position"]
 
 def process_pnl_selection(bot,chat_id,threshold, case_name=None):
     # Удаляем все записи из kogan_sell_position
+    bot.send_message(chat_id, "Начало формирования базы данных")
     sell_position_collection.delete_many({})
+    bot.send_message(chat_id, "Удалены все записи из kogan_sell_position")
 
     # Выбираем акции с PNL больше заданного порога
     query = {"case_name": case_name} if case_name else {}
