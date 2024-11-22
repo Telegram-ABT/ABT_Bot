@@ -2,41 +2,50 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
-import speech_recognition as sr
+from vosk import Model, KaldiRecognizer
 from pydub import AudioSegment
 from io import BytesIO
+import json
 
 # Настройки
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 MONGO_URI = os.getenv('MONGO_URI')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+VOSK_MODEL_PATH = os.getenv('VOSK_MODEL_PATH', 'vosk-model-small-ru-0.22')
 
 # Проверка наличия необходимых переменных окружения
-if not all([TELEGRAM_BOT_TOKEN, MONGO_URI, OPENAI_API_KEY]):
-    raise ValueError("Пожалуйста, установите переменные окружения: TELEGRAM_BOT_TOKEN, MONGO_URI, OPENAI_API_KEY")
+if not all([TELEGRAM_BOT_TOKEN, MONGO_URI, OPENAI_API_KEY, VOSK_MODEL_PATH]):
+    raise ValueError("Пожалуйста, установите переменные окружения: TELEGRAM_BOT_TOKEN, MONGO_URI, OPENAI_API_KEY, VOSK_MODEL_PATH")
 
 # Инициализация клиентов
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-mongo_url = os.getenv('MONGO_URL_SERV')
-mongo_client = MongoClient(mongo_url)
+mongo_client = MongoClient(MONGO_URI)
 db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 openai.api_key = info_collection.find_one({"key": "bot_key"})["value"]
 
+# Загрузка модели Vosk
+if not os.path.exists(VOSK_MODEL_PATH):
+    raise ValueError(f"Модель Vosk не найдена по пути: {VOSK_MODEL_PATH}")
+vosk_model = Model(VOSK_MODEL_PATH)
+
 # Функция для распознавания речи из голосовых сообщений
 def recognize_speech(voice_file):
-    recognizer = sr.Recognizer()
     audio = AudioSegment.from_file(BytesIO(voice_file), format="ogg")
-    audio.export("temp.wav", format="wav")
-    with sr.AudioFile("temp.wav") as source:
-        audio_data = recognizer.record(source)
-        try:
-            text = recognizer.recognize_google(audio_data, language="ru-RU")
-            return text
-        except sr.UnknownValueError:
-            return "Не удалось распознать речь."
-        except sr.RequestError:
-            return "Ошибка сервиса распознавания."
+    audio = audio.set_channels(1).set_frame_rate(16000)
+    recognizer = KaldiRecognizer(vosk_model, 16000)
+    buffer = BytesIO()
+    audio.export(buffer, format="wav")
+    buffer.seek(0)
+    while True:
+        data = buffer.read(4000)
+        if len(data) == 0:
+            break
+        if recognizer.AcceptWaveform(data):
+            result = json.loads(recognizer.Result())
+            return result.get('text', '')
+    final_result = json.loads(recognizer.FinalResult())
+    return final_result.get('text', '')
 
 # Обработчик текстовых сообщений
 @bot.message_handler(content_types=['text'])
