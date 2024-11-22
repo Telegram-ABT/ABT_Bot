@@ -2,7 +2,7 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
-import speech_recognition as sr
+import speechRecognition as sr
 from pydub import AudioSegment
 from io import BytesIO
 
