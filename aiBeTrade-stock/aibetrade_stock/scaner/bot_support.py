@@ -438,7 +438,7 @@ def handle_database_formation(chat_id, selected_chat_id):
     selected_chat_id = int(selected_chat_id)
     chat_info = scanerchats_collection.find_one({"chat_id": selected_chat_id})
     chat_name = chat_info.get("chat_name", "Неизвестный чат") if chat_info else "Неизвестный чат"
-
+    bot.send_message(chat_id, f"Формирование базы данных для канала: {chat_name}")
     pipeline = [
         {"$match": {"id_chat": selected_chat_id}},
         {"$sort": {"date": -1}},
@@ -451,6 +451,7 @@ def handle_database_formation(chat_id, selected_chat_id):
             "texts_message": {"$slice": ["$texts_message", 10]}
         }}
     ]
+    bot.send_message(chat_id, f"Формируем базу данных по запросу: {pipeline}")
     results = list(scanercall_collection.aggregate(pipeline))
 
     num_records = len(results)
