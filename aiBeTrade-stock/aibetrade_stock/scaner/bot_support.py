@@ -439,7 +439,7 @@ def handle_database_formation(chat_id, selected_chat_id):
     chat_name = chat_info.get("chat_name", "Неизвестный чат") if chat_info else "Неизвестный чат"
 
     pipeline = [
-        {"$match": {"id_chat": selected_chat_id}},
+        {"$match": {"id_chat": int(selected_chat_id)}},
         {"$sort": {"date": -1}},
         {"$group": {
             "_id": "$id_user",
