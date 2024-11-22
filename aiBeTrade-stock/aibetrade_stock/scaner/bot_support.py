@@ -435,11 +435,12 @@ def handle_query(call):
 def handle_database_formation(chat_id, selected_chat_id):
     bot.send_message(chat_id, f"Формирование базы данных для канала с ID: {selected_chat_id}")
     print(f"Формирование базы данных для канала с ID: {selected_chat_id}")
+    selected_chat_id = int(selected_chat_id)
     chat_info = scanerchats_collection.find_one({"chat_id": selected_chat_id})
     chat_name = chat_info.get("chat_name", "Неизвестный чат") if chat_info else "Неизвестный чат"
 
     pipeline = [
-        {"$match": {"id_chat": int(selected_chat_id)}},
+        {"$match": {"id_chat": selected_chat_id}},
         {"$sort": {"date": -1}},
         {"$group": {
             "_id": "$id_user",
