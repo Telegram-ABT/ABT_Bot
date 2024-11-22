@@ -13,7 +13,7 @@ telebot = "^0.0.5"
 pymongo = "^4.10.1"
 psutil = "^6.1.0"
 openai = "^1.52.2"
-vosk = "^0.3.46"
+vosk = "^0.3.45"
 pydub = "^0.25.1"
 
 
