@@ -18,7 +18,12 @@ db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
 
-key_bot = info_settings.find_one({"bot_key": "bot_key"})["value"]
+# Получение ключа бота
+key_bot_record = info_settings.find_one({"bot_key": "bot_key"})
+if key_bot_record is None:
+    raise ValueError("Запись с ключом 'bot_key' не найдена в коллекции 'bot_secrtary_settings'.")
+
+key_bot = key_bot_record.get("value")
 if not key_bot:
     raise ValueError("Пожалуйста, установите переменные окружения: bot_key")
 
