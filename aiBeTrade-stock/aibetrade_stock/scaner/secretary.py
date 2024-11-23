@@ -57,7 +57,7 @@ def handle_text(message):
                 'username': message.from_user.username,
                 'text': response,
                 'timestamp': message.date,
-                'type': 'bot_info'
+                'type': '@edvilschool_bot'
             })
             bot.reply_to(message, response)
         else:
