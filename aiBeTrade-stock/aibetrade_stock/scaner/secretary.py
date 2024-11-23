@@ -2,10 +2,14 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
+import asyncio
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+
+# Инициализация OpenAI клиента
+client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # Проверка наличия необходимых переменных окружения
 
@@ -54,19 +58,31 @@ def get_info_response(query, chat_id):
     # Извлечение последних сообщений из базы данных для контекста
     recent_messages = list(info_collection.find({'chat_id': chat_id}).sort('timestamp', -1).limit(10))
     context = "\n".join([msg['text'] for msg in recent_messages])
-    prompt = f"Контекст:\n{context}\n\nВопрос: {query}\nОтвет:"
+    text = f"Контекст:\n{context}\n\nВопрос: {query}\nОтвет:"
+    prompt = ("Ты помощник для управления контентом в телеграмме. Ты можешь отвечать на вопросы и помогать пользователям отвечая на их вопросы. "
+             "Тебе передается контент и вопрос пользователя. "
+             "Ты должен ответить на вопрос пользователя исходя из контента.")
+    response = send_to_chatgpt(prompt, text)
+    return response
+    
+
+
+def send_to_chatgpt(prompt, text):
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150,
-            n=1,
-            stop=None,
-            temperature=0.7
+        message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
+        print(message)
+        response = client_openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": text}
+            ]
         )
-        return response.choices[0].text.strip()
+        gpt_response = response.choices[0].message.content.strip()
+        return gpt_response
     except Exception as e:
-        return f"Ошибка при обращении к ChatGPT: {e}"
+        message = f"Ошибка при отправке запроса в ChatGPT: {e}"
+        return message
 
 # Запуск бота
 if __name__ == '__main__':
