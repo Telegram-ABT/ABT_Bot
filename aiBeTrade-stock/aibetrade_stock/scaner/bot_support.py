@@ -43,6 +43,14 @@ def is_scaner_running():
             return proc.info['pid']
     return None
 
+# Проверка, запущен ли скрипт bot_secretary.py
+def is_secretary_running():
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        cmdline = proc.info['cmdline']
+        if cmdline and "bot_secretary.py" in cmdline:
+            return proc.info['pid']
+    return None
+
 # Проверка, запущен ли скрипт bot_assistent.py
 def is_sender_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -78,6 +86,7 @@ def create_main_menu():
         types.InlineKeyboardButton("Contact list", callback_data="2"),
         types.InlineKeyboardButton(sender_status, callback_data="sender_status"),
         types.InlineKeyboardButton(trading_status, callback_data="trading_status")
+        types.InlineKeyboardButton("Secretary", callback_data="secretary_status")
     ]
     markup.add(buttons[0], buttons[1])
     markup.add(buttons[2], buttons[3])
@@ -201,6 +210,15 @@ def handle_query(call):
             "Сканер работает в связке с ИИ, который генерирует текст для рассылки автоматически на базе указанного сценария.\n\n"
             "Выберите действие для сканера:",
             reply_markup=create_scaner_control_menu(), parse_mode='HTML'
+        )
+    elif button_id == "secretary_status":
+            bot.send_message(
+            call.message.chat.id,
+            "<b>Приветствуем вас в боте секретарь!</b>\n\n"
+            "Что умеет этот бот:\n\n"
+            "Секретарь отвечает на вопросы пользователя на базе базы знаний.\n\n"
+            "Выберите действие для секретаря:",
+            reply_markup=create_secretary_control_menu(), parse_mode='HTML'
         )
     elif button_id == "sender_status":
         if is_scaner_running():
@@ -552,6 +570,20 @@ def create_scaner_control_menu():
         ]
     else:
         buttons = [types.InlineKeyboardButton("Запустить сканер", callback_data="start_scaner")]
+    buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
+    markup.add(*buttons)
+    return markup
+# Функция для создания меню управления сканером
+def create_secretary_control_menu():
+    pid = is_secretary_running()
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    if pid:
+        buttons = [
+            types.InlineKeyboardButton("Остановить", callback_data="stop_secretary"),
+            types.InlineKeyboardButton("Перезапустить", callback_data="restart_secretary")
+        ]
+    else:
+        buttons = [types.InlineKeyboardButton("Запустить секретаря", callback_data="start_secretary")]
     buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
     markup.add(*buttons)
     return markup
