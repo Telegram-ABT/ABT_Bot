@@ -2,7 +2,6 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
-import asyncio
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -10,8 +9,6 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Инициализация OpenAI клиента
 client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-# Проверка наличия необходимых переменных окружения
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
@@ -43,6 +40,7 @@ def handle_text(message):
         'username': message.from_user.username,
         'text': message.text,
         'timestamp': message.date,
+        'message_id': message.message_id,
         'type': 'user_message'
     })
     # Проверка на команду #bot_info
@@ -57,11 +55,82 @@ def handle_text(message):
                 'username': message.from_user.username,
                 'text': response,
                 'timestamp': message.date,
+                'message_id': message.message_id,
                 'type': '@edvilschool_bot'
             })
             bot.reply_to(message, response)
         else:
             bot.reply_to(message, "Пожалуйста, укажите запрос после #bot_info.")
+
+# Обработчик изображений
+@bot.message_handler(content_types=['photo'])
+def handle_photo(message):
+    # Получение информации о файле
+    file_info = bot.get_file(message.photo[-1].file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+
+    # Создание директории для сохранения изображений, если она не существует
+    directory = f"pic/{message.chat.id}"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Формирование имени файла
+    file_name = f"{message.chat.id}_{message.from_user.id}_{message.message_id}.jpg"
+    file_path = os.path.join(directory, file_name)
+
+    # Сохранение файла
+    with open(file_path, 'wb') as new_file:
+        new_file.write(downloaded_file)
+
+    # Сохранение информации в базу данных
+    info_collection.insert_one({
+        'chat_id': message.chat.id,
+        'chat_name': message.chat.title,
+        'user_id': message.from_user.id,
+        'username': message.from_user.username,
+        'text': message.caption if message.caption else "",  # Сохраняем текст, если он есть
+        'timestamp': message.date,
+        'message_id': message.message_id,
+        'type': 'photo_message',
+        'photo_link': file_path  # Сохраняем путь к изображению
+    })
+
+    bot.reply_to(message, f"Изображение сохранено как {file_name}")
+
+# Обработчик ответов на сообщения
+@bot.message_handler(func=lambda message: message.reply_to_message is not None and message.text.startswith('@edvilschool_bot'))
+def handle_reply(message):
+    original_message = message.reply_to_message
+    if original_message.content_type == 'photo':
+        # Получение информации о файле
+        file_info = bot.get_file(original_message.photo[-1].file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+
+        # Отправка изображения и вопроса в ChatGPT
+        query = message.text[len('@edvilschool_bot'):].strip()
+        prompt = "Проанализируй изображение и ответь на вопрос: " + query
+        response = send_to_chatgpt_with_image(prompt, downloaded_file)
+
+        bot.reply_to(message, response)
+
+def send_to_chatgpt_with_image(prompt, image_data):
+    try:
+        # Здесь вы можете использовать API для анализа изображений, если он доступен
+        # Например, OpenAI DALL-E или другой сервис
+        # В данном примере предполагается, что ChatGPT может обрабатывать изображения
+        # Это просто пример, и реальная реализация может отличаться
+        response = client_openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": "Изображение прикреплено."}
+            ],
+            files=[{"name": "image.jpg", "data": image_data}]
+        )
+        gpt_response = response.choices[0].message.content.strip()
+        return gpt_response
+    except Exception as e:
+        return f"Ошибка при отправке запроса в ChatGPT: {e}"
 
 # Функция для получения ответа от ChatGPT
 def get_info_response(query, chat_id):
@@ -76,7 +145,6 @@ def get_info_response(query, chat_id):
               "Ты должен ответить на вопрос пользователя исходя из контента.")
     response = send_to_chatgpt(prompt, text)
     return response
-    
 
 def send_to_chatgpt(prompt, text):
     try:

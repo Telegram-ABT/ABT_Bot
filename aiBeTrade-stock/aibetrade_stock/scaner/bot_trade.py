@@ -39,8 +39,8 @@ def send_to_chatgpt(prompt, text):
     try:
         message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
         print(message)
-        response = client_openai.chat.completions.create(
-            model="gpt-4o",
+        response = client_openai.ChatCompletion.create(
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
@@ -475,7 +475,7 @@ async def process_get_status_message(bot, chat_id, case_name=None):
                         print(f"Добавление новой записи для {position['symbolId']}")
                         add_new_share_record(case['case_name'], position)
                         text_message += f"\n<b> +++{position['symbolId']}</b> - {position['quantity']} шт.\n"
-                        text_message += f"Цена тек.: {position['price']}\n"
+                        text_message += f"Ц��на тек.: {position['price']}\n"
                         text_message += f"Цена позиц.: {position['averagePrice']}\n"
                         text_message += f"Объем тек.: {position['value']}\n"
                         PerPnl = (1-(float(position['quantity'])*float(position['averagePrice']))/(float(position['quantity'])*float(position['price'])))*100

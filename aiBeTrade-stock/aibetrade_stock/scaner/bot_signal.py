@@ -23,8 +23,8 @@ case_collection = db["kogan_case"]
 def send_to_chatgpt(prompt, text):
     try:
         print(f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}")
-        response = client_openai.chat.completions.create(
-            model="gpt-4o",
+        response = client_openai.ChatCompletion.create(
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
@@ -33,7 +33,7 @@ def send_to_chatgpt(prompt, text):
         gpt_response = response.choices[0].message.content.strip()
         return gpt_response
     except Exception as e:
-        print(f"Ошибка при отпвке запроса в ChatGPT: {e}")
+        print(f"Ошибка при отправке запроса в ChatGPT: {e}")
         return None
 
 # Функция для отправки текста в ChatGPT и получения ответа

@@ -560,7 +560,7 @@ def handle_text_input(message):
         user_state[user_id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
 
     elif state and state.get("awaiting_chat_discr"):
-        # Получаем id_chat и описание чата ��т пользователя
+        # Получаем id_chat и описание чата т пользователя
         id_chat = state["awaiting_chat_discr"]
         chat_discr = message.text
 
