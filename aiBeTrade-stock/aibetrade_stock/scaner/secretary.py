@@ -19,11 +19,11 @@ info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
 
 # Получение ключа бота
-key_bot_record = info_settings.find_one({})
+key_bot_record = info_settings.find({})
 if key_bot_record is None:
     raise ValueError("Запись с ключом 'bot_key' не найдена в коллекции 'bot_secrtary_settings'.")
-
-key_bot = key_bot_record.bot_key
+for record in key_bot_record:
+    key_bot = record.bot_key
 if not key_bot:
     raise ValueError("Пожалуйста, установите переменные окружения: bot_key")
 
