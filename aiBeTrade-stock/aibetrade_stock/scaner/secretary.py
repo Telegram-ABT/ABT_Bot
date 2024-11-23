@@ -13,7 +13,7 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 # Проверка наличия необходимых переменных окружения
 
 # Инициализация клиентов
-mongo_client = MongoClient(MONGO_URI)
+mongo_client = MongoClient(mongo_url)
 db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
