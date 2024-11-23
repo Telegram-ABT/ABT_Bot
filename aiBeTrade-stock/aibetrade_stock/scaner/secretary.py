@@ -33,8 +33,8 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 # Функция для кодирования изображения в base64
 def encode_image(image_path):
-  with open(image_path, "rb") as image_file:
-    return base64.b64encode(image_file.read()).decode('utf-8')
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 # Обработчик текстовых сообщений
@@ -91,7 +91,6 @@ def handle_photo(message):
     with open(file_path, 'wb') as new_file:
         new_file.write(downloaded_file)
 
-
     # Кодирование изображения в base64
     base64_image = encode_image(file_path)
 
@@ -122,10 +121,10 @@ def handle_photo(message):
 
 
 # Функция для отправки изображения и текста в ChatGPT
-def send_to_chatgpt_with_image(self,prompt: str, base64_image: str):
+def send_to_chatgpt_with_image(prompt, base64_image):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4",
             messages=[
                 {
                     "role": "user",
