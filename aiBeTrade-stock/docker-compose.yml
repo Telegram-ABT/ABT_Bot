@@ -294,6 +294,19 @@ services:
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - USER_PHONE=${USER_PHONE}
+
+  bot_know:
+    image: bot_know
+    volumes:
+      - ./aibetrade_stock/bot_knowl:/app
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/bot_knowl/
+      dockerfile: DockerFile.app.bot_know
+    environment:
+      - MONGO_URL_SERV=${MONGO_URL_SERV}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
 # Надо проверить обновление композера
 volumes:
   habrdb-data:
