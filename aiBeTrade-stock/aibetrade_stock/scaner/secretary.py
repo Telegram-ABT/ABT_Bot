@@ -22,8 +22,9 @@ info_settings = db['bot_secrtary_settings']
 key_bot_record = info_settings.find({})
 if key_bot_record is None:
     raise ValueError("Запись с ключом 'bot_key' не найдена в коллекции 'bot_secrtary_settings'.")
+key_bot = None
 for record in key_bot_record:
-    key_bot = record.bot_key
+    key_bot = record.get('bot_key')
 if not key_bot:
     raise ValueError("Пожалуйста, установите переменные окружения: bot_key")
 
