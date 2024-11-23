@@ -7,7 +7,7 @@ from pydub import AudioSegment
 from io import BytesIO
 
 # Настройки
-MONGO_URI = os.getenv('MONGO_URI')
+mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Проверка наличия необходимых переменных окружения
