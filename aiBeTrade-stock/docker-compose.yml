@@ -147,7 +147,7 @@ services:
       - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
       - WEBHOOK=${WEBHOOK}
       - SECRET_CHAT=${SECRET_CHAT}
-  tasker:
+  # tasker:
     image: tasker
     volumes:
       - ./aibetrade_stock/tasker:/app
