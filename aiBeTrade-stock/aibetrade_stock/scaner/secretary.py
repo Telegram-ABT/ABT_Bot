@@ -3,7 +3,6 @@ import telebot
 from pymongo import MongoClient
 import openai
 import base64
-from PIL import Image
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -33,22 +32,9 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
 # Функция для кодирования изображения в base64
-def encode_image(file_path):
-    try:
-        with open(file_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-    except Exception as e:
-        raise ValueError(f"Ошибка при кодировании изображения: {e}")
-
-
-# Функция для проверки валидности изображения
-def validate_image(file_path):
-    try:
-        img = Image.open(file_path)
-        img.verify()
-        return True
-    except Exception as e:
-        raise ValueError(f"Ошибка при проверке изображения: {e}")
+def encode_image(image_path):
+  with open(image_path, "rb") as image_file:
+    return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 # Обработчик текстовых сообщений
@@ -105,10 +91,6 @@ def handle_photo(message):
     with open(file_path, 'wb') as new_file:
         new_file.write(downloaded_file)
 
-    # Проверка валидности изображения
-    if not validate_image(file_path):
-        bot.reply_to(message, "Загруженный файл не является допустимым изображением.")
-        return
 
     # Кодирование изображения в base64
     base64_image = encode_image(file_path)
@@ -140,10 +122,10 @@ def handle_photo(message):
 
 
 # Функция для отправки изображения и текста в ChatGPT
-def send_to_chatgpt_with_image(prompt: str, base64_image: str):
+def send_to_chatgpt_with_image(self,prompt: str, base64_image: str):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
