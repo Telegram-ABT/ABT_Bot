@@ -46,8 +46,8 @@ def handle_text(message):
         'type': 'user_message'
     })
     # Проверка на команду #bot_info
-    if message.text.startswith('#bot_info'):
-        query = message.text[len('#bot_info'):].strip()
+    if message.text.startswith('@edvilschool_bot'):
+        query = message.text[len('@edvilschool_bot'):].strip()
         if query:
             response = get_info_response(query, message.chat.id)
             info_collection.insert_one({
