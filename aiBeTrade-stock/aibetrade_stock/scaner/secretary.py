@@ -18,7 +18,11 @@ db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
 
-TELEGRAM_BOT_TOKEN = info_settings.find_one({"bot_key": "bot_key"})["value"]
+key_bot = info_settings.find_one({"bot_key": "bot_key"})["value"]
+if not key_bot:
+    raise ValueError("Пожалуйста, установите переменные окружения: bot_key")
+
+TELEGRAM_BOT_TOKEN = key_bot
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 # Загрузка модели Whisper
