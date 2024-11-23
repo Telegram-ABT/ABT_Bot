@@ -85,7 +85,7 @@ def create_main_menu():
         types.InlineKeyboardButton(scaner_status, callback_data="scaner_status"),
         types.InlineKeyboardButton("Contact list", callback_data="2"),
         types.InlineKeyboardButton(sender_status, callback_data="sender_status"),
-        types.InlineKeyboardButton(trading_status, callback_data="trading_status")
+        types.InlineKeyboardButton(trading_status, callback_data="trading_status"),
         types.InlineKeyboardButton("Secretary", callback_data="secretary_status")
     ]
     markup.add(buttons[0], buttons[1])
@@ -191,7 +191,7 @@ def send_welcome(message):
     )
     user_state[message.chat.id] = {"section": None, "message_text": ""}
 
-# Обработка н��жатия inline-кнопок
+# Обработка нжатия inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -524,7 +524,7 @@ def handle_text_input(message):
         user_state[user_id]["awaiting_promt"] = None  # Сбрасываем состояние ожидания промта
 
     elif state and state.get("awaiting_chat_discr"):
-        # Получаем id_chat и описание чата от пользователя
+        # Получаем id_chat и описание чата ��т пользователя
         id_chat = state["awaiting_chat_discr"]
         chat_discr = message.text
 
