@@ -90,6 +90,7 @@ def create_main_menu():
     ]
     markup.add(buttons[0], buttons[1])
     markup.add(buttons[2], buttons[3])
+    markup.add(buttons[4])
     return markup
 
 # Функция для создания меню управления торговлей
