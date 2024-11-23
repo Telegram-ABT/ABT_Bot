@@ -43,11 +43,11 @@ def is_scaner_running():
             return proc.info['pid']
     return None
 
-# Проверка, запущен ли скрипт bot_secretary.py
+# Проверка, запущен ли скрипт secretary.py
 def is_secretary_running():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         cmdline = proc.info['cmdline']
-        if cmdline and "bot_secretary.py" in cmdline:
+        if cmdline and "secretary.py" in cmdline:
             return proc.info['pid']
     return None
 
@@ -302,7 +302,7 @@ def handle_query(call):
             reply_markup=create_trading_control_menu()
         )
     elif button_id == "start_secretary":
-        start_secretary("bot_secretary.py")
+        start_secretary("secretary.py")
         bot.send_message(
             call.message.chat.id,
             "Секретарь успешно запущен.",
@@ -321,7 +321,7 @@ def handle_query(call):
         pid = is_secretary_running()
         if pid:
             stop_secretary(pid)
-        start_secretary("bot_secretary.py")
+        start_secretary("secretary.py")
         bot.send_message(
             call.message.chat.id,
             "Секретарь успешно перезапущен.",
