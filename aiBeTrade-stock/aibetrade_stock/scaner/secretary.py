@@ -95,7 +95,14 @@ def handle_photo(message):
         'photo_link': file_path  # Сохраняем путь к изображению
     })
 
-    bot.reply_to(message, f"Изображение сохранено как {file_name}")
+    # Проверка на упоминание @edvilschool_bot
+    if message.caption and '@edvilschool_bot' in message.caption:
+        query = message.caption.split('@edvilschool_bot', 1)[1].strip()
+        prompt = "Проанализируй изображение и ответь на вопрос: " + query
+        response = send_to_chatgpt_with_image(prompt, downloaded_file)
+        bot.reply_to(message, response)
+    else:
+        bot.reply_to(message, f"Изображение сохранено как {file_name}")
 
 # Обработчик ответов на сообщения
 @bot.message_handler(func=lambda message: message.reply_to_message is not None and message.text.startswith('@edvilschool_bot'))
