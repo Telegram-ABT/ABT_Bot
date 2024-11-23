@@ -2,6 +2,7 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
+import base64
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -28,6 +29,11 @@ if not key_bot:
 
 TELEGRAM_BOT_TOKEN = key_bot
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+
+# Функция для кодирования изображения в base64
+def encode_image(file_path):
+    with open(file_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 # Обработчик текстовых сообщений
 @bot.message_handler(content_types=['text'])
@@ -60,7 +66,7 @@ def handle_text(message):
             })
             bot.reply_to(message, response)
         else:
-            bot.reply_to(message, "Пожалуйста, укажите запрос после #bot_info.")
+            bot.reply_to(message, "Пожал��йста, укажите запрос после #bot_info.")
 
 # Обработчик изображений
 @bot.message_handler(content_types=['photo'])
@@ -82,6 +88,9 @@ def handle_photo(message):
     with open(file_path, 'wb') as new_file:
         new_file.write(downloaded_file)
 
+    # Кодирование изображения в base64
+    base64_image = encode_image(file_path)
+
     # Сохранение информации в базу данных
     info_collection.insert_one({
         'chat_id': message.chat.id,
@@ -99,45 +108,38 @@ def handle_photo(message):
     if message.caption and '@edvilschool_bot' in message.caption:
         query = message.caption.split('@edvilschool_bot', 1)[1].strip()
         prompt = "Проанализируй изображение и ответь на вопрос: " + query
-        response = send_to_chatgpt_with_image(prompt, downloaded_file)
+        response = send_to_chatgpt_with_image(prompt, base64_image)
         bot.reply_to(message, response)
     else:
         bot.reply_to(message, f"Изображение сохранено как {file_name}")
 
-# Обработчик ответов на сообщения
-@bot.message_handler(func=lambda message: message.reply_to_message is not None and message.text.startswith('@edvilschool_bot'))
-def handle_reply(message):
-    original_message = message.reply_to_message
-    if original_message.content_type == 'photo':
-        # Получение информации о файле
-        file_info = bot.get_file(original_message.photo[-1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
+    # Удаление файла после обработки
+    os.remove(file_path)
 
-        # Отправка изображения и вопроса в ChatGPT
-        query = message.text[len('@edvilschool_bot'):].strip()
-        prompt = "Проанализируй изображение и ответь на вопрос: " + query
-        response = send_to_chatgpt_with_image(prompt, downloaded_file)
-
-        bot.reply_to(message, response)
-
-def send_to_chatgpt_with_image(prompt, image_data):
+def send_to_chatgpt_with_image(promt:str, base64_image:str):
     try:
-        # Здесь вы можете использовать API для анализа изображений, если он доступен
-        # Например, OpenAI DALL-E или другой сервис
-        # В данном примере предполагается, что ChatGPT может обрабатывать изображения
-        # Это просто пример, и реальная реализация может отличаться
-        response = client_openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": "Изображение прикреплено."}
-            ],
-            files=[{"name": "image.jpg", "data": image_data}]
-        )
-        gpt_response = response.choices[0].message.content.strip()
-        return gpt_response
+        response = client_openai.ChatCompletion.create(
+          model="gpt-4-vision-preview",
+          messages=[
+              {
+                  "role": "user",
+                  "content": [
+                      {"type": "text", "text": promt},
+                      {
+                          "type": "image_url",
+                          "image_url": {
+                             'url': f"data:image/jpeg;base64,{base64_image}"
+                          },
+                      },
+                  ],
+              }
+          ],
+    )
+
+        return response.choices[0].message.content
     except Exception as e:
         return f"Ошибка при отправке запроса в ChatGPT: {e}"
+
 
 # Функция для получения ответа от ChatGPT
 def get_info_response(query, chat_id):
@@ -157,7 +159,7 @@ def send_to_chatgpt(prompt, text):
     try:
         message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
         print(message)
-        response = client_openai.chat.completions.create(
+        response = client_openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},
