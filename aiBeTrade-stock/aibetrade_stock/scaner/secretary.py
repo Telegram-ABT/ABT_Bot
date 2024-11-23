@@ -1,15 +1,14 @@
 import os
 import telebot
 from pymongo import MongoClient
-import openai
+from openai import OpenAI
 import base64
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
-# Инициализация OpenAI клиента
-client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
+key = os.environ.get('OPENAI_API_KEY')
+client_openai = OpenAI(api_key=key)
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
