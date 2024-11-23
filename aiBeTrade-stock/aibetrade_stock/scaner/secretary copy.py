@@ -3,14 +3,13 @@ import telebot
 from pymongo import MongoClient
 import openai
 import base64
-from PIL import Image
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Инициализация OpenAI клиента
-openai.api_key = OPENAI_API_KEY
+client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
@@ -31,25 +30,10 @@ if not key_bot:
 TELEGRAM_BOT_TOKEN = key_bot
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-
 # Функция для кодирования изображения в base64
 def encode_image(file_path):
-    try:
-        with open(file_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-    except Exception as e:
-        raise ValueError(f"Ошибка при кодировании изображения: {e}")
-
-
-# Функция для проверки валидности изображения
-def validate_image(file_path):
-    try:
-        img = Image.open(file_path)
-        img.verify()
-        return True
-    except Exception as e:
-        raise ValueError(f"Ошибка при проверке изображения: {e}")
-
+    with open(file_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 # Обработчик текстовых сообщений
 @bot.message_handler(content_types=['text'])
@@ -65,7 +49,7 @@ def handle_text(message):
         'message_id': message.message_id,
         'type': 'user_message'
     })
-    # Проверка на команду @edvilschool_bot
+    # Проверка на команду #bot_info
     if message.text.startswith('@edvilschool_bot'):
         query = message.text[len('@edvilschool_bot'):].strip()
         if query:
@@ -82,8 +66,7 @@ def handle_text(message):
             })
             bot.reply_to(message, response)
         else:
-            bot.reply_to(message, "Пожалуйста, укажите запрос после @edvilschool_bot.")
-
+            bot.reply_to(message, "Пожал��йста, укажите запрос после #bot_info.")
 
 # Обработчик изображений
 @bot.message_handler(content_types=['photo'])
@@ -104,11 +87,6 @@ def handle_photo(message):
     # Сохранение файла
     with open(file_path, 'wb') as new_file:
         new_file.write(downloaded_file)
-
-    # Проверка валидности изображения
-    if not validate_image(file_path):
-        bot.reply_to(message, "Загруженный файл не является допустимым изображением.")
-        return
 
     # Кодирование изображения в base64
     base64_image = encode_image(file_path)
@@ -138,20 +116,26 @@ def handle_photo(message):
     # Удаление файла после обработки
     os.remove(file_path)
 
-
-# Функция для отправки изображения и текста в ChatGPT
-def send_to_chatgpt_with_image(prompt: str, base64_image: str):
+def send_to_chatgpt_with_image(promt:str, base64_image:str):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4-vision-preview",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                    "image": {"data": base64_image}
-                }
-            ]
-        )
+        response = client_openai.ChatCompletion.create(
+          model="gpt-4-vision-preview",
+          messages=[
+              {
+                  "role": "user",
+                  "content": [
+                      {"type": "text", "text": promt},
+                      {
+                          "type": "image_url",
+                          "image_url": {
+                             'url': f"data:image/jpeg;base64,{base64_image}"
+                          },
+                      },
+                  ],
+              }
+          ],
+    )
+
         return response.choices[0].message.content
     except Exception as e:
         return f"Ошибка при отправке запроса в ChatGPT: {e}"
@@ -164,28 +148,29 @@ def get_info_response(query, chat_id):
     context = "\n".join([msg['text'] for msg in recent_messages])
     text = f"Контекст:\n{context}\n\nВопрос: {query}\nОтвет:"
     prompt = ("Ты помощник для управления контентом в телеграмме. "
-              "Ты можешь отвечать на вопросы и помогать пользователям. "
-              "Группы телеграм созданы для поддержки общения команды разработчиков Игры Roblox Edvil school. "
+              "Ты можешь отвечать на вопросы и помогать пользователям отвечая на их вопросы. "
+              "Группы телеграм соданы для поддержки общения команды разработчиков Игры Roblox Edvil shcool. "
               "Тебе передается контент и вопрос пользователя. "
               "Ты должен ответить на вопрос пользователя исходя из контента.")
     response = send_to_chatgpt(prompt, text)
     return response
 
-
-# Функция для отправки текста в ChatGPT
 def send_to_chatgpt(prompt, text):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
+        print(message)
+        response = client_openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content.strip()
+        gpt_response = response.choices[0].message.content.strip()
+        return gpt_response
     except Exception as e:
-        return f"Ошибка при отправке запроса в ChatGPT: {e}"
-
+        message = f"Ошибка при отправке запроса в ChatGPT: {e}"
+        return message
 
 # Запуск бота
 if __name__ == '__main__':
