@@ -42,13 +42,23 @@ def handle_text(message):
         'user_id': message.from_user.id,
         'username': message.from_user.username,
         'text': message.text,
-        'timestamp': message.date
+        'timestamp': message.date,
+        'type': 'user_message'
     })
     # Проверка на команду #bot_info
     if message.text.startswith('#bot_info'):
         query = message.text[len('#bot_info'):].strip()
         if query:
             response = get_info_response(query, message.chat.id)
+            info_collection.insert_one({
+                'chat_id': message.chat.id,
+                'chat_name': message.chat.title,
+                'user_id': message.from_user.id,
+                'username': message.from_user.username,
+                'text': response,
+                'timestamp': message.date,
+                'type': 'bot_info'
+            })
             bot.reply_to(message, response)
         else:
             bot.reply_to(message, "Пожалуйста, укажите запрос после #bot_info.")
@@ -66,13 +76,12 @@ def get_info_response(query, chat_id):
     return response
     
 
-
 def send_to_chatgpt(prompt, text):
     try:
         message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
         print(message)
         response = client_openai.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
