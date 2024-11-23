@@ -81,7 +81,7 @@ def send_to_chatgpt(prompt, text):
         message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
         print(message)
         response = client_openai.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
