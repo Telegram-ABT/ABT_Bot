@@ -75,6 +75,15 @@ def start_script(script_name):
 def stop_script(pid):
     os.kill(pid, signal.SIGTERM)
 
+# Функция для запуска скриптов
+def start_secretary(script_name):
+    return subprocess.Popen(["python3", script_name])
+
+# Функция для остановки скриптов
+def stop_secretary(pid):
+    os.kill(pid, signal.SIGTERM)
+
+
 # Функция для создания inline-кнопок главного меню
 def create_main_menu():
     markup = types.InlineKeyboardMarkup()
@@ -291,6 +300,32 @@ def handle_query(call):
             call.message.chat.id,
             "Выберите действие для торговли:",
             reply_markup=create_trading_control_menu()
+        )
+    elif button_id == "start_secretary":
+        start_secretary("bot_secretary.py")
+        bot.send_message(
+            call.message.chat.id,
+            "Секретарь успешно запущен.",
+            reply_markup=create_main_menu()
+        )
+    elif button_id == "stop_secretary":
+        pid = is_secretary_running()
+        if pid:
+            stop_secretary(pid)
+            bot.send_message(
+                call.message.chat.id,
+                "Секретарь успешно остановлен.",
+                reply_markup=create_main_menu()
+            )
+    elif button_id == "restart_secretary":
+        pid = is_secretary_running()
+        if pid:
+            stop_secretary(pid)
+        start_secretary("bot_secretary.py")
+        bot.send_message(
+            call.message.chat.id,
+            "Секретарь успешно перезапущен.",
+            reply_markup=create_main_menu()
         )
     elif button_id == "start_scaner":
         start_script("bot_scaner.py")
