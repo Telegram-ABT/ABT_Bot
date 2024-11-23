@@ -9,7 +9,7 @@ mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Инициализация OpenAI клиента
-openai.api_key = OPENAI_API_KEY
+client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
@@ -123,17 +123,16 @@ def handle_photo(message):
 # Функция для отправки изображения и текста в ChatGPT
 def send_to_chatgpt_with_image(prompt, base64_image):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        response = client_openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
                 {
-                    "role": "user",
-                    "content": prompt,
-                    "image": {"data": base64_image}
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": base64_image}
                 }
             ]
         )
-        return response.choices[0].message.content
+        return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Ошибка при отправке запроса в ChatGPT: {e}"
 
@@ -153,19 +152,22 @@ def get_info_response(query, chat_id):
     return response
 
 
-# Функция для отправки текста в ChatGPT
 def send_to_chatgpt(prompt, text):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
+        print(message)
+        response = client_openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text}
             ]
         )
-        return response.choices[0].message.content.strip()
+        gpt_response = response.choices[0].message.content.strip()
+        return gpt_response
     except Exception as e:
-        return f"Ошибка при отправке запроса в ChatGPT: {e}"
+        message = f"Ошибка при отправке запроса в ChatGPT: {e}"
+        return message
 
 
 # Запуск бота
