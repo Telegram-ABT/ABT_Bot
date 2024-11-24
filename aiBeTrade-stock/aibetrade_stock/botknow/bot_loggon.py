@@ -55,7 +55,6 @@ def handle_text(message):
         query = message.text.split('@bot_know_res', 1)[1].strip()
         if query:
             response = search_messages_by_query(query, bot, message)
-            bot.reply_to(message, response)
             bot.reply_to(message, "Процесс формирования векторной БД завершен.")
         else:
             bot.reply_to(message, "Пожалуйста, укажите запрос после @bot_know_res")

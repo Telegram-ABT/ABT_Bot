@@ -177,8 +177,6 @@ def generate_essay(context, bot, message, query=None):
             full_response = response.choices[0].message.content
             
         if full_response:
-            add_messages_to_db(full_response, bot, message)
-            bot.reply_to(message, "Эссе сформировано и добавлено в базу данных.")
             return full_response
         else:
             return "Не удалось сформировать эссе."
@@ -216,6 +214,8 @@ def chat_data_load(bot, message):
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'type': 'essay'
                 })
+                key = add_messages_to_db(essay, bot, message)
+                print(key)
                 return essay
             else:
                 bot.reply_to(message, "Не удалось сгенерировать эссе.")
