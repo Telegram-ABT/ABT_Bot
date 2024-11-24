@@ -2,7 +2,6 @@ import os
 import telebot
 from pymongo import MongoClient
 import openai
-import asyncio
 from bot_know import chat_data_load, search_messages_by_query  # Импортируем функцию из bot_know.py
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
