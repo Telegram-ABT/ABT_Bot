@@ -62,7 +62,6 @@ def add_messages_to_db(chat_data):
                 print(f"Ошибка при добавлении сообщения в vector store: {e}")
 
     return "Все сообщения успешно добавлены в базу данных."
-    bot.
 
 def search_messages(query, n_results=5):
     try:
@@ -76,7 +75,7 @@ def search_messages(query, n_results=5):
         print(f"Ошибка при поиске сообщений: {e}")
         return None
 
-def generate_essay(context, query=None, bot, message):
+def generate_essay(context, bot, message, query=None):
     try:
         prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
         if query is not None:
@@ -125,14 +124,17 @@ def chat_data_load(bot, message):
                 })
                 return essay
             else:
+                bot.reply_to(message, "Не удалось сгенерировать эссе.")
                 return "Не удалось сгенерировать эссе."
         return result
     except Exception as e:
+        bot.reply_to(message, f"Ошибка при загрузке данных: {e}")
         return f"Ошибка при загрузке данных: {e}"
 
-def search_messages_by_query(query):
+def search_messages_by_query(query, bot, message):
     try:
         # Поиск релевантных сообщений
+        bot.reply_to(message, f"Поиск релевантных сообщений: {query}")
         search_results = search_messages(query, n_results=3)
         if not search_results:
             return "Не найдено релевантных сообщений."
@@ -146,7 +148,7 @@ def search_messages_by_query(query):
         ])
 
         # Генерация эссе на основе найденных сообщений
-        essay = generate_essay(context, query)
+        essay = generate_essay(context, bot, message, query)
         if essay:
             return essay
         else:
@@ -155,6 +157,6 @@ def search_messages_by_query(query):
         return f"Ошибка при поиске сообщений: {e}"
 
 if __name__ == '__main__':
-    result = chat_data_load()
+    result = chat_data_load(bot, message)
     print(result)
 
