@@ -209,7 +209,7 @@ def chat_data_load(bot, message):
                 # Сохранение эссе в MongoDB
                 info_collection.insert_one({
                     'text': essay,
-                    'username': 'bot',
+                    'username': 'bot_essey',
                     'chat_id': 'system',
                     'chat_name': 'essay_generation',
                     'user_id': 'system',
