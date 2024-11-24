@@ -257,6 +257,7 @@ services:
       - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}   
       - API_BYBIT_CR_2=${API_BYBIT_CR_2}
       - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}      
+  
   combo_publisher:
     image: combo_publisher
     volumes:
@@ -278,6 +279,7 @@ services:
       - API_BOT_CR=${API_BOT_CR}
       - ID_CH_CR=${ID_CH_CR}
       - MONGO_URL=${MONGO_URL}
+  
   scaner:
     image: scaner
     volumes:
