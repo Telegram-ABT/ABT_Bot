@@ -14,7 +14,6 @@ pymongo = "^4.10.1"
 psutil = "^6.1.0"
 openai = "^1.52.2"
 requests = "^2.31.0"
-sentence-transformers = "^2.2.2"
 
 
 [build-system]
