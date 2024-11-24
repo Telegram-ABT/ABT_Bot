@@ -298,10 +298,10 @@ services:
   bot_know:
     image: bot_know
     volumes:
-      - ./aibetrade_stock/bot_knowl:/app
+      - ./aibetrade_stock/bot_know:/app
     restart: unless-stopped
     build:
-      context: ./aibetrade_stock/bot_knowl/
+      context: ./aibetrade_stock/bot_know/
       dockerfile: DockerFile.app.bot_know
     environment:
       - MONGO_URL_SERV=${MONGO_URL_SERV}

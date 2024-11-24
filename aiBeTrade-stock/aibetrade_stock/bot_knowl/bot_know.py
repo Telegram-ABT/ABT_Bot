@@ -3,6 +3,9 @@ import telebot
 from pymongo import MongoClient
 import openai
 import asyncio
+import chromadb
+from sentence_transformers import SentenceTransformer
+from datetime import datetime
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -19,81 +22,127 @@ db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
 
-# Получение ключа бота
-key_bot_record = info_settings.find({})
-if key_bot_record is None:
-    raise ValueError("Запись с ключом 'bot_key' не найдена в коллекции 'bot_secrtary_settings'.")
-key_bot = None
-for record in key_bot_record:
-    key_bot = record.get('allknowsbro_bot')
-if not key_bot:
-    raise ValueError("Пожалуйста, установите переменные окружения: bot_key")
 
-TELEGRAM_BOT_TOKEN = key_bot
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+# Инициализация модели эмбеддингов
+model = SentenceTransformer('all-MiniLM-L6-v2')  # Легкая и быстрая модель
+# Инициализация ChromaDB
+client = chromadb.Client()
 
-# Обработчик текстовых сообщений
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    # Сохранение сообщения в базу данных
-    info_collection.insert_one({
-        'chat_id': message.chat.id,
-        'chat_name': message.chat.title,
-        'user_id': message.from_user.id,
-        'username': message.from_user.username,
-        'text': message.text,
-        'timestamp': message.date,
-        'type': 'user_message'
-    })
-    # Проверка на команду #bot_info
-    if message.text.startswith('@edvilschool_bot'):
-        query = message.text[len('@edvilschool_bot'):].strip()
-        if query:
-            response = get_info_response(query, message.chat.id)
-            info_collection.insert_one({
-                'chat_id': message.chat.id,
-                'chat_name': message.chat.title,
-                'user_id': message.from_user.id,
-                'username': message.from_user.username,
-                'text': response,
-                'timestamp': message.date,
-                'type': '@edvilschool_bot'
-            })
-            bot.reply_to(message, response)
-        else:
-            bot.reply_to(message, "Пожалуйста, укажите запрос после #bot_info.")
+# Имя коллекции
+collection_name = "edvil_school"
 
-# Функция для получения ответа от ChatGPT
-def get_info_response(query, chat_id):
-    # Извлечение последних сообщений из базы данных для контекста
-    recent_messages = list(info_collection.find({'chat_id': chat_id}).sort('timestamp', -1).limit(10))
-    context = "\n".join([msg['text'] for msg in recent_messages])
-    text = f"Контекст:\n{context}\n\nВопрос: {query}\nОтвет:"
-    prompt = ("Ты помощник для управления контентом в телеграмме. "
-              "Ты можешь отвечать на вопросы и помогать пользователям отвечая на их вопросы. "
-              "Группы телеграм соданы для поддержки общения команды разработчиков Игры Roblox Edvil shcool. "
-              "Тебе передается контент и вопрос пользователя. "
-              "Ты должен ответить на вопрос пользователя исходя из контента.")
-    response = send_to_chatgpt(prompt, text)
-    return response
-    
+# Проверка наличия коллекции
+existing_collections = client.list_collections()
+if collection_name not in existing_collections:
+    collection_communication = client.create_collection(collection_name)
+    print(f"Коллекция '{collection_name}' создана.")
+else:
+    collection_communication = client.get_collection(collection_name)
+    print(f"Коллекция '{collection_name}' уже существует и будет использована.")
 
-def send_to_chatgpt(prompt, text):
-    try:
-        message = f"Отправка в ChatGPT: Промт: {prompt}, Текст: {text}"
-        print(message)
-        response = client_openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text}
-            ]
+
+# Создаем функцию для генерации эмбеддингов
+def create_embedding(text):
+    return model.encode(text).tolist()
+
+
+# Функция добавления сообщений в базу данных
+def add_messages_to_db(chat_data):
+    for record in chat_data:
+        message = record.get('text', '')
+        user = record.get('username', '')
+        chat_id = record.get('chat_id', '')
+        chat_name = record.get('chat_name', '')
+        user_id = record.get('user_id', '')
+        message_id = record.get('message_id', '')
+        timestamp = record.get('timestamp', '')
+
+        # Генерация эмбеддинга для сообщения
+        embedding = create_embedding(message)
+
+        # Добавление сообщения в коллекцию
+        collection_communication.add(
+            documents=[message],
+            metadatas=[{"chat_id": chat_id, "user": user, "chat_name": chat_name, "user_id": user_id, "message_id": message_id, "timestamp": timestamp}],
+            ids=[f"{chat_id}_{timestamp}"],
+            embeddings=[embedding]
         )
-        gpt_response = response.choices[0].message.content.strip()
-        return gpt_response
-    except Exception as e:
-        message = f"Ошибка при отправке запроса в ChatGPT: {e}"
-        return message
+    print("Все сообщения успешно добавлены в базу данных.")
+
+# Функция поиска релевантных сообщений
+def search_messages(query, n_results=5):
+    query_embedding = create_embedding(query)
+    results = collection_communication.query(
+        query_embeddings=[query_embedding],
+        n_results=n_results
+    )
+    return results
+
+# Функция формирования эссе с помощью GPT
+def generate_essay(context,query=None):
+    prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
+    if query is not None:
+        prompt += f"\nЗапрос: {query}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Ты помощник, который формирует эссе на основе данных."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response["choices"][0]["message"]["content"]
+
+# def chat_data_load():
+#     chat_data = info_collection.find({})
+
+#     return chat_data
+# Имитация данных из чатов
+def chat_data_load():
+    chat_data = info_collection.find({})
+    if chat_data is None:
+        raise ValueError("Запись с ключом 'chat_data' не найдена в коллекции 'bot_secrtary_info'.") 
+    else:
+        add_messages_to_db(chat_data)
+        generate_essay_by_query(chat_data)
+        return "Сообщения успешно добавлены в базу данных."
+
+
+# Поиск сообщений по запросу
+
+def search_messages_by_query(query):
+    search_results = search_messages(query, n_results=3)
+    text_out = None
+    print("\nРелевантные сообщения:")
+    for doc, meta in zip(search_results['documents'], search_results['metadatas']):
+        text_out += (f"Сообщение: {doc}, Пользователь: {meta['user']}, Время: {meta['timestamp']}")
+
+    if text_out is None:
+        return "Не найдено релевантных сообщений."
+    else:
+        essay = generate_essay(text_out,query)
+        if essay is None:
+            return "Не удалось сформировать эссе."
+        else:
+            return essay
+
+
+def generate_essay_by_query(query):
+    # Генерация эссе на основе найденной информации
+    if query:
+        essay = generate_essay(query)
+        # Создаем структуру данных для add_messages_to_db
+        essay_data = [{
+            'text': essay,
+            'username': 'bot',
+            'chat_id': 'system',
+            'chat_name': 'essay_generation',
+            'user_id': 'system',
+            'message_id': str(datetime.now().timestamp()),
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }]
+        add_messages_to_db(essay_data)
+        return essay
+    return "Не удалось найти релевантные сообщения для запроса."
 
 # Запуск бота
 if __name__ == '__main__':

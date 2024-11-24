@@ -22,4 +22,4 @@ RUN poetry install
 
 
 # Копируем файл .env внутрь контейнера
-CMD ["poetry", "run", "python3", "bot_know.py.py"]
+CMD ["poetry", "run", "python3", "bot_know_support.py"]
