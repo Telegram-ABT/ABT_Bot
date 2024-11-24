@@ -22,4 +22,4 @@ RUN poetry install
 
 
 # Копируем файл .env внутрь контейнера
-CMD ["poetry", "run", "python3", "secretary.py"]
+# CMD ["poetry", "run", "python3", "secretary.py"]
