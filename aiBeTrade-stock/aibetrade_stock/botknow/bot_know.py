@@ -94,12 +94,18 @@ def add_messages_to_db(chat_data, bot=None, message=None):
                     caption=f"Файл эмбеддингов: {filename}"
                 )
 
-        # Загружаем файл в vector store
+        # Загружаем файл в OpenAI
         with open(filepath, 'rb') as file:
+            # Сначала создаем файл в OpenAI
+            file_object = client.files.create(
+                file=file,
+                purpose="assistants"
+            )
+            
+            # Затем добавляем файл в vector store
             vector_store_file = client.beta.vector_stores.files.create(
-                vector_store_id="vs_EgNRRvNbFrAiTSx9B9TOilhw",
-                file_path=filepath,
-                purpose="vectors"
+                vector_store_id=vector_store_id,
+                file_id=file_object.id
             )
         
         if bot and message:
