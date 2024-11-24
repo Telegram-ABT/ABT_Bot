@@ -141,19 +141,24 @@ def search_messages(query, n_results=5, bot=None, message=None):
 
 def generate_essay(context, bot, message, query=None):
     try:
-        prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
-        if query is not None:
-            prompt += f"\nЗапрос: {query}"
+        # Нужно разбить на несколько запросов если context больше 3000 символов
+        if len(context) > 3000:
+            context = context[:3000]
+            for i in range(0, len(context), 3000):
+                prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context[i:i+3000]}"
+                if query is not None:
+                    prompt += f"\nЗапрос: {query}"
 
-        response = client.chat.completions.create(
+                response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Ты помощник, который формирует эссе на основе данных."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        bot.reply_to(message, response.choices[0].message.content)
-        return response.choices[0].message.content
+                        {"role": "system", "content": "Ты помощник, который формирует эссе на основе данных."},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                bot.reply_to(message, response.choices[0].message.content)
+                response += response.choices[0].message.content
+        return response
     except Exception as e:
         print(f"Ошибка при генерации эссе: {e}")
         bot.reply_to(message, f"Ошибка при генерации эссе: {e}")
