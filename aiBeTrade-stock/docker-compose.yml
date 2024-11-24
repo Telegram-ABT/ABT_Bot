@@ -297,7 +297,7 @@ services:
       - API_HASH=${API_HASH}
       - USER_PHONE=${USER_PHONE}
 
-  bot_know:
+  botknow:
     image: botknow
     volumes:
       - ./aibetrade_stock/botknow:/app
