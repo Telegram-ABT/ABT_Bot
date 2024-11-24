@@ -214,7 +214,21 @@ def chat_data_load(bot, message):
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'type': 'essay'
                 })
-                key = add_messages_to_db(essay, bot, message)
+                # Когда передаем essay то возникает ошибка, так как essay это строка и нет поля массив. Надо передавать список чтобы он поддерживал функцию GET
+                essay_list = [
+                    {
+                        'text': essay,
+                        'username': 'bot_essey',
+                        'chat_id': 'system',
+                        'chat_name': 'essay_generation',
+                        'user_id': 'system',
+                        'message_id': str(datetime.now().timestamp()),
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'type': 'essay'
+                    }
+                ]
+
+                key = add_messages_to_db(essay_list, bot, message)
                 print(key)
                 return essay
             else:
