@@ -50,12 +50,13 @@ def handle_text(message):
     if '@bot_know_up' in message.text:
         response = chat_data_load(bot, message)
         bot.reply_to(message, response)
-        return
+        bot.reply_to(message, "Процесс формирования ответа завершен.")
     if '@bot_know_res' in message.text:
         query = message.text.split('@bot_know_res', 1)[1].strip()
         if query:
             response = search_messages_by_query(query, bot, message)
             bot.reply_to(message, response)
+            bot.reply_to(message, "Процесс формирования векторной БД завершен.")
         else:
             bot.reply_to(message, "Пожалуйста, укажите запрос после @bot_know_res")
     # Проверка на команду #bot_info
