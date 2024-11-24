@@ -20,14 +20,18 @@ client = openai.Client(api_key=OPENAI_API_KEY)
 try:
     # Попытка создать новое хранилище
     vector_store = client.beta.vector_stores.create(
-        name="edvil_school_store",
-        description="Store for Edvil School chat messages"
+        name="edvil_school_store"
     )
 except Exception as e:
-    # Если хранилище уже существует, получаем его
-    vector_stores = client.beta.vector_stores.list()
-    vector_store = next((store for store in vector_stores.data if store.name == "edvil_school_store"), None)
-    if not vector_store:
+    print(f"Ошибка при создании vector store: {e}")
+    try:
+        # Если хранилище уже существует, получаем его
+        vector_stores = client.beta.vector_stores.list()
+        vector_store = next((store for store in vector_stores.data if store.name == "edvil_school_store"), None)
+        if not vector_store:
+            raise Exception("Не удалось получить существующий vector store")
+    except Exception as e:
+        print(f"Ошибка при получении vector store: {e}")
         raise Exception("Не удалось создать или получить vector store")
 
 def add_messages_to_db(chat_data):
@@ -115,7 +119,9 @@ def chat_data_load():
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'type': 'essay'
                 })
-
+                return essay
+            else:
+                return "Не удалось сгенерировать эссе."
         return result
     except Exception as e:
         return f"Ошибка при загрузке данных: {e}"
@@ -137,10 +143,10 @@ def search_messages_by_query(query):
 
         # Генерация эссе на основе найденных сообщений
         essay = generate_essay(context, query)
-        if not essay:
+        if essay:
+            return essay
+        else:
             return "Не удалось сформировать эссе."
-
-        return essay
     except Exception as e:
         return f"Ошибка при поиске сообщений: {e}"
 
