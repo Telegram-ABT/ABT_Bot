@@ -190,7 +190,7 @@ def generate_essay(context, bot, message, query=None):
 def chat_data_load(bot, message):
     try:
         # Получение данных из MongoDB
-        chat_data = list(info_collection.find({}))
+        chat_data = list(info_collection.find({'chat_name': {'$ne': 'essay_generation'}}))
         if not chat_data:
             return "Нет данных для загрузки в базу данных."
 
