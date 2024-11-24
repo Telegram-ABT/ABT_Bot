@@ -160,10 +160,7 @@ def generate_essay(context, bot, message, query=None):
                     ]
                 )
                 # Добавляем текст ответа к полному ответу
-                full_response += response.choices[0].message.content + "\n"
-                
-                if bot and message:
-                    bot.reply_to(message, response.choices[0].message.content)
+                full_response += response.choices[0].message.content + "\n"                
         else:
             # Если контекст небольшой, отправляем его целиком
             prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
@@ -179,10 +176,12 @@ def generate_essay(context, bot, message, query=None):
             )
             full_response = response.choices[0].message.content
             
-            if bot and message:
-                bot.reply_to(message, full_response)
-
-        return full_response
+        if full_response:
+            add_messages_to_db(full_response, bot, message)
+            bot.reply_to(message, "Эссе сформировано и добавлено в базу данных.")
+            return full_response
+        else:
+            return "Не удалось сформировать эссе."
     except Exception as e:
         error_message = f"Ошибка при генерации эссе: {e}"
         print(error_message)
