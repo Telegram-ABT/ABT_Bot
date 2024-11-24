@@ -148,30 +148,33 @@ def chat_data_load(bot, message):
         bot.reply_to(message, f"Ошибка при загрузке данных: {e}")
         return f"Ошибка при загрузке данных: {e}"
 
-def search_messages_by_query(query, bot, message):
+def search_messages_by_query(query, bot=None, message=None):
     try:
         # Поиск релевантных сообщений
-        bot.reply_to(message, f"Поиск релевантных сообщений: {query}")
         search_results = search_messages(query, n_results=3)
         if not search_results:
             return "Не найдено релевантных сообщений."
 
         # Формирование контекста из найденных сообщений
         context = "\n".join([
-            f"Сообщение: {result.text}\n"
+            f"Сообщение: {result.metadata.get('text')}\n"
             f"Пользователь: {result.metadata.get('user')}\n"
             f"Время: {result.metadata.get('timestamp')}\n"
             for result in search_results.matches
         ])
 
         # Генерация эссе на основе найденных сообщений
-        essay = generate_essay(context, bot, message, query)
+        essay = generate_essay(context, query)
         if essay:
             return essay
         else:
             return "Не удалось сформировать эссе."
     except Exception as e:
-        return f"Ошибка при поиске сообщений: {e}"
+        error_message = f"Ошибка при поиске сообщений: {e}"
+        print(error_message)
+        if bot and message:
+            bot.reply_to(message, error_message)
+        return error_message
 
 if __name__ == '__main__':
     result = chat_data_load(bot, message)

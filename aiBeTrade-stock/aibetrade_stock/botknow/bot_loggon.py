@@ -52,11 +52,12 @@ def handle_text(message):
         bot.reply_to(message, response)
         return
     if '@bot_know_res' in message.text:
-        query = message.text[len('@bot_know_res'):].strip()
+        query = message.text.split('@bot_know_res', 1)[1].strip()
         if query:
-            response = search_messages_by_query(query)
+            response = search_messages_by_query(query, bot, message)
             bot.reply_to(message, response)
-            return
+        else:
+            bot.reply_to(message, "Пожалуйста, укажите запрос после @bot_know_res")
     # Проверка на команду #bot_info
     if message.text.startswith('@edvilschool_bot'):
         query = message.text[len('@edvilschool_bot'):].strip()
