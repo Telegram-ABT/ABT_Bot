@@ -2,6 +2,7 @@ import os
 import openai
 from pymongo import MongoClient
 from datetime import datetime
+from telethon import TelegramClient
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -46,10 +47,19 @@ def add_messages_to_db(chat_data):
 
         if message:  # Проверяем, что сообщение не пустое
             try:
+                # Создаем эмбеддинг для сообщения
+                embedding_response = client.embeddings.create(
+                    model="text-embedding-ada-002",
+                    input=message
+                )
+                embedding = embedding_response.data[0].embedding
+
                 # Добавление сообщения в vector store
-                vector_store.add_texts(
-                    texts=[message],
+                vector_store.add_vectors(
+                    vectors=[embedding],
+                    ids=[f"{chat_id}_{message_id}"],
                     metadata=[{
+                        "text": message,
                         "chat_id": chat_id,
                         "user": user,
                         "chat_name": chat_name,
@@ -65,9 +75,16 @@ def add_messages_to_db(chat_data):
 
 def search_messages(query, n_results=5):
     try:
+        # Создаем эмбеддинг для запроса
+        embedding_response = client.embeddings.create(
+            model="text-embedding-ada-002",
+            input=query
+        )
+        query_embedding = embedding_response.data[0].embedding
+
         # Поиск похожих сообщений
         results = vector_store.query(
-            query=query,
+            query_vector=query_embedding,
             n_results=n_results
         )
         return results
