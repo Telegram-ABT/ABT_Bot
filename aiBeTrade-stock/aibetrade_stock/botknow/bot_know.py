@@ -119,24 +119,29 @@ def add_messages_to_db(chat_data, bot=None, message=None):
             bot.reply_to(message, error_message)
         return error_message
 
-def search_messages(query, n_results=5):
+def search_messages(query, n_results=5, bot=None, message=None):
     try:
         # Создаем эмбеддинг для запроса
+        bot.reply_to(message, f"Поиск релевантных сообщений: {query}")
         embedding_response = client.embeddings.create(
             model="text-embedding-ada-002",
             input=query
         )
         query_embedding = embedding_response.data[0].embedding
-
+        bot.reply_to(message, f"Эмбеддинг запроса: {query_embedding}")
         # Поиск похожих сообщений
         results = vector_store.query(
             query_vector=query_embedding,
             n_results=n_results
         )
+        bot.reply_to(message, f"Результаты поиска: {results}")
         return results
     except Exception as e:
-        print(f"Ошибка при поиске сообщений: {e}")
-        return None
+        error_message = f"Ошибка при поиске сообщений: {e}"
+        print(error_message)
+        if bot and message:
+            bot.reply_to(message, error_message)
+        return error_message
 
 def generate_essay(context, bot, message, query=None):
     try:
