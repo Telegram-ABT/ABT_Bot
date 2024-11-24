@@ -86,13 +86,6 @@ def add_messages_to_db(chat_data, bot=None, message=None):
         print(f"Эмбеддинги сохранены в файл: {filepath}")
 
         # Отправляем файл в Telegram
-        if bot and message:
-            with open(filepath, 'rb') as file:
-                bot.send_document(
-                    message.chat.id,
-                    file,
-                    caption=f"Файл эмбеддингов: {filename}"
-                )
 
         # Загружаем файл в OpenAI
         with open(filepath, 'rb') as file:
@@ -109,8 +102,11 @@ def add_messages_to_db(chat_data, bot=None, message=None):
             )
         
         if bot and message:
-            bot.reply_to(message, f"Файл успешно загружен в vector store: {vector_store_file}")
-
+            bot.send_document(
+                message.chat.id,
+                file_object.id,
+                caption=f"Файл эмбеддингов: {filename}"
+            )
         return "Все сообщения успешно обработаны и загружены в vector store."
     except Exception as e:
         error_message = f"Ошибка при сохранении или загрузке файла: {e}"
