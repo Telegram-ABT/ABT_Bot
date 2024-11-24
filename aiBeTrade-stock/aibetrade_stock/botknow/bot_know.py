@@ -62,6 +62,7 @@ def add_messages_to_db(chat_data):
                 print(f"Ошибка при добавлении сообщения в vector store: {e}")
 
     return "Все сообщения успешно добавлены в базу данных."
+    bot.
 
 def search_messages(query, n_results=5):
     try:
@@ -75,7 +76,7 @@ def search_messages(query, n_results=5):
         print(f"Ошибка при поиске сообщений: {e}")
         return None
 
-def generate_essay(context, query=None):
+def generate_essay(context, query=None, bot, message):
     try:
         prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
         if query is not None:
@@ -88,12 +89,14 @@ def generate_essay(context, query=None):
                 {"role": "user", "content": prompt}
             ]
         )
+        bot.reply_to(message, response.choices[0].message.content)
         return response.choices[0].message.content
     except Exception as e:
         print(f"Ошибка при генерации эссе: {e}")
+        bot.reply_to(message, f"Ошибка при генерации эссе: {e}")
         return None
 
-def chat_data_load():
+def chat_data_load(bot, message):
     try:
         # Получение данных из MongoDB
         chat_data = list(info_collection.find({}))
@@ -102,11 +105,12 @@ def chat_data_load():
 
         # Добавление сообщений в vector store
         result = add_messages_to_db(chat_data)
+        bot.reply_to(message, result)
 
         # Генерация эссе на основе всех сообщений
         all_messages = " ".join([record.get('text', '') for record in chat_data if record.get('text')])
         if all_messages:
-            essay = generate_essay(all_messages)
+            essay = generate_essay(all_messages, bot, message)
             if essay:
                 # Сохранение эссе в MongoDB
                 info_collection.insert_one({

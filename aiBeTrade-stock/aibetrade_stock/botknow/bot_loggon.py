@@ -48,7 +48,7 @@ def handle_text(message):
 
     # Проверка на команду @bot_know
     if '@bot_know_up' in message.text:
-        response = chat_data_load()
+        response = chat_data_load(bot, message)
         bot.reply_to(message, response)
         return
     if '@bot_know_res' in message.text:
