@@ -95,10 +95,12 @@ def add_messages_to_db(chat_data, bot=None, message=None):
                 )
 
         # Загружаем файл в vector store
-        vector_store_file = client.beta.vector_stores.files.create(
-            vector_store_id=vector_store_id,
-            file=filename
-        )
+        with open(filepath, 'rb') as file:
+            vector_store_file = client.beta.vector_stores.files.create(
+                vector_store_id="vs_EgNRRvNbFrAiTSx9B9TOilhw",
+                file_path=filepath,
+                purpose="vectors"
+            )
         
         if bot and message:
             bot.reply_to(message, f"Файл успешно загружен в vector store: {vector_store_file}")
