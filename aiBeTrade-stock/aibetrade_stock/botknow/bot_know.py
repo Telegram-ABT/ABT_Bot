@@ -1,20 +1,11 @@
 import os
-import telebot
-from pymongo import MongoClient
 import openai
-import asyncio
-import chromadb
-from sentence_transformers import SentenceTransformer
+from pymongo import MongoClient
 from datetime import datetime
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-
-# Инициализация OpenAI клиента
-client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-# Проверка наличия необходимых переменных окружения
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
@@ -22,129 +13,138 @@ db = mongo_client["nntcapital"]
 info_collection = db['bot_secrtary_info']
 info_settings = db['bot_secrtary_settings']
 
+# Инициализация OpenAI клиента
+client = openai.Client(api_key=OPENAI_API_KEY)
 
-# Инициализация модели эмбеддингов
-model = SentenceTransformer('all-MiniLM-L6-v2')  # Легкая и быстрая модель
-# Инициализация ChromaDB
-client = chromadb.Client()
+# Создание или получение vector store
+try:
+    # Попытка создать новое хранилище
+    vector_store = client.beta.vector_stores.create(
+        name="edvil_school_store",
+        description="Store for Edvil School chat messages"
+    )
+except Exception as e:
+    # Если хранилище уже существует, получаем его
+    vector_stores = client.beta.vector_stores.list()
+    vector_store = next((store for store in vector_stores.data if store.name == "edvil_school_store"), None)
+    if not vector_store:
+        raise Exception("Не удалось создать или получить vector store")
 
-# Имя коллекции
-collection_name = "edvil_school"
-
-# Проверка наличия коллекции
-existing_collections = client.list_collections()
-if collection_name not in existing_collections:
-    collection_communication = client.create_collection(collection_name)
-    print(f"Коллекция '{collection_name}' создана.")
-else:
-    collection_communication = client.get_collection(collection_name)
-    print(f"Коллекция '{collection_name}' уже существует и будет использована.")
-
-
-# Создаем функцию для генерации эмбеддингов
-def create_embedding(text):
-    return model.encode(text).tolist()
-
-
-# Функция добавления сообщений в базу данных
 def add_messages_to_db(chat_data):
     for record in chat_data:
         message = record.get('text', '')
         user = record.get('username', '')
-        chat_id = record.get('chat_id', '')
+        chat_id = str(record.get('chat_id', ''))
         chat_name = record.get('chat_name', '')
-        user_id = record.get('user_id', '')
-        message_id = record.get('message_id', '')
+        user_id = str(record.get('user_id', ''))
+        message_id = str(record.get('message_id', ''))
         timestamp = record.get('timestamp', '')
 
-        # Генерация эмбеддинга для сообщения
-        embedding = create_embedding(message)
+        if message:  # Проверяем, что сообщение не пустое
+            try:
+                # Добавление сообщения в vector store
+                vector_store.add_texts(
+                    texts=[message],
+                    metadata=[{
+                        "chat_id": chat_id,
+                        "user": user,
+                        "chat_name": chat_name,
+                        "user_id": user_id,
+                        "message_id": message_id,
+                        "timestamp": str(timestamp)
+                    }]
+                )
+            except Exception as e:
+                print(f"Ошибка при добавлении сообщения в vector store: {e}")
 
-        # Добавление сообщения в коллекцию
-        collection_communication.add(
-            documents=[message],
-            metadatas=[{"chat_id": chat_id, "user": user, "chat_name": chat_name, "user_id": user_id, "message_id": message_id, "timestamp": timestamp}],
-            ids=[f"{chat_id}_{timestamp}"],
-            embeddings=[embedding]
-        )
-    print("Все сообщения успешно добавлены в базу данных.")
+    return "Все сообщения успешно добавлены в базу данных."
 
-# Функция поиска релевантных сообщений
 def search_messages(query, n_results=5):
-    query_embedding = create_embedding(query)
-    results = collection_communication.query(
-        query_embeddings=[query_embedding],
-        n_results=n_results
-    )
-    return results
+    try:
+        # Поиск похожих сообщений
+        results = vector_store.query(
+            query=query,
+            n_results=n_results
+        )
+        return results
+    except Exception as e:
+        print(f"Ошибка при поиске сообщений: {e}")
+        return None
 
-# Функция формирования эссе с помощью GPT
-def generate_essay(context,query=None):
-    prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
-    if query is not None:
-        prompt += f"\nЗапрос: {query}"
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Ты помощник, который формирует эссе на основе данных."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return response["choices"][0]["message"]["content"]
+def generate_essay(context, query=None):
+    try:
+        prompt = f"На основе следующего контекста сформируй краткое эссе:\n{context}"
+        if query is not None:
+            prompt += f"\nЗапрос: {query}"
 
-# def chat_data_load():
-#     chat_data = info_collection.find({})
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Ты помощник, который формирует эссе на основе данных."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Ошибка при генерации эссе: {e}")
+        return None
 
-#     return chat_data
-# Имитация данных из чатов
 def chat_data_load():
-    chat_data = info_collection.find({})
-    if chat_data is None:
-        raise ValueError("Запись с ключом 'chat_data' не найдена в коллекции 'bot_secrtary_info'.") 
-    else:
-        add_messages_to_db(chat_data)
-        generate_essay_by_query(chat_data)
-        return "Сообщения успешно добавлены в базу данных."
+    try:
+        # Получение данных из MongoDB
+        chat_data = list(info_collection.find({}))
+        if not chat_data:
+            return "Нет данных для загрузки в базу данных."
 
+        # Добавление сообщений в vector store
+        result = add_messages_to_db(chat_data)
 
-# Поиск сообщений по запросу
+        # Генерация эссе на основе всех сообщений
+        all_messages = " ".join([record.get('text', '') for record in chat_data if record.get('text')])
+        if all_messages:
+            essay = generate_essay(all_messages)
+            if essay:
+                # Сохранение эссе в MongoDB
+                info_collection.insert_one({
+                    'text': essay,
+                    'username': 'bot',
+                    'chat_id': 'system',
+                    'chat_name': 'essay_generation',
+                    'user_id': 'system',
+                    'message_id': str(datetime.now().timestamp()),
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'type': 'essay'
+                })
+
+        return result
+    except Exception as e:
+        return f"Ошибка при загрузке данных: {e}"
 
 def search_messages_by_query(query):
-    search_results = search_messages(query, n_results=3)
-    text_out = None
-    print("\nРелевантные сообщения:")
-    for doc, meta in zip(search_results['documents'], search_results['metadatas']):
-        text_out += (f"Сообщение: {doc}, Пользователь: {meta['user']}, Время: {meta['timestamp']}")
+    try:
+        # Поиск релевантных сообщений
+        search_results = search_messages(query, n_results=3)
+        if not search_results:
+            return "Не найдено релевантных сообщений."
 
-    if text_out is None:
-        return "Не найдено релевантных сообщений."
-    else:
-        essay = generate_essay(text_out,query)
-        if essay is None:
+        # Формирование контекста из найденных сообщений
+        context = "\n".join([
+            f"Сообщение: {result.text}\n"
+            f"Пользователь: {result.metadata.get('user')}\n"
+            f"Время: {result.metadata.get('timestamp')}\n"
+            for result in search_results.matches
+        ])
+
+        # Генерация эссе на основе найденных сообщений
+        essay = generate_essay(context, query)
+        if not essay:
             return "Не удалось сформировать эссе."
-        else:
-            return essay
 
-
-def generate_essay_by_query(query):
-    # Генерация эссе на основе найденной информации
-    if query:
-        essay = generate_essay(query)
-        # Создаем структуру данных для add_messages_to_db
-        essay_data = [{
-            'text': essay,
-            'username': 'bot',
-            'chat_id': 'system',
-            'chat_name': 'essay_generation',
-            'user_id': 'system',
-            'message_id': str(datetime.now().timestamp()),
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }]
-        add_messages_to_db(essay_data)
         return essay
-    return "Не удалось найти релевантные сообщения для запроса."
+    except Exception as e:
+        return f"Ошибка при поиске сообщений: {e}"
 
-# Запуск бота
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+    result = chat_data_load()
+    print(result)
 
