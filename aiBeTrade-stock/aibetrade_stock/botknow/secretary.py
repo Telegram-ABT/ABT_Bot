@@ -3,7 +3,7 @@ import telebot
 from pymongo import MongoClient
 import openai
 import asyncio
-
+from bot_know import chat_data_load, search_messages_by_query  # Импортируем функцию из bot_know.py
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -45,6 +45,19 @@ def handle_text(message):
         'timestamp': message.date,
         'type': 'user_message'
     })
+
+
+    # Проверка на команду @bot_know
+    if '@bot_know_up' in message.text:
+        response = chat_data_load()
+        bot.reply_to(message, response)
+        return
+    if '@bot_know_res' in message.text:
+        query = message.text[len('@bot_know_res'):].strip()
+        if query:
+            response = search_messages_by_query(query)
+            bot.reply_to(message, response)
+            return
     # Проверка на команду #bot_info
     if message.text.startswith('@edvilschool_bot'):
         query = message.text[len('@edvilschool_bot'):].strip()

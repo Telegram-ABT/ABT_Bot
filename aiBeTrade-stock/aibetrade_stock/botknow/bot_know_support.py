@@ -6,12 +6,6 @@ import psutil
 import subprocess
 import os
 import signal
-import asyncio
-from bot_signal import process_set_new_message, process_set_complete_message, process_set_price_message
-from bot_trade import process_get_status_message
-import textwrap
-import time
-from analits import process_pnl_selection
 
 mongo_url = os.getenv('MONGO_URL_SERV')
 client = MongoClient(mongo_url)

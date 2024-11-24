@@ -3,7 +3,6 @@ import telebot
 from pymongo import MongoClient
 import openai
 import asyncio
-from bot_knowl.bot_know import chat_data_load  # Импортируем функцию из bot_know.py
 
 # Настройки
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -11,6 +10,8 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Инициализация OpenAI клиента
 client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+# Проверка наличия необходимых переменных окружения
 
 # Инициализация клиентов
 mongo_client = MongoClient(mongo_url)
@@ -44,14 +45,7 @@ def handle_text(message):
         'timestamp': message.date,
         'type': 'user_message'
     })
-    
-    # Проверка на команду @bot_know
-    if '@bot_know' in message.text:
-        response = chat_data_load()
-        bot.reply_to(message, response)
-        return
-
-    # Проверка на команду @edvilschool_bot
+    # Проверка на команду #bot_info
     if message.text.startswith('@edvilschool_bot'):
         query = message.text[len('@edvilschool_bot'):].strip()
         if query:
@@ -67,7 +61,7 @@ def handle_text(message):
             })
             bot.reply_to(message, response)
         else:
-            bot.reply_to(message, "Пожалуйста, укажите запрос после @edvilschool_bot.")
+            bot.reply_to(message, "Пожалуйста, укажите запрос после #bot_info.")
 
 # Функция для получения ответа от ChatGPT
 def get_info_response(query, chat_id):
