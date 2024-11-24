@@ -1,4 +1,5 @@
 import os
+import json
 import openai
 from pymongo import MongoClient
 from datetime import datetime
@@ -18,24 +19,31 @@ info_settings = db['bot_secrtary_settings']
 client = openai.Client(api_key=OPENAI_API_KEY)
 
 # Создание или получение vector store
-try:
-    # Попытка создать новое хранилище
-    vector_store = client.beta.vector_stores.create(
-        name="edvil_school_store"
-    )
-except Exception as e:
-    print(f"Ошибка при создании vector store: {e}")
-    try:
-        # Если хранилище уже существует, получаем его
-        vector_stores = client.beta.vector_stores.list()
-        vector_store = next((store for store in vector_stores.data if store.name == "edvil_school_store"), None)
-        if not vector_store:
-            raise Exception("Не удалось получить существующий vector store")
-    except Exception as e:
-        print(f"Ошибка при получении vector store: {e}")
-        raise Exception("Не удалось создать или получить vector store")
+# try:
+#     # Попытка создать новое хранилище
+#     vector_store = client.beta.vector_stores.update(vector_store_id="vs_EgNRRvNbFrAiTSx9B9TOilhw",
+#         name="edvil_school_store"
+#     )
+# except Exception as e:
+
+def save_embeddings_to_json(embeddings_data):
+    # Создаем директорию, если она не существует
+    if not os.path.exists('embedding'):
+        os.makedirs('embedding')
+    
+    # Создаем уникальное имя файла с временной меткой
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"embedding_{timestamp}.json"
+    filepath = os.path.join('embedding', filename)
+    
+    # Сохраняем данные в JSON файл
+    with open(filepath, 'w') as f:
+        json.dump(embeddings_data, f)
+    
+    return filepath, filename
 
 def add_messages_to_db(chat_data):
+    embeddings_data = []
     for record in chat_data:
         message = record.get('text', '')
         user = record.get('username', '')
@@ -54,11 +62,11 @@ def add_messages_to_db(chat_data):
                 )
                 embedding = embedding_response.data[0].embedding
 
-                # Добавление сообщения в vector store
-                vector_store.add_vectors(
-                    vectors=[embedding],
-                    ids=[f"{chat_id}_{message_id}"],
-                    metadata=[{
+                # Добавляем данные в список для JSON
+                embeddings_data.append({
+                    "id": f"{chat_id}_{message_id}",
+                    "values": embedding,
+                    "metadata": {
                         "text": message,
                         "chat_id": chat_id,
                         "user": user,
@@ -66,12 +74,29 @@ def add_messages_to_db(chat_data):
                         "user_id": user_id,
                         "message_id": message_id,
                         "timestamp": str(timestamp)
-                    }]
-                )
-            except Exception as e:
-                print(f"Ошибка при добавлении сообщения в vector store: {e}")
+                    }
+                })
 
-    return "Все сообщения успешно добавлены в базу данных."
+            except Exception as e:
+                print(f"Ошибка при создании эмбеддинга: {e}")
+
+    try:
+        # Сохраняем эмбеддинги в JSON файл
+        filepath, filename = save_embeddings_to_json(embeddings_data)
+        print(f"Эмбеддинги сохранены в файл: {filepath}")
+
+        # Загружаем файл в vector store
+        vector_store_file = client.beta.vector_stores.files.create(
+            vector_store_id=vector_store.id,  # Используем ID созданного vector store
+            file=filename
+        )
+        print(f"Файл успешно загружен в vector store: {vector_store_file}")
+
+        return "Все сообщения успешно обработаны и загружены в vector store."
+    except Exception as e:
+        error_message = f"Ошибка при сохранении или загрузке файла: {e}"
+        print(error_message)
+        return error_message
 
 def search_messages(query, n_results=5):
     try:
