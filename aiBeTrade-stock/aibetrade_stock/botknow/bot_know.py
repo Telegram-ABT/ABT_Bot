@@ -17,7 +17,7 @@ info_settings = db['bot_secrtary_settings']
 
 # Инициализация OpenAI клиента
 client = openai.Client(api_key=OPENAI_API_KEY)
-
+vector_store_id = "vs_EgNRRvNbFrAiTSx9B9TOilhw"
 # Создание или получение vector store
 # try:
 #     # Попытка создать новое хранилище
@@ -42,10 +42,10 @@ def save_embeddings_to_json(embeddings_data):
     
     return filepath, filename
 
-def add_messages_to_db(chat_data):
+def add_messages_to_db(chat_data, bot=None, message=None):
     embeddings_data = []
     for record in chat_data:
-        message = record.get('text', '')
+        message_text = record.get('text', '')
         user = record.get('username', '')
         chat_id = str(record.get('chat_id', ''))
         chat_name = record.get('chat_name', '')
@@ -53,12 +53,12 @@ def add_messages_to_db(chat_data):
         message_id = str(record.get('message_id', ''))
         timestamp = record.get('timestamp', '')
 
-        if message:  # Проверяем, что сообщение не пустое
+        if message_text:  # Проверяем, что сообщение не пустое
             try:
                 # Создаем эмбеддинг для сообщения
                 embedding_response = client.embeddings.create(
                     model="text-embedding-ada-002",
-                    input=message
+                    input=message_text
                 )
                 embedding = embedding_response.data[0].embedding
 
@@ -67,7 +67,7 @@ def add_messages_to_db(chat_data):
                     "id": f"{chat_id}_{message_id}",
                     "values": embedding,
                     "metadata": {
-                        "text": message,
+                        "text": message_text,
                         "chat_id": chat_id,
                         "user": user,
                         "chat_name": chat_name,
@@ -85,17 +85,30 @@ def add_messages_to_db(chat_data):
         filepath, filename = save_embeddings_to_json(embeddings_data)
         print(f"Эмбеддинги сохранены в файл: {filepath}")
 
+        # Отправляем файл в Telegram
+        if bot and message:
+            with open(filepath, 'rb') as file:
+                bot.send_document(
+                    message.chat.id,
+                    file,
+                    caption=f"Файл эмбеддингов: {filename}"
+                )
+
         # Загружаем файл в vector store
         vector_store_file = client.beta.vector_stores.files.create(
-            vector_store_id=vector_store.id,  # Используем ID созданного vector store
+            vector_store_id=vector_store_id,
             file=filename
         )
-        print(f"Файл успешно загружен в vector store: {vector_store_file}")
+        
+        if bot and message:
+            bot.reply_to(message, f"Файл успешно загружен в vector store: {vector_store_file}")
 
         return "Все сообщения успешно обработаны и загружены в vector store."
     except Exception as e:
         error_message = f"Ошибка при сохранении или загрузке файла: {e}"
         print(error_message)
+        if bot and message:
+            bot.reply_to(message, error_message)
         return error_message
 
 def search_messages(query, n_results=5):
