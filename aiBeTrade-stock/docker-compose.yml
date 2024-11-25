@@ -148,34 +148,34 @@ services:
       - WEBHOOK=${WEBHOOK}
       - SECRET_CHAT=${SECRET_CHAT}
   # tasker:
-    image: tasker
-    volumes:
-      - ./aibetrade_stock/tasker:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/tasker/
-      dockerfile: DockerFile.app.tasker
-    environment:
-      # - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
-      - API_ID=${API_ID}
-      - API_HASH=${API_HASH}
+    # image: tasker
+    # volumes:
+    #   - ./aibetrade_stock/tasker:/app
+    #   # - ./pyproject.toml:/app/pyproject.toml
+    # restart: unless-stopped
+    # build:
+    #   context: ./aibetrade_stock/tasker/
+    #   dockerfile: DockerFile.app.tasker
+    # environment:
+    #   # - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
+    #   - API_ID=${API_ID}
+    #   - API_HASH=${API_HASH}
       
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_URL=${POSTGRES_URL}
+    #   - POSTGRES_USER=${POSTGRES_USER}
+    #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    #   - POSTGRES_DB=${POSTGRES_DB}
+    #   - POSTGRES_URL=${POSTGRES_URL}
 
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # - WEBHOOK=${WEBHOOK}
-      # - SECRET_CHAT=${SECRET_CHAT}
-      # - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
+    #   - OPENAI_API_KEY=${OPENAI_API_KEY}
+    #   # - WEBHOOK=${WEBHOOK}
+    #   # - SECRET_CHAT=${SECRET_CHAT}
+    #   # - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
 
-      # - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # - VECTOR_DB_WORK_URL=${VECTOR_DB_WORK_URL}:${PORT_VECTOR_DB_WORK}
-      # - PORT_GENERATE_ANSWER=${PORT_GENERATE_ANSWER}
-    # ports:
-    #   - 5004:5004
+    #   # - OPENAI_API_KEY=${OPENAI_API_KEY}
+    #   # - VECTOR_DB_WORK_URL=${VECTOR_DB_WORK_URL}:${PORT_VECTOR_DB_WORK}
+    #   # - PORT_GENERATE_ANSWER=${PORT_GENERATE_ANSWER}
+    # # ports:
+    # #   - 5004:5004
   removeSpam:
     image: remove_spam
     volumes:
