@@ -11,7 +11,7 @@ from bot_signal import process_set_new_message, process_set_complete_message, pr
 from bot_trade import process_get_status_message
 import textwrap
 import time
-from analits import process_pnl_selection
+from analits import process_pnl_set
 
 # Укажите токен вашего бота
 TOKEN = os.getenv('TOKEN_BOT_SCANER')
@@ -479,10 +479,10 @@ def handle_query(call):
         bot.send_message(call.message.chat.id, f"Выбран портфель {case_name} с параметром P&L больше {present_pnl}%")
         if case_name == "all":
             bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для всех портфелей")
-            message = process_pnl_selection(bot,call.message.chat.id,present_pnl)
+            message = process_pnl_set(bot,call.message.chat.id,present_pnl)
         else:
             bot.send_message(call.message.chat.id, f"Формруем базу акций с {present_pnl}% для портфеля {case_name}")
-            message = process_pnl_selection(bot,call.message.chat.id,present_pnl,case_name)
+            message = process_pnl_set(bot,call.message.chat.id,present_pnl,case_name)
         bot.send_message(call.message.chat.id, message,reply_markup=create_trading_control_menu())
 
 # Функция для формирования базы данных
