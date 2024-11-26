@@ -10,7 +10,7 @@ services:
       
   postgres:
     container_name: postgres_container
-    image: postgres:latest
+    image: postgres:16
     command:
       - "postgres"
       - "-c"
