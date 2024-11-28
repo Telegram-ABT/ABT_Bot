@@ -120,20 +120,20 @@ services:
   #   depends_on:
   #     - postgres
 
-  admin_telegram:
-    image: admin_telegram
-    volumes:
-      - ./aibetrade_stock/adminTelegram:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/adminTelegram/
-      dockerfile: DockerFile.app.adminTelegram
-    environment:
-      - ADMIN_CHEBAL_BOT=${ADMIN_CHEBAL_BOT}
-      - WEBHOOK=${WEBHOOK}
-      - SECRET_CHAT=${SECRET_CHAT}
-      - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
+  # admin_telegram:
+  #   image: admin_telegram
+  #   volumes:
+  #     - ./aibetrade_stock/adminTelegram:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/adminTelegram/
+  #     dockerfile: DockerFile.app.adminTelegram
+  #   environment:
+  #     - ADMIN_CHEBAL_BOT=${ADMIN_CHEBAL_BOT}
+  #     - WEBHOOK=${WEBHOOK}
+  #     - SECRET_CHAT=${SECRET_CHAT}
+  #     - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
   events:
     image: events
     volumes:
@@ -176,19 +176,19 @@ services:
     #   # - PORT_GENERATE_ANSWER=${PORT_GENERATE_ANSWER}
     # # ports:
     # #   - 5004:5004
-  removeSpam:
-    image: remove_spam
-    volumes:
-      - ./aibetrade_stock/removeSpam:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/removeSpam/
-      dockerfile: DockerFile.app.removeSpam
-    environment:
-      - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
-      - WEBHOOK=${WEBHOOK}
-      - SECRET_CHAT=${SECRET_CHAT}
+  # removeSpam:
+  #   image: remove_spam
+  #   volumes:
+  #     - ./aibetrade_stock/removeSpam:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/removeSpam/
+  #     dockerfile: DockerFile.app.removeSpam
+  #   environment:
+  #     - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+  #     - WEBHOOK=${WEBHOOK}
+  #     - SECRET_CHAT=${SECRET_CHAT}
   
   personalGpt:
     image: personal_gpt
@@ -213,101 +213,101 @@ services:
       - api_key_binance=${api_key_binance}
       - api_secret_binance=${api_secret_binance}
 
-  publisher:
-    image: publisher
-    volumes:
-      - ./aibetrade_stock/publish:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/publish/
-      dockerfile: DockerFile.app.publish
-    environment:
-      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
-      # - WEBHOOK=${WEBHOOK}
-      # - SECRET_CHAT=${SECRET_CHAT}
-      # - API_ID=${API_ID}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - URL=${URL}
+  # publisher:
+  #   image: publisher
+  #   volumes:
+  #     - ./aibetrade_stock/publish:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/publish/
+  #     dockerfile: DockerFile.app.publish
+  #   environment:
+  #     # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+  #     # - WEBHOOK=${WEBHOOK}
+  #     # - SECRET_CHAT=${SECRET_CHAT}
+  #     # - API_ID=${API_ID}
+  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - URL=${URL}
   
-  stock_publisher:
-    image: stock_publisher
-    volumes:
-      - ./aibetrade_stock/stockPublisher:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/stockPublisher/
-      dockerfile: DockerFile.app.stockPublisher
-    environment:
-      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
-      # - WEBHOOK=${WEBHOOK}
-      # - SECRET_CHAT=${SECRET_CHAT}
-      # - API_ID=${API_ID}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - URL=${URL}
-      - URL_BOT=${URL_BOT}
-      - API_BOT_CR=${API_BOT_CR}
-      - ID_CH_CR=${ID_CH_CR}
-      - API_BYBIT_CR=${API_BYBIT_CR}
-      - API_BYBIT_SEC_CR=${API_BYBIT_SEC_CR}
-      - API_BYBIT_CR_1=${API_BYBIT_CR_1}
-      - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}   
-      - API_BYBIT_CR_2=${API_BYBIT_CR_2}
-      - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}      
+  # stock_publisher:
+  #   image: stock_publisher
+  #   volumes:
+  #     - ./aibetrade_stock/stockPublisher:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/stockPublisher/
+  #     dockerfile: DockerFile.app.stockPublisher
+  #   environment:
+  #     # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+  #     # - WEBHOOK=${WEBHOOK}
+  #     # - SECRET_CHAT=${SECRET_CHAT}
+  #     # - API_ID=${API_ID}
+  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - URL=${URL}
+  #     - URL_BOT=${URL_BOT}
+  #     - API_BOT_CR=${API_BOT_CR}
+  #     - ID_CH_CR=${ID_CH_CR}
+  #     - API_BYBIT_CR=${API_BYBIT_CR}
+  #     - API_BYBIT_SEC_CR=${API_BYBIT_SEC_CR}
+  #     - API_BYBIT_CR_1=${API_BYBIT_CR_1}
+  #     - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}   
+  #     - API_BYBIT_CR_2=${API_BYBIT_CR_2}
+  #     - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}      
   
-  combo_publisher:
-    image: combo_publisher
-    volumes:
-      - ./aibetrade_stock/combo_publisher:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/combo_publisher/
-      dockerfile: DockerFile.app.combo_publisher
-    environment:
-      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
-      # - WEBHOOK=${WEBHOOK}
-      # - SECRET_CHAT=${SECRET_CHAT}
-      # - API_ID=${API_ID}
-      # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      # - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # - URL=${URL}
-      # - URL_BOT=${URL_BOT}
-      - API_BOT_CR=${API_BOT_CR}
-      - ID_CH_CR=${ID_CH_CR}
-      - MONGO_URL=${MONGO_URL}
+  # combo_publisher:
+  #   image: combo_publisher
+  #   volumes:
+  #     - ./aibetrade_stock/combo_publisher:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/combo_publisher/
+  #     dockerfile: DockerFile.app.combo_publisher
+  #   environment:
+  #     # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+  #     # - WEBHOOK=${WEBHOOK}
+  #     # - SECRET_CHAT=${SECRET_CHAT}
+  #     # - API_ID=${API_ID}
+  #     # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  #     # - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     # - URL=${URL}
+  #     # - URL_BOT=${URL_BOT}
+  #     - API_BOT_CR=${API_BOT_CR}
+  #     - ID_CH_CR=${ID_CH_CR}
+  #     - MONGO_URL=${MONGO_URL}
   
-  scaner:
-    image: scaner
-    volumes:
-      - ./aibetrade_stock/scaner:/app
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/scaner/
-      dockerfile: DockerFile.app.scaner
-    environment:
-      - TOKEN_BOT_SCANER=${TOKEN_BOT_SCANER}
-      - MONGO_URL_SERV=${MONGO_URL_SERV}
-      - MONGO_URL=${MONGO_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - API_ID=${API_ID}
-      - API_HASH=${API_HASH}
-      - USER_PHONE=${USER_PHONE}
+  # scaner:
+  #   image: scaner
+  #   volumes:
+  #     - ./aibetrade_stock/scaner:/app
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/scaner/
+  #     dockerfile: DockerFile.app.scaner
+  #   environment:
+  #     - TOKEN_BOT_SCANER=${TOKEN_BOT_SCANER}
+  #     - MONGO_URL_SERV=${MONGO_URL_SERV}
+  #     - MONGO_URL=${MONGO_URL}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - API_ID=${API_ID}
+  #     - API_HASH=${API_HASH}
+  #     - USER_PHONE=${USER_PHONE}
 
-  botknow:
-    image: botknow
-    volumes:
-      - ./aibetrade_stock/botknow:/app
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/botknow/
-      dockerfile: DockerFile.app.botknow
-    environment:
-      - MONGO_URL_SERV=${MONGO_URL_SERV}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+  # botknow:
+  #   image: botknow
+  #   volumes:
+  #     - ./aibetrade_stock/botknow:/app
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/botknow/
+  #     dockerfile: DockerFile.app.botknow
+  #   environment:
+  #     - MONGO_URL_SERV=${MONGO_URL_SERV}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
 
 # Надо проверить обновление композера
 volumes:
