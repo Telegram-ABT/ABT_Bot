@@ -134,19 +134,19 @@ services:
   #     - WEBHOOK=${WEBHOOK}
   #     - SECRET_CHAT=${SECRET_CHAT}
   #     - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
-  events:
-    image: events
-    volumes:
-      - ./aibetrade_stock/events:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/events/
-      dockerfile: DockerFile.app.events
-    environment:
-      - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
-      - WEBHOOK=${WEBHOOK}
-      - SECRET_CHAT=${SECRET_CHAT}
+  # events:
+  #   image: events
+  #   volumes:
+  #     - ./aibetrade_stock/events:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/events/
+  #     dockerfile: DockerFile.app.events
+  #   environment:
+  #     - TOKEN_BOT_EVENT=${TOKEN_BOT_EVENT}
+  #     - WEBHOOK=${WEBHOOK}
+  #     - SECRET_CHAT=${SECRET_CHAT}
   # tasker:
     # image: tasker
     # volumes:
@@ -190,28 +190,28 @@ services:
   #     - WEBHOOK=${WEBHOOK}
   #     - SECRET_CHAT=${SECRET_CHAT}
   
-  personalGpt:
-    image: personal_gpt
-    volumes:
-      - ./aibetrade_stock/personalGpt:/app
-      # - ./pyproject.toml:/app/pyproject.toml
-    restart: unless-stopped
-    build:
-      context: ./aibetrade_stock/personalGpt/
-      dockerfile: DockerFile.app.personalGpt
-    environment:
-      # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
-      # - WEBHOOK=${WEBHOOK}
-      # - SECRET_CHAT=${SECRET_CHAT}
-      - API_ID=${API_ID}
-      - API_HASH=${API_HASH}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_URL=${POSTGRES_URL}
-      - api_key_binance=${api_key_binance}
-      - api_secret_binance=${api_secret_binance}
+  # personalGpt:
+  #   image: personal_gpt
+  #   volumes:
+  #     - ./aibetrade_stock/personalGpt:/app
+  #     # - ./pyproject.toml:/app/pyproject.toml
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./aibetrade_stock/personalGpt/
+  #     dockerfile: DockerFile.app.personalGpt
+  #   environment:
+  #     # - BOT_REMOVE_SPAM=${BOT_REMOVE_SPAM}
+  #     # - WEBHOOK=${WEBHOOK}
+  #     # - SECRET_CHAT=${SECRET_CHAT}
+  #     - API_ID=${API_ID}
+  #     - API_HASH=${API_HASH}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_URL=${POSTGRES_URL}
+  #     - api_key_binance=${api_key_binance}
+  #     - api_secret_binance=${api_secret_binance}
 
   # publisher:
   #   image: publisher
