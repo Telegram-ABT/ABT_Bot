@@ -283,26 +283,26 @@ def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
 
 
 
-@bot.callback_query_handler(func=lambda call: call.data == 'create_account')
-def handle_create_account(call):
-    """Обработчик нажатия кнопки создания аккаунта"""
-    logger.info(f"Кнопка create_account нажата пользователем {call.from_user.id}")
-    try:
-        user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
-        user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+# @bot.callback_query_handler(func=lambda call: call.data == 'create_account')
+# def handle_create_account(call):
+#     """Обработчик нажатия кнопки создания аккаунта"""
+#     logger.info(f"Кнопка create_account нажата пользователем {call.from_user.id}")
+#     try:
+#         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
+#         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
         
-        # Инициализация состояния пользователя
-        user_state[call.from_user.id] = {'step': 'exchange', 'user_id': call.from_user.id}
+#         # Инициализация состояния пользователя
+#         user_state[call.from_user.id] = {'step': 'exchange', 'user_id': call.from_user.id}
         
-        handle_new_connection(
-            message=call.message,
-            bot=bot,
-            state=user_state[call.from_user.id],
-            lang=user_lang,
-            user_id=call.from_user.id
-        )
-    except Exception as e:
-        logger.error(f"Ошибка в обработчике create_account: {e}", exc_info=True)
+#         handle_new_connection(
+#             message=call.message,
+#             bot=bot,
+#             state=user_state[call.from_user.id],
+#             lang=user_lang,
+#             user_id=call.from_user.id
+#         )
+#     except Exception as e:
+#         logger.error(f"Ошибка в обработчике create_account: {e}", exc_info=True)
 
 # @bot.callback_query_handler(func=lambda call: call.data == 'back_to_main')
 # def handle_back_to_main(call):
