@@ -220,7 +220,7 @@ def get_user_language(user_id: int) -> str:
     """Получает язык пользователя из БД"""
     try:
         user_settings = db.bits_user_settings.find_one({'user_id': user_id})
-        return user_settings['language'] if user_settings else 'en'
+        return user_settings['lang_set'] if user_settings else 'en'
     except Exception as e:
         logger.error(f"Ошибка при получении языка пользователя: {e}")
         return 'en'
