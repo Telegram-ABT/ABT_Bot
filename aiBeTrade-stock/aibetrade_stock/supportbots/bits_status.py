@@ -247,7 +247,7 @@ def create_connection_menu(connection, lang: str) -> InlineKeyboardMarkup:
     )
     return markup
 
-def get_status_user(message: Message, bot: TeleBot):
+def get_status_user(message: Message, bot: TeleBot, lang: str):
     """Получает и отображает статус пользователя"""
     user_id = message.from_user.id
     lang = get_user_language(user_id)

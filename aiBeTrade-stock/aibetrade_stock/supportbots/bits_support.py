@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import os
 import langdetect
 from bits_info import create_info_menu, get_info_texts, handle_info_section
+from bits_status import get_status_user
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
 
 # Укажите токен вашего бота
@@ -240,7 +241,10 @@ def handle_status(message):
         'en': "🔄 Checking service status..."
     }
     
-    bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
+    # bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
+    status_texts_bot = get_status_user(message, bot, user_lang)
+    
+    bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']) + "\n\n" + status_texts_bot)
 
 @bot.message_handler(commands=['info'])
 def handle_info(message):
@@ -254,7 +258,7 @@ def handle_info(message):
         'esp': "ℹ️ Información sobre el bot y sus capacidades",
         'en': "ℹ️ Information about the bot and its capabilities"
     }
-    text_info = get_info_text_lang(user_lang,bot,message)
+    text_info = get_info_texts(user_lang)
     
     bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']) + "\n\n" + text_info)
 
