@@ -239,9 +239,10 @@ def create_connection_menu(connection, lang: str) -> InlineKeyboardMarkup:
     )
     return markup
 
-def get_status_user(message: Message, bot: TeleBot, lang="en"):
+def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
     """Получает и отображает статус пользователя"""
-    user_id = message.from_user.id
+    if user_id is None:
+        return "user_id is None"
     logger.info(f"get_status_user вызван для user_id: {user_id}, язык: {lang}")
     
     # Проверяем наличие пользователя в bits_user_settings

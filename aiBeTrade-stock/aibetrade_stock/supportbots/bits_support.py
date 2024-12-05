@@ -240,8 +240,8 @@ def handle_language(message):
     )
 
 @bot.message_handler(commands=['status'])
-def handle_status(call):
-    user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
+def handle_status(message,user_id,user_lang):
+    user_settings = bits_user_settings.find_one({'user_id': user_id})
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
     
     status_texts = {
@@ -251,10 +251,10 @@ def handle_status(call):
         'esp': "🔄 Comprobando el estado del servicio...",
         'en': "🔄 Checking service status..."
     }
-    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {message.from_user.id}, язык: {user_lang}")
+    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {message.from_user.id}, язык: {user_lang}, пользователь: {user_id}")
 
     # bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
-    status_texts_bot = get_status_user(call.message, bot, user_lang)
+    status_texts_bot = get_status_user(message, bot, user_lang,user_id)
     
     bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']) + "\n\n" + status_texts_bot)
 
@@ -483,7 +483,7 @@ def handle_callback_query(call):
             elif call.data == "info":
                 handle_info(call.message)
             elif call.data == "status":
-                handle_status(call)
+                handle_status(call.message,call.from_user.id,user_lang)
             elif call.data == "lang":
                 # Показываем меню выбора языка
                 bot.edit_message_text(
