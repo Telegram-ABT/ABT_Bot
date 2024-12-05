@@ -6,7 +6,7 @@ import os
 import langdetect
 import logging
 from bits_info import create_info_menu, get_info_texts, handle_info_section
-from bits_status import get_status_user
+from bits_status import get_status_user, handle_new_connection
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
 import sys
 # Укажите токен вашего бота
@@ -369,6 +369,40 @@ def handle_callback_query(call):
         # Получаем текущий язык пользователя
         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+        
+        logger.info(f"Получен callback: {call.data} от пользователя {call.from_user.id}")
+
+        if call.data == "create_account":
+            logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
+            # Инициализируем состояние пользователя
+            if not hasattr(bot, 'user_states'):
+                bot.user_states = {}
+            
+            bot.user_states[call.from_user.id] = {
+                'step': 'exchange',
+                'user_id': call.from_user.id
+            }
+            
+            # Вызываем handle_new_connection из bits_status
+            handle_new_connection(
+                message=call.message,
+                bot=bot,
+                state=bot.user_states[call.from_user.id],
+                lang=user_lang,
+                user_id=call.from_user.id
+            )
+            return
+
+        elif call.data == "back_to_main":
+            logger.info(f"Обработка back_to_main для пользователя {call.from_user.id}")
+            # Возвращаем пользователя в главное меню
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text="Выберите действие:",
+                reply_markup=create_main_menu(user_lang)
+            )
+            return
 
         # Обработка информационного меню
         if call.data == "info":
@@ -494,7 +528,7 @@ def handle_callback_query(call):
                 )
                 
     except Exception as e:
-        print(f"Ошибка при обработке callback-запроса: {str(e)}")
+        logger.error(f"Ошибка при обработке callback {call.data}: {e}", exc_info=True)
         bot.answer_callback_query(call.id, "An error occurred. Please try again.")
 
 @bot.message_handler(func=lambda message: message.chat.id != SUPPORT_GROUP_ID and not message.text.startswith('/'))
