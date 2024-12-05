@@ -279,10 +279,61 @@ def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
     
     bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
 
-def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en",user_id=None):
-    """Обработка создания нового подключения"""
-    if user_id is None:
+
+
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'create_account')
+def handle_create_account(call):
+    """Обработчик нажатия кнопки создания аккаунта"""
+    logger.info(f"Кнопка create_account нажата пользователем {call.from_user.id}")
+    try:
+        user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
+        user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+        
+        # Инициализация состояния пользователя
+        user_state[call.from_user.id] = {'step': 'exchange', 'user_id': call.from_user.id}
+        
+        handle_new_connection(
+            message=call.message,
+            bot=bot,
+            state=user_state[call.from_user.id],
+            lang=user_lang,
+            user_id=call.from_user.id
+        )
+    except Exception as e:
+        logger.error(f"Ошибка в обработчике create_account: {e}", exc_info=True)
+
+# @bot.callback_query_handler(func=lambda call: call.data == 'back_to_main')
+# def handle_back_to_main(call):
+#     """Обработчик нажатия кнопки возврата в главное меню"""
+#     logger.info(f"Кнопка back_to_main нажата пользователем {call.from_user.id}")
+#     try:
+#         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
+#         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+        
+#         # Возвращаем пользователя в главное меню
+#         bot.edit_message_text(
+#             chat_id=call.message.chat.id,
+#             message_id=call.message.message_id,
+#             text="Выберите действие:",
+#             reply_markup=create_main_menu(user_lang)
+#         )
+#     except Exception as e:
+#         logger.error(f"Ошибка в обработчике back_to_main: {e}", exc_info=True)
+
+
+
+
+
+
+
+
+def handle_new_connection(message: Message, bot: TeleBot, state: dict, call):
+    if call.from_user.id is None:
         return "user_id is None"
+    user_id = call.from_user.id
+    lang = db.bits_user_settings.find_one({'user_id': user_id}).get('lang_set', 'en')
     logger.info(f"handle_new_connection вызван для user_id: {user_id}, текущий state: {state}, язык: {lang}")
     
     if 'step' not in state:
