@@ -5,6 +5,7 @@ from datetime import datetime, UTC
 from pymongo import MongoClient
 from bson import ObjectId
 import os
+import sys
 
 # Настройка логирования
 logging.basicConfig(
