@@ -571,9 +571,9 @@ def handle_callback_query(call):
 
 @bot.message_handler(func=lambda message: message.chat.id != SUPPORT_GROUP_ID and not message.text.startswith('/'))
 def user_message_handler(message):
-    if not message.reply_to_message.text.startswith('Config:'):
+    if not message.reply_to_message.text.startswith('Config'):
         bot_chat_user(message, bot)
-    elif message.reply_to_message.text.startswith('Config:'):
+    elif message.reply_to_message.text.startswith('Config'):
         if message.reply_to_message.text.split('_')[1] == "key":
             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
             user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
@@ -614,6 +614,17 @@ def user_message_handler(message):
                 'step': 'deposit',
                 'user_id': message.from_user.id
             }
+        else:
+            return bot.reply_to(message, "Config_error:")
+        
+        handle_new_connection(
+            message=message,
+            bot=bot,
+            state=bot.user_states[message.from_user.id],
+            lang=user_lang,
+            user_id=message.from_user.id
+        )
+        return
 
 @bot.message_handler(func=lambda message: message.chat.id == SUPPORT_GROUP_ID and message.reply_to_message)
 def support_reply_handler(message):
