@@ -5,7 +5,6 @@ from datetime import datetime, UTC
 from pymongo import MongoClient
 from bson import ObjectId
 import os
-from bits_support import create_main_menu
 
 # Настройка логирования
 logging.basicConfig(
@@ -452,12 +451,12 @@ def create_back_to_menu_button(lang: str) -> InlineKeyboardButton:
         message.chat.id,
         section_text,
         parse_mode='HTML',
-        reply_markup=create_info_menu(lang)
+        reply_markup=create_info_menu_status(lang)
     )
     return "info_sent"
 
 
-def create_info_menu(lang='en'):
+def create_info_menu_status(lang='en'):
     markup = types.InlineKeyboardMarkup(row_width=2)
     
     menu_buttons = {
