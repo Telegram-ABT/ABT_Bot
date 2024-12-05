@@ -27,6 +27,6 @@ RUN poetry install
 # Копируем файл .env внутрь контейнера
 # COPY .env authorized_key.json /app/
 # CMD ["python3", "workTelegram.py"]
-CMD ["poetry", "run", "python3", "init_bot.py"]
+CMD ["poetry", "run", "python3", "bits_support.py"]
 # CMD ["gunicorn", "wsgi:app", "-c", "wsgi_config.py"]
 # gunicorn wsgi:app -c wsgi_config.py

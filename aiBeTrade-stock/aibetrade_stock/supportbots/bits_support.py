@@ -24,7 +24,7 @@ def get_ket_bot():
         bot_key = bits_settings.find_one({})
         if not bot_key:
             return None
-        return bot_key.get('bot_key')
+        return bot_key.get('bot_key_test')
     except Exception as e:
         print(f"Ошибка при получении списка разрешенных пользователей: {str(e)}")
         return None
