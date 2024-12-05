@@ -279,9 +279,10 @@ def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
     
     bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
 
-def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en"):
+def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en",user_id=None):
     """Обработка создания нового подключения"""
-    user_id = message.from_user.id
+    if user_id is None:
+        return "user_id is None"
     logger.info(f"handle_new_connection вызван для user_id: {user_id}, текущий state: {state}, язык: {lang}")
     
     if 'step' not in state:
