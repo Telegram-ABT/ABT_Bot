@@ -407,7 +407,7 @@ def handle_confirm_delete(message: Message, connection_id: str, bot: TeleBot):
                 message.message_id
             )
             # Возвращаем пользователя к списку подключений
-            get_status_user(message, bot)
+            get_status_user(message, bot, lang)
         
     except Exception as e:
         logger.error(f"Ошибка при подтверждении удаления: {e}", exc_info=True)
