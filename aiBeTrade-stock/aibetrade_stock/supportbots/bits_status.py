@@ -287,7 +287,7 @@ def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en"
         
     logger.info(f"handle_new_connection вызван для user_id: {user_id}, текущий state: {state}, язык: {lang}")
     
-    if 'step' not in state:
+    if state['step'] == 'exchange':
         logger.info("Начинаем новое подключение - шаг выбора биржи")
         markup = create_exchange_menu(lang)
         bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)

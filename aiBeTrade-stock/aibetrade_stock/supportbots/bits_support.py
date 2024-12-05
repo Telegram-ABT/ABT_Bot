@@ -240,7 +240,9 @@ def handle_language(message):
     )
 
 @bot.message_handler(commands=['status'])
-def handle_status(message,user_id,user_lang):
+def handle_status(message, user_id, user_lang):
+    logger.info(f"handle_status вызван для user_id: {user_id}, язык: {user_lang}")
+    
     user_settings = bits_user_settings.find_one({'user_id': user_id})
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
     
@@ -251,12 +253,28 @@ def handle_status(message,user_id,user_lang):
         'esp': "🔄 Comprobando el estado del servicio...",
         'en': "🔄 Checking service status..."
     }
-    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {message.from_user.id}, язык: {user_lang}, пользователь: {user_id}")
-
-    # bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
-    status_texts_bot = get_status_user(message, bot, user_lang,user_id)
     
-    bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']) + "\n\n" + status_texts_bot)
+    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {user_id}, язык: {user_lang}")
+
+    # Получаем статус
+    status_texts_bot = get_status_user(message, bot, user_lang, user_id)
+    
+    # Проверяем, что status_texts_bot не None
+    if status_texts_bot is None:
+        logger.error(f"get_status_user вернул None для user_id: {user_id}")
+        status_texts_bot = {
+            'ru': "❌ Ошибка при получении статуса",
+            'fra': "❌ Erreur lors de l'obtention du statut",
+            'deu': "❌ Fehler beim Abrufen des Status",
+            'esp': "❌ Error al obtener el estado",
+            'en': "❌ Error getting status"
+        }.get(user_lang, "❌ Error getting status")
+    
+    # Формируем полное сообщение
+    full_message = f"{status_texts.get(user_lang, status_texts['en'])}\n\n{status_texts_bot}"
+    
+    logger.info(f"Отправляем сообщение о статусе для user_id: {user_id}")
+    bot.send_message(message.chat.id, full_message)
 
 @bot.message_handler(commands=['info'])
 def handle_info(message):
