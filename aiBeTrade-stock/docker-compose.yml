@@ -296,6 +296,18 @@ services:
   #     - API_ID=${API_ID}
   #     - API_HASH=${API_HASH}
   #     - USER_PHONE=${USER_PHONE}
+  
+  supportbots:
+    image: supportbots
+    volumes:
+      - ./aibetrade_stock/supportbots:/app
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/supportbots/
+      dockerfile: DockerFile.app.supportbots
+    environment:
+      - MONGO_URL_SERV=${MONGO_URL_SERV}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
 
   # botknow:
   #   image: botknow
