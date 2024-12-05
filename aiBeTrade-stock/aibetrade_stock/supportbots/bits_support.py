@@ -4,10 +4,11 @@ from datetime import datetime
 from pymongo import MongoClient
 import os
 import langdetect
+import logging
 from bits_info import create_info_menu, get_info_texts, handle_info_section
 from bits_status import get_status_user
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
-
+import sys
 # Укажите токен вашего бота
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -18,6 +19,16 @@ bits_user_settings = db["bits_user_settings"]
 
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger('BitsBot')
 
 # Получение разрешенных пользователей
 def get_ket_bot():
@@ -240,7 +251,8 @@ def handle_status(message):
         'esp': "🔄 Comprobando el estado del servicio...",
         'en': "🔄 Checking service status..."
     }
-    
+    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {message.from_user.id}, язык: {user_lang}")
+
     # bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
     status_texts_bot = get_status_user(message, bot, user_lang)
     
