@@ -216,14 +216,6 @@ Participación en beneficios: {share_profit}%""",
     }
 }
 
-def get_user_language(user_id: int) -> str:
-    """Получает язык пользователя из БД"""
-    try:
-        user_settings = db.bits_user_settings.find_one({'user_id': user_id})
-        return user_settings['lang_set'] if user_settings else 'en'
-    except Exception as e:
-        logger.error(f"Ошибка при получении языка пользователя: {e}")
-        return 'en'
 
 def create_exchange_menu(lang: str) -> InlineKeyboardMarkup:
     """Создает меню выбора биржи"""
@@ -247,10 +239,9 @@ def create_connection_menu(connection, lang: str) -> InlineKeyboardMarkup:
     )
     return markup
 
-def get_status_user(message: Message, bot: TeleBot, lang: str):
+def get_status_user(message: Message, bot: TeleBot, lang="en"):
     """Получает и отображает статус пользователя"""
     user_id = message.from_user.id
-    lang = get_user_language(user_id)
     
     # Проверяем наличие пользователя в bits_user_settings
     user_settings = db.bits_user_settings.find_one({'user_id': user_id})
@@ -280,10 +271,9 @@ def get_status_user(message: Message, bot: TeleBot, lang: str):
     
     bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
 
-def handle_new_connection(message: Message, bot: TeleBot, state: dict):
+def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en"):
     """Обработка создания нового подключения"""
     user_id = message.from_user.id
-    lang = get_user_language(user_id)
     
     if 'step' not in state:
         markup = create_exchange_menu(lang)
