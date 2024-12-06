@@ -174,7 +174,7 @@ def setup_bot_commands():
 # Обработчики команд
 @bot.message_handler(commands=['help'])
 def handle_help(message):
-    # Получаем настройки пользователя из базы данн��х
+    # Получаем настройки пользователя из базы данных
     user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
     # Используем язык из настроек или английский по умолчанию
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
@@ -361,7 +361,7 @@ def handle_start(message):
             user_lang = user_system.get('lang_set', 'en')
             welcome_text = welcome_text_lang(user_lang)
             
-            # Тексты для меню на разных языках
+            # Тексты для м��ню на разных языках
             menu_texts = {
                 'ru': "Выберите нужное действие:",
                 'en': "Please select an action:",
@@ -394,35 +394,14 @@ def handle_callback_query(call):
 
         if "create_account" in call.data:
             logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
-            global user_states  # Добавляем global
-            if bot.user_states.step == 'exchange':
-                user_states[call.from_user.id] = {
-                    'creating_account': True,
-                    'step': 'exchange',
-                    'user_id': call.from_user.id
-                }
-            if bot.user_states.step == 'key':
-                user_states[call.from_user.id] = {
-                    'creating_account': True,
-                    'step': 'key',
-                    'user_id': call.from_user.id
-                }
-            if bot.user_states.step == 'secret':
-                user_states[call.from_user.id] = {
-                    'creating_account': True,
-                    'step': 'secret',
-                    'user_id': call.from_user.id
-                }
-            if bot.user_states.step == 'deposit':
-                user_states[call.from_user.id] = {
-                    'creating_account': True,
-                    'step': 'deposit',
-                    'user_id': call.from_user.id
-                }
+            global user_states
+            step = user_states[call.from_user.id].get('step')
+            # Если следующий шаг key, обновляем состояние
+            logger.info(f"Переход к шагу key для пользователя {call.from_user.id}")
             handle_new_connection(
                 message=call.message,
                 bot=bot,
-                state=user_states[call.from_user.id],
+                state=step,
                 user_id=call.from_user.id
             )
 
