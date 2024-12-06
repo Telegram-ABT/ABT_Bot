@@ -585,74 +585,48 @@ def handle_account_creation(message):
     global user_states  # Добавляем global
     user_id = message.from_user.id
     state = user_states[user_id]
-    user_lang = get_user_language(user_id)
     
     logger.info(f"Обработка создания аккаунта для user_id: {user_id}, state: {state}")
     
     try:
         if state['step'] == 'key':
-            key = message.text.strip()
-            if len(key) != 10:
-                bot.reply_to(message, TEXTS[user_lang]['invalid_key'])
-                return
-            state['key'] = key
-            state['step'] = 'secret'
-            bot.reply_to(message, TEXTS[user_lang]['enter_secret'])
+            user_lang = get_user_language(user_id)
+            bot.user_states[message.from_user.id] = {
+                'step': 'key',
+                'user_id': message.from_user.id
+            }
             
         elif state['step'] == 'secret':
-            secret = message.text.strip()
-            if len(secret) != 15:
-                bot.reply_to(message, TEXTS[user_lang]['invalid_secret'])
-                return
-            state['secret_key'] = secret
-            state['step'] = 'deposit'
-            bot.reply_to(message, TEXTS[user_lang]['enter_deposit'])
+            bot.user_states[message.from_user.id] = {
+                'step': 'secret',
+                'user_id': message.from_user.id
+            }
+            
             
         elif state['step'] == 'deposit':
-            try:
-                deposit = float(message.text.strip())
-                if deposit < 1000:
-                    bot.reply_to(message, TEXTS[user_lang]['invalid_deposit'])
-                    return
-                
-                # Создаем новую запись в БД
-                connection_data = {
-                    'user_id': user_id,
-                    'connection_id': f"CONN_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}",
-                    'stock': state['exchange'],
-                    'key': state['key'],
-                    'secret_key': state['secret_key'],
-                    'start_dep': deposit,
-                    'start_data': datetime.now(UTC),
-                    'pay_period': 30 if deposit < 10000 else 90,
-                    'share_profit': 30 if deposit < 10000 else (25 if deposit < 50000 else 20)
-                }
-                
-                db.bits_user_connection.insert_one(connection_data)
-                
-                # Отправляем информацию о созданном подключении
-                bot.reply_to(
-                    message,
-                    TEXTS[user_lang]['connection_info'].format(**connection_data),
-                    reply_markup=create_connection_menu(connection_data, user_lang)
-                )
-                
-                # Очищаем состояние
-                del user_states[user_id]
-                
-            except ValueError:
-                bot.reply_to(message, TEXTS[user_lang]['invalid_deposit'])
-                
+            bot.user_states[message.from_user.id] = {
+                'step': 'deposit',
+                'user_id': message.from_user.id
+            }
+        else:
+            return bot.reply_to(message, "Config_error:")   
+            
+        # Вызываем handle_new_connection из bits_status
+        handle_new_connection(
+            message=message,
+            bot=bot,
+            state=bot.user_states[message.from_user.id],
+            lang=user_lang,
+            user_id=message.from_user.id
+        )
+        return
     except Exception as e:
         logger.error(f"Ошибка при создании аккаунта: {e}", exc_info=True)
         bot.reply_to(message, TEXTS[user_lang].get('error_creating_account', 'Error occurred while creating account'))
         del user_states[user_id]
 
 
-# def user_message_handler(message):
-#     if not message.reply_to_message.text.startswith('Config'):
-#         bot_chat_user(message, bot)
-#     elif message.reply_to_message.text.startswith('Config'):
+# def handle_account_creation(message):
 #         if message.reply_to_message.text.split('_')[1] == "key":
 #             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
 #             user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
