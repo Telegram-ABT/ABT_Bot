@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 import telebot
 import logging
 
@@ -244,7 +244,7 @@ def format_robot_stats(robot_data, lang='en'):
                 count_date_pay = 90
                 
             date_pay = robot['date_start'] + timedelta(days=count_date_pay)
-            days_remaining = (date_pay - datetime.now().date()).days
+            days_remaining = (date_pay - datetime.now()).days
             message.append(f"{t['date_pay']}: <b>{date_pay.strftime(date_format)} ({days_remaining} days)</b>")
         
         result.append("\n".join(message))
@@ -368,7 +368,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Nombre de jours de trading: <b>{days}</b>"
                 )
             elif lang == 'de':
-                 # TODO: перев��сти на немецкий
+                 # TODO: перевести на немецкий
                message_text = (
                     f"🔴 <b>ABT Bits Pro: Tagestrading fehlgeschlagen!</b>\n\n"
                     f"Strategie: <b>{strategy_name}</b>\n"
