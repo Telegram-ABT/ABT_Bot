@@ -22,25 +22,29 @@ def get_statistics_user_trade(bot,chat_id,lang='en'):
         return {"error": f"Ошибка при получении статистики: {str(e)}"}
 
 
-def get_statistics_system(bot,chat_id,lang='en'):
+def get_statistics_system(bot, chat_id, message_id, lang='en'):
     try:
+        # Удаляем предыдущее сообщение с кнопками
+        try:
+            bot.delete_message(chat_id, message_id)
+        except Exception as e:
+            logger.error(f"Error deleting message: {e}")
+            
         # Подключение к MongoDB
-        bot.delete_message(chat_id, bot.last_message_id)
         strategy_id = "roman_strat"
         
         # Получаем последнюю запись, сортируя по полю date в обратном порядке
         last_record = collection.find_one(
-            {"strategy_id": strategy_id},  # пустой фильтр для выбора всех документов
-            sort=[("date", -1)]  # сортировка по date в обратном порядке
+            {"strategy_id": strategy_id},
+            sort=[("date", -1)]
         )
         
         if last_record:
             logger.info(f"Last record: {last_record}")
-            send_bot = publish_to_telegram(bot,chat_id,last_record,lang)
+            send_bot = publish_to_telegram(bot, chat_id, last_record, lang)
             
             # После успешной отправки статистики показываем меню
             if "success" in send_bot:
-                # Тексты заголовка для разных языков
                 header_texts = {
                     'ru': '📊 Выберите действие:',
                     'en': '📊 Choose action:',

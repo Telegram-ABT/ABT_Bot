@@ -411,7 +411,7 @@ def handle_callback_query(call):
         if call.data.startswith('stats_') or call.data.startswith('robot_'):
             if call.data == 'stats_trading':
                 # Показываем торговый результат
-                get_statistics_system(bot, call.message.chat.id, user_lang)
+                get_statistics_system(bot, call.message.chat.id, call.message.message_id, user_lang)
                 
             elif call.data == 'stats_robots':
                 # Получаем список никнеймов
