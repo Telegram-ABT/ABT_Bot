@@ -6,7 +6,7 @@ import os
 import langdetect
 from bits_info import create_info_menu, get_info_texts, handle_info_section
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
-
+from bits_statistics import get_statistics
 # Укажите токен вашего бота
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -241,7 +241,8 @@ def handle_status(message):
     }
     
     bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
-
+    status_texts = get_statistics(user_lang)
+    bot.send_message(message.chat.id, status_texts)
 @bot.message_handler(commands=['info'])
 def handle_info(message):
     user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
