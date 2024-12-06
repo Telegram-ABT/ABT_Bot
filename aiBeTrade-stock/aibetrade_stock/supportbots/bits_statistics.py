@@ -200,6 +200,7 @@ def format_robot_stats(robot_data, lang='en'):
     result = []
     
     for robot in robot_data:
+   
         message = []
         message.append(f"----------<b>{robot['nickname']}</b>----------")
          
