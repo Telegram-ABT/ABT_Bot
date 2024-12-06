@@ -404,7 +404,6 @@ def handle_callback_query(call):
                 message=call.message,
                 bot=bot,
                 state=user_states[call.from_user.id],
-                lang=user_lang,
                 user_id=call.from_user.id
             )
 
@@ -435,7 +434,6 @@ def handle_callback_query(call):
                 message=call.message,
                 bot=bot,
                 state=bot.user_states[call.from_user.id],
-                lang=user_lang,
                 user_id=call.from_user.id
             )
             return
@@ -621,7 +619,7 @@ def handle_account_creation(message):
         logger.error(f"Ошибка при создании аккаунта: {e}", exc_info=True)
         bot.reply_to(message, "error_creating_account что-то пошло не так")
         del user_states[user_id]
-
+        
 # def handle_account_creation(message):
 #         if message.reply_to_message.text.split('_')[1] == "key":
 #             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
