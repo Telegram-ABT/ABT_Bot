@@ -25,6 +25,7 @@ def get_statistics_user_trade(bot,chat_id,lang='en'):
 def get_statistics_system(bot,chat_id,lang='en'):
     try:
         # Подключение к MongoDB
+        bot.delete_message(chat_id, bot.last_message_id)
         strategy_id = "roman_strat"
         
         # Получаем последнюю запись, сортируя по полю date в обратном порядке
@@ -35,12 +36,30 @@ def get_statistics_system(bot,chat_id,lang='en'):
         
         if last_record:
             logger.info(f"Last record: {last_record}")
-            send_bot = publish_to_telegram(bot,chat_id,last_record,lang) 
-            markup = get_statistics(lang)
-            return markup
+            send_bot = publish_to_telegram(bot,chat_id,last_record,lang)
+            
+            # После успешной отправки статистики показываем меню
+            if "success" in send_bot:
+                # Тексты заголовка для разных языков
+                header_texts = {
+                    'ru': '📊 Выберите действие:',
+                    'en': '📊 Choose action:',
+                    'fr': '📊 Choisissez une action:',
+                    'de': '📊 Aktion wählen:',
+                    'es': '📊 Elija una acción:',
+                    'zh': '📊 选择操作：'
+                }
+                
+                markup = create_statistics_menu(bot, chat_id, lang)
+                bot.send_message(
+                    chat_id,
+                    header_texts.get(lang, header_texts['en']),
+                    reply_markup=markup
+                )
+            
+            return send_bot
         else:
-            markup = get_statistics(lang)
-            return markup
+            return {"error": "Записи не найдены"}
             
     except Exception as e:
         return {"error": f"Ошибка при получении статистики: {str(e)}"}
@@ -175,6 +194,7 @@ def format_robot_stats(robot_data, lang='en'):
 
 def get_statistics(bot, chat_id, lang='en'):
     """Основная функция статистики"""
+    bot.delete_message(chat_id, bot.last_message_id)
     try:
         # Создаем и отправляем меню статистики
         markup = create_statistics_menu(lang)
