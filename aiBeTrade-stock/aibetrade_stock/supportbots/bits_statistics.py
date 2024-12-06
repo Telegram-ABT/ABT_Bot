@@ -23,7 +23,7 @@ def get_statistics(bot,chat_id,lang):
         
         if last_record:
             # Преобразуем ObjectId в строку для возможности сериализации
-            send_bot = publish_to_telegram(bot,chat_id,last_record) 
+            send_bot = publish_to_telegram(bot,chat_id,last_record,lang) 
             return send_bot
         else:
             return {"error": "Записи не найдены"}
@@ -34,7 +34,8 @@ def get_statistics(bot,chat_id,lang):
         mongo_client.close()
 
 # Функция для публикации в Telegram
-def publish_to_telegram(bot, chat_id, stst_data):
+def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
+
         image_path = stst_data['image_path']
         days = stst_data['days']
         is_successful = stst_data['is_successful']
@@ -43,22 +44,39 @@ def publish_to_telegram(bot, chat_id, stst_data):
         strategy_name = stst_data['strategy_name']
         if is_successful:
             image_path = image_path
-            message_text = (
-                f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
-                f"Strategy: <b>{strategy_name}</b>\n"
-                f"Profit of trade is: <b>{profit}%</b>\n"
-                f"Total profit: <b>{totalProfit}%</b>\n"
-                f"Number of Trading Days: <b>{days}</b>"
-            )
+            if lang == 'ru':
+                message_text = (
+                    f"🟢 <b>ABT Bits Pro: торговый день прошел успешно!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Прибыль от торговли: <b>{profit}%</b>\n"
+                    f"Общая прибыль: <b>{totalProfit}%</b>\n"
+                    f"Количество торговых дней: <b>{days}</b>"
+                )
+            else:
+                message_text = (
+                    f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
+                )
         else:
-            image_path = "pic/failure.jpg"
-            message_text = (
-                f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
-                f"Strategy: <b>{strategy_name}</b>\n"
-                f"Profit of trade is: <b>{profit}%</b>\n"
-                f"Total profit: <b>{totalProfit}%</b>\n"
-                f"Number of Trading Days: <b>{days}</b>"
-            )
+            if lang == 'ru':
+                message_text = (
+                    f"🔴 <b>ABT Bits Pro: торговый день прошел неудачно!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Прибыль от торговли: <b>{profit}%</b>\n"
+                    f"Общая прибыль: <b>{totalProfit}%</b>\n"
+                    f"Количество торговых дней: <b>{days}</b>"
+                )
+            else:
+                message_text = (
+                    f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
+                )
 
 
 
