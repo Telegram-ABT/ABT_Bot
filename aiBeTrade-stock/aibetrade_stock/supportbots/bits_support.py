@@ -255,7 +255,7 @@ def handle_info(message):
         'esp': "ℹ️ Información sobre el bot y sus capacidades",
         'en': "ℹ️ Information about the bot and its capabilities"
     }
-    text_info = get_info_text_lang(user_lang,bot,message)
+    text_info = get_info_texts(user_lang)
     
     bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']) + "\n\n" + text_info)
 
