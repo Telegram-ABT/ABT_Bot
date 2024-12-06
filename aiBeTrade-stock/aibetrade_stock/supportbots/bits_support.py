@@ -614,15 +614,14 @@ def handle_account_creation(message):
             message=message,
             bot=bot,
             state=bot.user_states[message.from_user.id],
-            lang=user_lang,
             user_id=message.from_user.id
         )
         return
     except Exception as e:
         logger.error(f"Ошибка при создании аккаунта: {e}", exc_info=True)
-        bot.reply_to(message, TEXTS[user_lang].get('error_creating_account', 'Error occurred while creating account'))
+        bot.reply_to(message, "error_creating_account что-то пошло не так")
         del user_states[user_id]
-        
+
 # def handle_account_creation(message):
 #         if message.reply_to_message.text.split('_')[1] == "key":
 #             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
