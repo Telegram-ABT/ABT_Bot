@@ -23,7 +23,7 @@ def get_statistics(bot,chat_id,lang):
         
         if last_record:
             # Преобразуем ObjectId в строку для возможности сериализации
-            send_bot = publish_to_telegram(last_record['_id']) 
+            send_bot = publish_to_telegram(bot,chat_id,last_record) 
             return send_bot
         else:
             return {"error": "Записи не найдены"}
