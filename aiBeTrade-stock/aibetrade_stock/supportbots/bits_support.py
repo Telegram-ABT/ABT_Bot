@@ -255,10 +255,10 @@ def handle_status(message):
     logger.info(f"User language кода вызвали команду status: {user_id} {user_lang}")
     status_texts = {
         'ru': "🔄 Проверка статуса сервисов...",
-        'fr': "🔄 Vérification de l'état des services...",
+        'en': "🔄 Checking service status...",
+        'fr': "🔄 Vérification de l'état du service...",
         'de': "🔄 Überprüfung des Servicestatus...",
         'es': "🔄 Comprobando el estado del servicio...",
-        'en': "🔄 Checking service status..."
         'zh': "🔄 检查服务状态..."
     }
     
@@ -411,7 +411,7 @@ def handle_callback_query(call):
         # Обработка статистики
         if call.data.startswith('stats_') or call.data.startswith('robot_'):
             if call.data == 'stats_trading':
-                # Показываем торговый результат
+                # ��оказываем торговый результат
                 get_statistics_system(bot, call.message.chat.id,call.message.message_id, user_lang)
                 
             elif call.data == 'stats_robots':
