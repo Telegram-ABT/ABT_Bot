@@ -79,10 +79,10 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
             elif lang == 'lang_zh':
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: 日交易成功！</b>\n\n"
-                    f"Strategy: <b>{strategy_name}</b>\n"
-                    f"Profit of trade is: <b>{profit}%</b>\n"
-                    f"Total profit: <b>{totalProfit}%</b>\n"
-                    f"Number of Trading Days: <b>{days}</b>"    
+                    f"策略: <b>{strategy_name}</b>\n"
+                    f"交易利润: <b>{profit}%</b>\n"
+                    f"总利润: <b>{totalProfit}%</b>\n"
+                    f"交易天数: <b>{days}</b>"    
                 )
             else:
                 message_text = (
@@ -104,10 +104,10 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
             elif lang == 'lang_zh':
                 message_text = (
                     f"🔴 <b>ABT Bits Pro: 日交易失败！</b>\n\n"
-                    f"Strategy: <b>{strategy_name}</b>\n"
-                    f"Profit of trade is: <b>{profit}%</b>\n"
-                    f"Total profit: <b>{totalProfit}%</b>\n"
-                    f"Number of Trading Days: <b>{days}</b>"
+                    f"策略: <b>{strategy_name}</b>\n"
+                    f"交易利润: <b>{profit}%</b>\n"
+                    f"总利润: <b>{totalProfit}%</b>\n"
+                    f"交易天数: <b>{days}</b>"
                 )
             elif lang == 'fra':
                 message_text = (
