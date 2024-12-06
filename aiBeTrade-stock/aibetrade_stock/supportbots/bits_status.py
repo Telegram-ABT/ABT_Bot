@@ -5,7 +5,7 @@ from datetime import datetime, UTC
 from pymongo import MongoClient
 from bson import ObjectId
 import os
-import sys
+from bits_support import create_main_menu
 
 # Настройка логирования
 logging.basicConfig(
@@ -216,13 +216,21 @@ Participación en beneficios: {share_profit}%""",
     }
 }
 
+def get_user_language(user_id: int) -> str:
+    """Получает язык пользователя из БД"""
+    try:
+        user_settings = db.bits_user_settings.find_one({'user_id': user_id})
+        return user_settings['language'] if user_settings else 'en'
+    except Exception as e:
+        logger.error(f"Ошибка при получении языка пользователя: {e}")
+        return 'en'
 
 def create_exchange_menu(lang: str) -> InlineKeyboardMarkup:
     """Создает меню выбора биржи"""
     markup = InlineKeyboardMarkup()
     exchanges = ['Bybit', 'Binance', 'OKX', 'Bitget']
     for exchange in exchanges:
-        markup.add(InlineKeyboardButton(exchange, callback_data=f'create_account{exchange.lower()}'))
+        markup.add(InlineKeyboardButton(exchange, callback_data=f'exchange_{exchange.lower()}'))
     markup.add(InlineKeyboardButton(TEXTS[lang]['back'], callback_data='back_to_main'))
     return markup
 
@@ -239,24 +247,17 @@ def create_connection_menu(connection, lang: str) -> InlineKeyboardMarkup:
     )
     return markup
 
-def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
+def get_status_user(message: Message, bot: TeleBot):
     """Получает и отображает статус пользователя"""
-    if user_id is None:
-        return "user_id is None"
-    logger.info(f"get_status_user вызван для user_id: {user_id}, язык: {lang}")
+    user_id = message.from_user.id
+    lang = get_user_language(user_id)
     
     # Проверяем наличие пользователя в bits_user_settings
     user_settings = db.bits_user_settings.find_one({'user_id': user_id})
-    logger.info(f"Найдены настройки пользователя: {user_settings}")
-    
     if not user_settings:
-        logger.warning(f"Настройки пользователя не найдены для user_id: {user_id}")
         markup = InlineKeyboardMarkup()
-        create_btn = InlineKeyboardButton(TEXTS[lang]['create_account'], callback_data='create_account')
-        back_btn = InlineKeyboardButton(TEXTS[lang]['back'], callback_data='back_to_main')
-        markup.add(create_btn)
-        markup.add(back_btn)
-        logger.info(f"Отправляем сообщение с кнопками create_account и back_to_main")
+        markup.add(InlineKeyboardButton(TEXTS[lang]['create_account'], callback_data='create_account'))
+        markup.add(InlineKeyboardButton(TEXTS[lang]['back'], callback_data='back_to_main'))
         bot.reply_to(message, TEXTS[lang]['no_user_data'], reply_markup=markup)
         return
     
@@ -279,21 +280,15 @@ def get_status_user(message: Message, bot: TeleBot, lang="en",user_id=None):
     
     bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
 
-def handle_new_connection(message: Message, bot: TeleBot, state: dict, user_id=None):
-    lang = get_user_language(user_id)
+def handle_new_connection(message: Message, bot: TeleBot, state: dict):
     """Обработка создания нового подключения"""
-    if user_id is None:
-        logger.error("handle_new_connection вызван без user_id")
-        return "user_id is None"
-        
-    logger.info(f"handle_new_connection вызван для user_id: {user_id}, текущий state: {state}, язык: {lang}")
+    user_id = message.from_user.id
+    lang = get_user_language(user_id)
     
-    if state['step'] == 'exchange':
-        logger.info("Начинаем новое подключение - шаг выбора биржи")
+    if 'step' not in state:
         markup = create_exchange_menu(lang)
         bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
-        state['step'] = 'key'
-        logger.info(f"Состояние обновлено: {state}")
+        state['step'] = 'exchange'
         return
     
     if state['step'] == 'key':
@@ -422,7 +417,7 @@ def handle_confirm_delete(message: Message, connection_id: str, bot: TeleBot):
                 message.message_id
             )
             # Возвращаем пользователя к списку подключений
-            get_status_user(message, bot, lang)
+            get_status_user(message, bot)
         
     except Exception as e:
         logger.error(f"Ошибка при подтверждении удаления: {e}", exc_info=True)
@@ -453,22 +448,16 @@ def handle_cancel_delete(message: Message, connection_id: str, bot: TeleBot):
 
 def create_back_to_menu_button(lang: str) -> InlineKeyboardButton:
     """Создает кнопку возврата в главное меню"""
-    logger.info(f"Создание кнопки возврата в меню для языка: {lang}")
-    try:
-        bot.send_message(
-            message.chat.id,
-            section_text,
-            parse_mode='HTML',
-            reply_markup=create_info_menu_status(lang)
-        )
-        logger.info("Сообщение с меню успешно отправлено")
-        return "info_sent"
-    except Exception as e:
-        logger.error(f"Ошибка при создании кнопки возврата: {e}", exc_info=True)
-        return None
+    bot.send_message(
+        message.chat.id,
+        section_text,
+        parse_mode='HTML',
+        reply_markup=create_info_menu(lang)
+    )
+    return "info_sent"
 
 
-def create_info_menu_status(lang='en'):
+def create_info_menu(lang='en'):
     markup = types.InlineKeyboardMarkup(row_width=2)
     
     menu_buttons = {
@@ -543,12 +532,4 @@ def create_info_menu_status(lang='en'):
     markup.row(types.InlineKeyboardButton(back_text, callback_data=f"info_{back_callback}"))
     
     return markup
-
-def get_user_language(user_id: int) -> str:
-    """Получает язык пользователя из базы данных"""
-    logger.info(f"Получение языка для user_id: {user_id}")
-    user_settings = db.bits_user_settings.find_one({'user_id': user_id})
-    if user_settings and 'language' in user_settings:
-        return user_settings['language']
-    return 'ru'  # значение по умолчанию
 

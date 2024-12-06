@@ -4,11 +4,9 @@ from datetime import datetime
 from pymongo import MongoClient
 import os
 import langdetect
-import logging
 from bits_info import create_info_menu, get_info_texts, handle_info_section
-from bits_status import get_status_user, handle_new_connection
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
-import sys
+
 # Укажите токен вашего бота
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -19,18 +17,6 @@ bits_user_settings = db["bits_user_settings"]
 
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
-# Хранит состояния пользователей при создании аккаунта
-user_states = {}
-
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger('BitsBot')
 
 # Получение разрешенных пользователей
 def get_ket_bot():
@@ -121,7 +107,7 @@ if not TOKEN:
     raise ValueError("Не удалось получить токен бота")
 bot = telebot.TeleBot(TOKEN)
 
-# Устовка команд меню бота
+# Устновка команд меню бота
 def setup_bot_commands():
     try:
         # Команды для разных языков
@@ -242,10 +228,8 @@ def handle_language(message):
     )
 
 @bot.message_handler(commands=['status'])
-def handle_status(message, user_id, user_lang):
-    logger.info(f"handle_status вызван для user_id: {user_id}, язык: {user_lang}")
-    
-    user_settings = bits_user_settings.find_one({'user_id': user_id})
+def handle_status(message):
+    user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
     
     status_texts = {
@@ -256,33 +240,11 @@ def handle_status(message, user_id, user_lang):
         'en': "🔄 Checking service status..."
     }
     
-    logger.info(f"Возвращаем пользователя к списку подключений для user_id: {user_id}, язык: {user_lang}")
-
-    # Получаем статус
-    status_texts_bot = get_status_user(message, bot, user_lang, user_id)
-    
-    # Проверяем, что status_texts_bot не None
-    if status_texts_bot is None:
-        logger.error(f"get_status_user вернул None для user_id: {user_id}")
-        status_texts_bot = {
-            'ru': "❌ Ошибка при получении статуса",
-            'fra': "❌ Erreur lors de l'obtention du statut",
-            'deu': "❌ Fehler beim Abrufen des Status",
-            'esp': "❌ Error al obtener el estado",
-            'en': "❌ Error getting status"
-        }.get(user_lang, "❌ Error getting status")
-    
-    # Формируем полное сообщение
-    full_message = f"{status_texts.get(user_lang, status_texts['en'])}\n\n{status_texts_bot}"
-    
-    logger.info(f"Отправляем сообщение о статусе для user_id: {user_id}")
-    bot.send_message(message.chat.id, full_message)
+    bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
 
 @bot.message_handler(commands=['info'])
 def handle_info(message):
-    
     user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
-    
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
     
     info_texts = {
@@ -292,7 +254,7 @@ def handle_info(message):
         'esp': "ℹ️ Información sobre el bot y sus capacidades",
         'en': "ℹ️ Information about the bot and its capabilities"
     }
-    text_info = get_info_texts(user_lang)
+    text_info = get_info_text_lang(user_lang,bot,message)
     
     bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']) + "\n\n" + text_info)
 
@@ -361,7 +323,7 @@ def handle_start(message):
             user_lang = user_system.get('lang_set', 'en')
             welcome_text = welcome_text_lang(user_lang)
             
-            # Тексты ��ля меню на разных языках
+            # Тексты для меню на разных языках
             menu_texts = {
                 'ru': "Выберите нужное действие:",
                 'en': "Please select an action:",
@@ -389,77 +351,7 @@ def handle_callback_query(call):
         # Получаем текущий язык пользователя
         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-        
-        logger.info(f"Получен callback: {call.data} от пользователя {call.from_user.id}")
 
-        if "create_account" in call.data:
-            logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
-            global user_states
-            
-            # Проверяем существование пользователя в user_states
-            if call.from_user.id not in user_states:
-                user_states[call.from_user.id] = {
-                    'creating_account': True,
-                    'step': 'exchange',  # Начальный шаг
-                    'user_id': call.from_user.id
-                }
-            
-            step = user_states[call.from_user.id].get('step', 'exchange')
-            logger.info(f"Текущий шаг для пользователя {call.from_user.id}: {step}")
-            
-            # Вызываем handle_new_connection
-            result = handle_new_connection(
-                message=call.message,
-                bot=bot,
-                state=user_states[call.from_user.id],
-                user_id=call.from_user.id
-            )
-            
-            # Обновляем состояние после handle_new_connection
-            if result and isinstance(result, dict):
-                user_states[call.from_user.id].update(result)
-                logger.info(f"Обновлено состояние пользователя {call.from_user.id}: {user_states[call.from_user.id]}")
-            
-            # Если следующий шаг key, обновляем состояние
-            if user_states[call.from_user.id].get('step') == 'key':
-                logger.info(f"Переход к шагу key для пользователя {call.from_user.id}")
-                handle_new_connection(
-                    message=call.message,
-                    bot=bot,
-                    state=user_states[call.from_user.id],
-                    user_id=call.from_user.id
-                )
-
-        elif call.data == "back_to_main":
-            logger.info(f"Обработка back_to_main для пользователя {call.from_user.id}")
-            # Возвращаем пользователя в главное меню
-            bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text="Выберите действие:",
-                reply_markup=create_main_menu(user_lang)
-            )
-            return
-        
-        # elif call.data.startswith("exchange_"):
-        #     logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
-        #     # Инициализируем состояние пользователя
-        #     if not hasattr(bot, 'user_states'):
-        #         bot.user_states = {}
-            
-        #     bot.user_states[call.from_user.id] = {
-        #         'step': 'key',
-        #         'user_id': call.from_user.id
-        #     }
-            
-        #     # Вызываем handle_new_connection из bits_status
-        #     handle_new_connection(
-        #         message=call.message,
-        #         bot=bot,
-        #         state=bot.user_states[call.from_user.id],
-        #         user_id=call.from_user.id
-        #     )
-        #     return
         # Обработка информационного меню
         if call.data == "info":
             # Удаляем предыдущее сообщение
@@ -573,7 +465,7 @@ def handle_callback_query(call):
             elif call.data == "info":
                 handle_info(call.message)
             elif call.data == "status":
-                handle_status(call.message,call.from_user.id,user_lang)
+                handle_status(call.message)
             elif call.data == "lang":
                 # Показываем меню выбора языка
                 bot.edit_message_text(
@@ -584,117 +476,12 @@ def handle_callback_query(call):
                 )
                 
     except Exception as e:
-        logger.error(f"Ошибка при обработке callback {call.data}: {e}", exc_info=True)
+        print(f"Ошибка при обработке callback-запроса: {str(e)}")
         bot.answer_callback_query(call.id, "An error occurred. Please try again.")
 
 @bot.message_handler(func=lambda message: message.chat.id != SUPPORT_GROUP_ID and not message.text.startswith('/'))
-
-def message_handler(message):
-    """Обработчик всех текстовых сообщений"""
-    user_id = message.from_user.id
-    
-    # Проверяем, находится ли пользователь в процессе создания аккаунта
-    if user_id in user_states and 'creating_account' in user_states[user_id]:
-        handle_account_creation(message)
-    else:
-        # Если пользователь не в процессе создания аккаунта, 
-        # обрабатываем как обычное сообщение в поддержку
-        bot_chat_user(message, bot)
-def handle_account_creation(message):
-    """Обработка сообщений при создании аккаунта"""
-    global user_states
-    user_id = message.from_user.id
-    state = user_states[user_id]
-    user_lang = get_user_language(user_id)
-    
-    logger.info(f"Обработка создания аккаунта для user_id: {user_id}, state: {state}")
-    
-    try:
-        if state['step'] == 'key':
-            bot.user_states[message.from_user.id] = {
-                'step': 'key',
-                'user_id': message.from_user.id
-            }
-            
-        elif state['step'] == 'secret':
-            bot.user_states[message.from_user.id] = {
-                'step': 'secret',
-                'user_id': message.from_user.id
-            }
-            
-        elif state['step'] == 'deposit':
-            bot.user_states[message.from_user.id] = {
-                'step': 'deposit',
-                'user_id': message.from_user.id
-            }
-        else:
-            return bot.reply_to(message, "config_error что-то пошло не так")   
-            
-        # Вызываем handle_new_connection из bits_status
-        handle_new_connection(
-            message=message,
-            bot=bot,
-            state=bot.user_states[message.from_user.id],
-            user_id=message.from_user.id
-        )
-        return
-    except Exception as e:
-        logger.error(f"Ошибка при создании аккаунта: {e}", exc_info=True)
-        bot.reply_to(message, "error_creating_account что-то пошло не так")
-        del user_states[user_id]
-        
-# def handle_account_creation(message):
-#         if message.reply_to_message.text.split('_')[1] == "key":
-#             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
-#             user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-#             if not hasattr(bot, 'user_states'):
-#                 bot.user_states = {}
-            
-#             bot.user_states[message.from_user.id] = {
-#                 'step': 'key',
-#                 'user_id': message.from_user.id
-#             }
-            
-#             # Вызываем handle_new_connection из bits_status
-#             handle_new_connection(
-#                 message=message,
-#                 bot=bot,
-#                 state=bot.user_states[message.from_user.id],
-#                 lang=user_lang,
-#                 user_id=message.from_user.id
-#             )
-#             return
-#         elif message.reply_to_message.text.split('_')[1] == "secret":
-#             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
-#             user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-#             if not hasattr(bot, 'user_states'):
-#                 bot.user_states = {}
-            
-#             bot.user_states[message.from_user.id] = {
-#                 'step': 'secret',
-#                 'user_id': message.from_user.id
-#             }
-#         elif message.reply_to_message.text.split('_')[1] == "deposit":
-#             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
-#             user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-#             if not hasattr(bot, 'user_states'):
-#                 bot.user_states = {}
-            
-#             bot.user_states[message.from_user.id] = {
-#                 'step': 'deposit',
-#                 'user_id': message.from_user.id
-#             }
-#         else:
-#             return bot.reply_to(message, "Config_error:")
-        
-#         handle_new_connection(
-#             message=message,
-#             bot=bot,
-#             state=bot.user_states[message.from_user.id],
-#             lang=user_lang,
-#             user_id=message.from_user.id
-#         )
-#         return
+def user_message_handler(message):
+    bot_chat_user(message, bot)
 
 @bot.message_handler(func=lambda message: message.chat.id == SUPPORT_GROUP_ID and message.reply_to_message)
 def support_reply_handler(message):
@@ -721,13 +508,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-def get_user_language(user_id):
-    """Получение языка пользователя из базы данных"""
-    try:
-        user_settings = bits_user_settings.find_one({'user_id': user_id})
-        return user_settings.get('lang_set', 'en') if user_settings else 'en'
-    except Exception as e:
-        logger.error(f"Ошибка при получении языка пользователя {user_id}: {e}")
-        return 'en'  # Возвращаем английский язык по умолчанию
 
