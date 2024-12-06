@@ -244,7 +244,21 @@ def handle_status(message):
     
     status_texts = get_statistics(bot,message.chat.id,user_lang)
     
-    bot.send_message(message.chat.id, status_texts,parse_mode='HTML', reply_markup=create_main_menu(user_lang))
+    menu_texts = {
+        'ru': "Выберите нужное действие:",
+        'en': "Please select an action:",
+        'fra': "Veuillez sélectionner une action:",
+        'deu': "Bitte wählen Sie eine Aktion:",
+        'esp': "Por favor, seleccione una acción:",
+        'lang_zh': "请选择操作："
+    }
+    
+    # Отправляем приветствие и меню на языке пользователя
+    bot.send_message(
+        message.chat.id,
+        f"{menu_texts.get(user_lang, menu_texts['en'])}",
+        reply_markup=create_main_menu(user_lang)
+    )
 
 @bot.message_handler(commands=['info'])
 def handle_info(message):

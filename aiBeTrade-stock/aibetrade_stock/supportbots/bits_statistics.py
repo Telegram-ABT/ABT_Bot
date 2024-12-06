@@ -53,6 +53,30 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Общая прибыль: <b>{totalProfit}%</b>\n"
                     f"Количество торговых дней: <b>{days}</b>"
                 )
+            elif lang == 'fra':
+                message_text = (
+                    f"🟢 <b>ABT Bits Pro: jour de trading réussi !</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
+                )
+            elif lang == 'deu':
+                message_text = (
+                    f"🟢 <b>ABT Bits Pro: Tagestrading erfolgreich!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
+                )
+            elif lang == 'esp':
+                message_text = (
+                    f"🟢 <b>ABT Bits Pro: día de trading exitoso!</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
+                )
             else:
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
@@ -69,6 +93,14 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Прибыль от торговли: <b>{profit}%</b>\n"
                     f"Общая прибыль: <b>{totalProfit}%</b>\n"
                     f"Количество торговых дней: <b>{days}</b>"
+                )
+            elif lang == 'lang_zh':
+                message_text = (
+                    f"🔴 <b>ABT Bits Pro: 日交易失败！</b>\n\n"
+                    f"Strategy: <b>{strategy_name}</b>\n"
+                    f"Profit of trade is: <b>{profit}%</b>\n"
+                    f"Total profit: <b>{totalProfit}%</b>\n"
+                    f"Number of Trading Days: <b>{days}</b>"
                 )
             else:
                 message_text = (
