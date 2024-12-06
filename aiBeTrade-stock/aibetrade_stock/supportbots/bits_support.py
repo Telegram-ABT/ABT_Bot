@@ -392,7 +392,7 @@ def handle_callback_query(call):
         
         logger.info(f"Получен callback: {call.data} от пользователя {call.from_user.id}")
 
-        if call.data == "create_account":
+        if "create_account" in call.data:
             logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
             global user_states  # Добавляем global
             user_states[call.from_user.id] = {

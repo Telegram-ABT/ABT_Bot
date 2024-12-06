@@ -222,7 +222,7 @@ def create_exchange_menu(lang: str) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup()
     exchanges = ['Bybit', 'Binance', 'OKX', 'Bitget']
     for exchange in exchanges:
-        markup.add(InlineKeyboardButton(exchange, callback_data=f'exchange_{exchange.lower()}'))
+        markup.add(InlineKeyboardButton(exchange, callback_data=f'create_account{exchange.lower()}'))
     markup.add(InlineKeyboardButton(TEXTS[lang]['back'], callback_data='back_to_main'))
     return markup
 
