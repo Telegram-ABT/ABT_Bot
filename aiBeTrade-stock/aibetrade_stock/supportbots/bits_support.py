@@ -112,9 +112,8 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 # Устновка команд меню бота
-def setup_bot_commands():
+def setup_bot_commands(lang='en'):
     try:
-        logger.info(f"Кода выбрали команду setup_bot_commands {bot.message.chat.id} {bot.message.from_user.id} ")
         user_id = bits_user_settings.find_one({'user_id': bot.message.from_user.id})
         lang = user_id.get('lang_set', 'en') if user_id else 'en'
         logger.info(f"Кода выбрали команду setup_bot_commands {lang} для пользователя {bot.message.from_user.id}")
@@ -440,7 +439,7 @@ def handle_callback_query(call):
                 "lang_zh": "lang_zh"
             }
             selected_lang = lang_mapping[call.data]
-            
+            setup_bot_commands(selected_lang)
             # Проверяем, есть ли пользователь в базе
             user_exists = bits_user_settings.find_one({'user_id': call.from_user.id})
             
