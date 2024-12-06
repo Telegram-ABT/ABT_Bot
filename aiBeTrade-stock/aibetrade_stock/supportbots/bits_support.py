@@ -6,7 +6,7 @@ import os
 import langdetect
 from bits_info import create_info_menu, get_info_texts, handle_info_section
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
-from bits_statistics import get_statistics_system, create_statistics_menu, create_robots_menu, format_robot_stats
+from bits_statistics import get_statistics, create_statistics_menu, create_robots_menu, format_robot_stats,get_statistics_system
 import logging
 
 logger = logging.getLogger('BitsBot')
