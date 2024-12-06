@@ -146,14 +146,18 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Number of Trading Days: <b>{days}</b>"
                 )
         # Публикация английского поста с картинкой
-        button1_en = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
-        button2_en = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://forms.gle/abtbitxx")
+        if lang == 'ru':
+            button1 = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
+            button2 = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://forms.gle/abtbit")
+        else:
+            button1 = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
+            button2 = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://t.me/abtbitxx")
 
 
         # Добавление кнопок в одну строку
         markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(button1_en)
-        markup.add(button2_en)
+        markup.add(button1)
+        markup.add(button2)
 
         with open(image_path, 'rb') as photo:
             bot.send_photo(chat_id, photo, caption=message_text, reply_markup=markup, parse_mode='HTML')
