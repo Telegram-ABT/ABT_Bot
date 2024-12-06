@@ -241,7 +241,7 @@ def handle_status(message):
     }
     
     bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
-    status_texts = get_statistics(user_lang)
+    status_texts = get_statistics(bot,message.chat.id,user_lang)
     bot.send_message(message.chat.id, status_texts)
 @bot.message_handler(commands=['info'])
 def handle_info(message):
