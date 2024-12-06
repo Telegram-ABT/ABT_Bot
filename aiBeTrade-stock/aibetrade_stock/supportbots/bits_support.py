@@ -579,18 +579,17 @@ def message_handler(message):
         # Если пользователь не в процессе создания аккаунта, 
         # обрабатываем как обычное сообщение в поддержку
         bot_chat_user(message, bot)
-
 def handle_account_creation(message):
     """Обработка сообщений при создании аккаунта"""
-    global user_states  # Добавляем global
+    global user_states
     user_id = message.from_user.id
     state = user_states[user_id]
+    user_lang = get_user_language(user_id)
     
     logger.info(f"Обработка создания аккаунта для user_id: {user_id}, state: {state}")
     
     try:
         if state['step'] == 'key':
-            user_lang = get_user_language(user_id)
             bot.user_states[message.from_user.id] = {
                 'step': 'key',
                 'user_id': message.from_user.id
@@ -602,14 +601,13 @@ def handle_account_creation(message):
                 'user_id': message.from_user.id
             }
             
-            
         elif state['step'] == 'deposit':
             bot.user_states[message.from_user.id] = {
                 'step': 'deposit',
                 'user_id': message.from_user.id
             }
         else:
-            return bot.reply_to(message, "Config_error:")   
+            return bot.reply_to(message, "config_error что-то пошло не так")   
             
         # Вызываем handle_new_connection из bits_status
         handle_new_connection(
@@ -624,8 +622,7 @@ def handle_account_creation(message):
         logger.error(f"Ошибка при создании аккаунта: {e}", exc_info=True)
         bot.reply_to(message, TEXTS[user_lang].get('error_creating_account', 'Error occurred while creating account'))
         del user_states[user_id]
-
-
+        
 # def handle_account_creation(message):
 #         if message.reply_to_message.text.split('_')[1] == "key":
 #             user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
