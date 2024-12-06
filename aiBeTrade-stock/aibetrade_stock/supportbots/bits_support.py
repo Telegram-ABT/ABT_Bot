@@ -439,7 +439,8 @@ def handle_callback_query(call):
                         stats_text,
                         call.message.chat.id,
                         call.message.message_id,
-                        reply_markup=markup
+                        reply_markup=markup,
+                        parse_mode='HTML'
                     )
                     
             elif call.data == 'stats_back':
