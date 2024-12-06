@@ -361,7 +361,7 @@ def handle_start(message):
             user_lang = user_system.get('lang_set', 'en')
             welcome_text = welcome_text_lang(user_lang)
             
-            # Тексты для м��ню на разных языках
+            # Тексты ��ля меню на разных языках
             menu_texts = {
                 'ru': "Выберите нужное действие:",
                 'en': "Please select an action:",
@@ -395,15 +395,40 @@ def handle_callback_query(call):
         if "create_account" in call.data:
             logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
             global user_states
-            step = user_states[call.from_user.id].get('step')
-            # Если следующий шаг key, обновляем состояние
-            logger.info(f"Переход к шагу key для пользователя {call.from_user.id}")
-            handle_new_connection(
+            
+            # Проверяем существование пользователя в user_states
+            if call.from_user.id not in user_states:
+                user_states[call.from_user.id] = {
+                    'creating_account': True,
+                    'step': 'exchange',  # Начальный шаг
+                    'user_id': call.from_user.id
+                }
+            
+            step = user_states[call.from_user.id].get('step', 'exchange')
+            logger.info(f"Текущий шаг для пользователя {call.from_user.id}: {step}")
+            
+            # Вызываем handle_new_connection
+            result = handle_new_connection(
                 message=call.message,
                 bot=bot,
-                state=step,
+                state=user_states[call.from_user.id],
                 user_id=call.from_user.id
             )
+            
+            # Обновляем состояние после handle_new_connection
+            if result and isinstance(result, dict):
+                user_states[call.from_user.id].update(result)
+                logger.info(f"Обновлено состояние пользователя {call.from_user.id}: {user_states[call.from_user.id]}")
+            
+            # Если следующий шаг key, обновляем состояние
+            if user_states[call.from_user.id].get('step') == 'key':
+                logger.info(f"Переход к шагу key для пользователя {call.from_user.id}")
+                handle_new_connection(
+                    message=call.message,
+                    bot=bot,
+                    state=user_states[call.from_user.id],
+                    user_id=call.from_user.id
+                )
 
         elif call.data == "back_to_main":
             logger.info(f"Обработка back_to_main для пользователя {call.from_user.id}")
