@@ -194,6 +194,65 @@ def format_robot_stats(robot_data, lang='en'):
             'profit': 'Profit',
             'share_profit_rank': 'Commission Share',
             'count_pay_day': 'Days to pay'
+        },
+        'zh': {
+            'nickname': '昵称',
+            'date_end': '结束日期',
+            'deposit_end': '最终存款',
+            'deposit_start': '初始存款',
+            'date_pay': '付款日期',
+            'share_profit': '利润份额',
+            'refferal': '推荐等级',
+            'date_start': '开始日期',
+            'percent_profit': '利润百分比',
+            'profit': '利润',
+            'share_profit_rank': '佣金份额',
+            'count_pay_day': '付款天数'
+        },
+        # TODO: перевести на испанский
+        'es': {
+            'nickname': 'Nombre de usuario',
+            'date_end': 'Fecha de finalización',
+            'deposit_end': 'Depósito final',
+            'deposit_start': 'Depósito inicial',
+            'date_pay': 'Fecha de pago',
+            'share_profit': 'Parte de la ganancia',
+            'refferal': 'Rango de referido',
+            'date_start': 'Start Date',
+            'percent_profit': 'Profit %',
+            'profit': 'Profit',
+            'share_profit_rank': 'Comisión',
+            'count_pay_day': 'Días para pagar'
+        },
+        # TODO: перевести на немецкий
+        'de': {
+            'nickname': 'Benutzername',
+            'date_end': 'Enddatum',
+            'deposit_end': 'Endguthaben',
+            'deposit_start': 'Startguthaben',
+            'date_pay': 'Zahlungstag',
+            'share_profit': 'Gewinnanteil',
+            'refferal': 'Referenz-Rang',
+            'date_start': 'Start Date',
+            'percent_profit': 'Profit %',
+            'profit': 'Profit',
+            'share_profit_rank': 'Kommission',
+            'count_pay_day': 'Tage bis zur Zahlung'
+        },
+        # TODO: перевести на французский
+        'fr': {
+            'nickname': 'Nom d\'utilisateur',
+            'date_end': 'Date de fin',
+            'deposit_end': 'Dépôt final',
+            'deposit_start': 'Dépôt initial',
+            'date_pay': 'Date de paiement',
+            'share_profit': 'Part de la rentabilité',
+            'refferal': 'Rang de référence',
+            'date_start': 'Start Date',
+            'percent_profit': 'Profit %',
+            'profit': 'Profit',
+            'share_profit_rank': 'Comission',
+            'count_pay_day': 'Jours pour payer'
         }
     }
     t = texts.get(lang, texts['en'])

@@ -418,6 +418,7 @@ def handle_callback_query(call):
                 
                 if robot_data:
                     # Форматируем и отправляем данные
+                    logger.info(f"Форматируем данные робота robot_data: {robot_data} {user_lang} {call.message.chat.id} {call.message.message_id}")
                     stats_text = format_robot_stats(robot_data, user_lang)
                     markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
                     
