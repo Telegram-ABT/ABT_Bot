@@ -36,11 +36,11 @@ def get_statistics_system(bot,chat_id,lang='en'):
         if last_record:
             logger.info(f"Last record: {last_record}")
             send_bot = publish_to_telegram(bot,chat_id,last_record,lang) 
-            create_statistics_menu(lang)
-            return send_bot
+            markup = create_statistics_menu(lang)
+            return markup
         else:
-            create_statistics_menu(lang)
-            return {"error": "Записи не найдены"}
+            markup = create_statistics_menu(lang)
+            return markup
             
     except Exception as e:
         return {"error": f"Ошибка при получении статистики: {str(e)}"}
