@@ -111,7 +111,7 @@ if not TOKEN:
     raise ValueError("Не удалось получить токен бота")
 bot = telebot.TeleBot(TOKEN)
 
-# Устновка команд меню бота
+# Устовка команд меню бота
 def setup_bot_commands(lang='en'):
     try:
         user_id = bits_user_settings.find_one({'user_id': bot.message.from_user.id})
@@ -407,8 +407,60 @@ def handle_callback_query(call):
         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
 
+        # Обработка статистики
+        if call.data.startswith('stats_') or call.data.startswith('robot_'):
+            if call.data == 'stats_trading':
+                # Показываем торговый результат
+                get_statistics_system(bot, call.message.chat.id, user_lang)
+                
+            elif call.data == 'stats_robots':
+                # Получаем список никнеймов
+                nicknames = db["bits_user_trade"].distinct("nickname")
+                markup = create_robots_menu(nicknames, user_lang)
+                
+                # Отправляем меню с роботами
+                bot.edit_message_reply_markup(
+                    call.message.chat.id,
+                    call.message.message_id,
+                    reply_markup=markup
+                )
+                
+            elif call.data.startswith('robot_'):
+                # Получаем данные конкретного робота
+                nickname = call.data.replace('robot_', '')
+                robot_data = db["bits_user_trade"].find_one({"nickname": nickname})
+                
+                if robot_data:
+                    # Форматируем и отправляем данные
+                    stats_text = format_robot_stats(robot_data, user_lang)
+                    markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
+                    
+                    bot.edit_message_text(
+                        stats_text,
+                        call.message.chat.id,
+                        call.message.message_id,
+                        reply_markup=markup
+                    )
+                    
+            elif call.data == 'stats_back':
+                # Возвращаемся в главное меню
+                bot.edit_message_reply_markup(
+                    call.message.chat.id,
+                    call.message.message_id,
+                    reply_markup=create_main_menu(user_lang)
+                )
+                
+            elif call.data == 'stats_menu':
+                # Возвращаемся в меню статистики
+                markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
+                bot.edit_message_reply_markup(
+                    call.message.chat.id,
+                    call.message.message_id,
+                    reply_markup=markup
+                )
+
         # Обработка информационного меню
-        if call.data == "info":
+        elif call.data == "info":
             # Удаляем предыдущее сообщение
             bot.delete_message(call.message.chat.id, call.message.message_id)
             
@@ -531,7 +583,7 @@ def handle_callback_query(call):
                 )
                 
     except Exception as e:
-        print(f"Ошибка при обработке callback-запроса: {str(e)}")
+        logger.error(f"Error in callback handler: {e}")
         bot.answer_callback_query(call.id, "An error occurred. Please try again.")
 
 @bot.message_handler(func=lambda message: message.chat.id != SUPPORT_GROUP_ID and not message.text.startswith('/'))
@@ -551,68 +603,6 @@ def on_edit(message):
 @bot.message_handler(content_types=['delete_chat_message'])
 def on_delete(message):
     handle_deleted_message(message, bot)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith(('stats_', 'robot_')))
-def handle_statistics_callback(call):
-    try:
-        user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
-        user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-        
-        logger.info(f"Вошли в stats_trading: {user_id} {user_lang} {call.data}")
-        
-        if call.data == 'stats_trading':
-            # Показываем торговый результат
-            get_statistics_system(bot, call.message.chat.id, user_lang)
-            
-        elif call.data == 'stats_robots':
-            # Получаем список никнеймов
-            nicknames = db["bits_user_trade"].distinct("nickname")
-            markup = create_robots_menu(nicknames, user_lang)
-            
-            # Отправляем меню с роботами
-            bot.edit_message_reply_markup(
-                call.message.chat.id,
-                call.message.message_id,
-                reply_markup=markup
-            )
-            
-        elif call.data.startswith('robot_'):
-            # Получаем данные конкретного робота
-            nickname = call.data.replace('robot_', '')
-            robot_data = db["bits_user_trade"].find_one({"nickname": nickname})
-            
-            if robot_data:
-                # Форматируем и отправляем данные
-                stats_text = format_robot_stats(robot_data, user_lang)
-                markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
-                
-                bot.edit_message_text(
-                    stats_text,
-                    call.message.chat.id,
-                    call.message.message_id,
-                    reply_markup=markup
-                )
-                
-        elif call.data == 'stats_back':
-            # Возвращаемся в главное меню
-            bot.edit_message_reply_markup(
-                call.message.chat.id,
-                call.message.message_id,
-                reply_markup=create_main_menu(user_lang)
-            )
-            
-        elif call.data == 'stats_menu':
-            # Возвращаемся в меню статистики
-            markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
-            bot.edit_message_reply_markup(
-                call.message.chat.id,
-                call.message.message_id,
-                reply_markup=markup
-            )
-            
-    except Exception as e:
-        logger.error(f"Error in statistics callback handler: {e}")
-        bot.answer_callback_query(call.id, "An error occurred. Please try again.")
 
 def main():
     try:
