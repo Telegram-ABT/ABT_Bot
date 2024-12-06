@@ -19,6 +19,8 @@ bits_user_settings = db["bits_user_settings"]
 
 # Хранит состояние выбранного раздела и текст сообщения
 user_state = {}
+# Хранит состояния пользователей при создании аккаунта
+user_states = {}
 
 # Настройка логирования
 logging.basicConfig(
@@ -119,7 +121,7 @@ if not TOKEN:
     raise ValueError("Не удалось получить токен бота")
 bot = telebot.TeleBot(TOKEN)
 
-# Устновка команд меню бота
+# Устовка команд меню бота
 def setup_bot_commands():
     try:
         # Команды для разных языков
@@ -390,9 +392,9 @@ def handle_callback_query(call):
         
         logger.info(f"Получен callback: {call.data} от пользователя {call.from_user.id}")
 
-# В обработчике callback для create_account добавьте:
         if call.data == "create_account":
             logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
+            global user_states  # Добавляем global
             user_states[call.from_user.id] = {
                 'creating_account': True,
                 'step': 'exchange',
@@ -580,6 +582,7 @@ def message_handler(message):
 
 def handle_account_creation(message):
     """Обработка сообщений при создании аккаунта"""
+    global user_states  # Добавляем global
     user_id = message.from_user.id
     state = user_states[user_id]
     user_lang = get_user_language(user_id)
