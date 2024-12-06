@@ -77,7 +77,7 @@ def get_statistics_system(bot, chat_id, message_id, lang='en'):
         mongo_client.close()
 
 
-def create_statistics_menu(lang='en'):
+def create_statistics_menu(bot,chat_id,lang='en'):
     markup = telebot.types.InlineKeyboardMarkup(row_width=1)
     
     # Тексты для кнопок на разных языках
@@ -207,7 +207,7 @@ def get_statistics(bot, chat_id, message_id, lang='en'):
     bot.delete_message(chat_id, message_id)
     try:
         # Создаем и отправляем меню статистики
-        markup = create_statistics_menu(lang)
+        markup = create_statistics_menu(bot,chat_id,lang)
         
         # Тексты заголовка для разных языков
         menu_texts = {
