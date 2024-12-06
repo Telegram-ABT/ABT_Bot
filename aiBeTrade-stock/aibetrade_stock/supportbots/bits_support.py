@@ -44,8 +44,8 @@ def detect_language(text):
 def create_lang_menu(lang='en'):
     markup = types.InlineKeyboardMarkup()
     buttons = [
-        types.InlineKeyboardButton("🇺🇸 English", callback_data="eng"),
-        types.InlineKeyboardButton("🇷🇺 Русский", callback_data="rus"),
+        types.InlineKeyboardButton("🇺🇸 English", callback_data="en"),
+        types.InlineKeyboardButton("🇷🇺 Русский", callback_data="ru"),
         types.InlineKeyboardButton("🇫🇷 Français", callback_data="fr"),
         types.InlineKeyboardButton("🇩🇪 Deutsch", callback_data="de"),
         types.InlineKeyboardButton("🇪🇸 Español", callback_data="es"),
