@@ -290,36 +290,36 @@ def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en"
     if state['step'] == 'exchange':
         logger.info("Начинаем новое подключение - шаг выбора биржи")
         markup = create_exchange_menu(lang)
-        bot.reply_to(message, "Config_exchange:"+TEXTS[lang]['select_exchange'], reply_markup=markup)
-        state['step'] = 'exchange'
+        bot.reply_to(message, TEXTS[lang]['select_exchange'], reply_markup=markup)
+        state['step'] = 'key'
         logger.info(f"Состояние обновлено: {state}")
         return
     
     if state['step'] == 'key':
         key = message.text.strip()
         if len(key) != 10:
-            bot.reply_to(message, "Config_key:"+TEXTS[lang]['invalid_key'])
+            bot.reply_to(message, TEXTS[lang]['invalid_key'])
             return
         state['key'] = key
         state['step'] = 'secret'
-        bot.reply_to(message, "Config_secret:"+TEXTS[lang]['enter_secret'])
+        bot.reply_to(message, TEXTS[lang]['enter_secret'])
         return
     
     if state['step'] == 'secret':
         secret = message.text.strip()
         if len(secret) != 15:
-            bot.reply_to(message, "Config_secret:"+TEXTS[lang]['invalid_secret'])
+            bot.reply_to(message, TEXTS[lang]['invalid_secret'])
             return
         state['secret_key'] = secret
         state['step'] = 'deposit'
-        bot.reply_to(message, "Config_deposit:"+TEXTS[lang]['enter_deposit'])
+        bot.reply_to(message, TEXTS[lang]['enter_deposit'])
         return
     
     if state['step'] == 'deposit':
         try:
             deposit = float(message.text.strip())
             if deposit < 1000:
-                bot.reply_to(message, "Config_deposit:"+TEXTS[lang]['invalid_deposit'])
+                bot.reply_to(message, TEXTS[lang]['invalid_deposit'])
                 return
             
             # Вычисляем параметры
@@ -357,7 +357,7 @@ def handle_new_connection(message: Message, bot: TeleBot, state: dict, lang="en"
             state.clear()
             
         except ValueError:
-            bot.reply_to(message, "Config_deposit:"+TEXTS[lang]['invalid_deposit'])
+            bot.reply_to(message, TEXTS[lang]['invalid_deposit'])
             return
 
 def create_delete_confirmation_menu(connection_id: str, lang: str) -> InlineKeyboardMarkup:
