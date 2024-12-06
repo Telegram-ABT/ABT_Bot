@@ -6,7 +6,7 @@ import os
 import langdetect
 from bits_info import create_info_menu, get_info_texts, handle_info_section
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
-from bits_statistics import get_statistics
+from bits_statistics import get_statistics_system, create_statistics_menu, create_robots_menu, format_robot_stats
 import logging
 
 logger = logging.getLogger('BitsBot')
@@ -353,7 +353,7 @@ def welcome_text_lang(lang):
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     try:
-        # Проверяем, есть ли п��льзователь в базе
+        # Проверяем, есть ли пльзователь в базе
         user_system = bits_user_settings.find_one({'user_id': message.from_user.id})
         
         if not user_system:
@@ -551,6 +551,66 @@ def on_edit(message):
 @bot.message_handler(content_types=['delete_chat_message'])
 def on_delete(message):
     handle_deleted_message(message, bot)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(('stats_', 'robot_')))
+def handle_statistics_callback(call):
+    try:
+        user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
+        user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+        
+        if call.data == 'stats_trading':
+            # Показываем торговый результат
+            get_statistics_system(bot, call.message.chat.id, user_lang)
+            
+        elif call.data == 'stats_robots':
+            # Получаем список никнеймов
+            nicknames = db["bits_user_trade"].distinct("nickname")
+            markup = create_robots_menu(nicknames, user_lang)
+            
+            # Отправляем меню с роботами
+            bot.edit_message_reply_markup(
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=markup
+            )
+            
+        elif call.data.startswith('robot_'):
+            # Получаем данные конкретного робота
+            nickname = call.data.replace('robot_', '')
+            robot_data = db["bits_user_trade"].find_one({"nickname": nickname})
+            
+            if robot_data:
+                # Форматируем и отправляем данные
+                stats_text = format_robot_stats(robot_data, user_lang)
+                markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
+                
+                bot.edit_message_text(
+                    stats_text,
+                    call.message.chat.id,
+                    call.message.message_id,
+                    reply_markup=markup
+                )
+                
+        elif call.data == 'stats_back':
+            # Возвращаемся в главное меню
+            bot.edit_message_reply_markup(
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=create_main_menu(user_lang)
+            )
+            
+        elif call.data == 'stats_menu':
+            # Возвращаемся в меню статистики
+            markup = create_statistics_menu(bot, call.message.chat.id, user_lang)
+            bot.edit_message_reply_markup(
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=markup
+            )
+            
+    except Exception as e:
+        logger.error(f"Error in statistics callback handler: {e}")
+        bot.answer_callback_query(call.id, "An error occurred. Please try again.")
 
 def main():
     try:

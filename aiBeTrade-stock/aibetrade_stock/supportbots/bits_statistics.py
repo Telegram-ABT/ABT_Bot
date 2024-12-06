@@ -5,13 +5,26 @@ import telebot
 import logging
 
 logger = logging.getLogger('BitsBot')
+mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
+db = mongo_client["nntcapital"]
+collection = db["bits_data_trade"]
 
-def get_statistics(bot,chat_id,lang='en'):
+
+def get_statistics_user_trade(bot,chat_id,lang='en'):
+    try:
+        strategy_id = "roman_strat"
+        last_record = collection.find_one(
+            {"strategy_id": strategy_id},  # пустой фильтр для выбора всех документов
+            sort=[("date", -1)]  # сортировка по date в обратном порядке
+        )
+        return last_record
+    except Exception as e:
+        return {"error": f"Ошибка при получении статистики: {str(e)}"}
+
+
+def get_statistics_system(bot,chat_id,lang='en'):
     try:
         # Подключение к MongoDB
-        mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
-        db = mongo_client["nntcapital"]
-        collection = db["bits_data_trade"]
         strategy_id = "roman_strat"
         
         # Получаем последнюю запись, сортируя по полю date в обратном порядке
@@ -31,6 +44,159 @@ def get_statistics(bot,chat_id,lang='en'):
         return {"error": f"Ошибка при получении статистики: {str(e)}"}
     finally:
         mongo_client.close()
+
+
+def create_statistics_menu(bot, chat_id, lang='en'):
+    markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+    
+    # Тексты для кнопок на разных языках
+    button_texts = {
+        'ru': {
+            'trading': '📊 Торговый результат',
+            'robots': '🤖 Мои роботы',
+            'back': '⬅️ Назад'
+        },
+        'en': {
+            'trading': '📊 Trading Result',
+            'robots': '🤖 My Robots',
+            'back': '⬅️ Back'
+        },
+        'fr': {
+            'trading': '📊 Résultat du Trading',
+            'robots': '🤖 Mes Robots',
+            'back': '⬅️ Retour'
+        },
+        'de': {
+            'trading': '📊 Handelsergebnis',
+            'robots': '🤖 Meine Roboter',
+            'back': '⬅️ Zurück'
+        },
+        'es': {
+            'trading': '📊 Resultado de Trading',
+            'robots': '🤖 Mis Robots',
+            'back': '⬅️ Volver'
+        },
+        'zh': {
+            'trading': '📊 交易结果',
+            'robots': '🤖 我的机器人',
+            'back': '⬅️ 返回'
+        }
+    }
+
+    texts = button_texts.get(lang, button_texts['en'])
+    
+    # Добавляем кнопку торгового результата
+    markup.add(telebot.types.InlineKeyboardButton(
+        texts['trading'], 
+        callback_data='stats_trading'
+    ))
+    
+    # Проверяем наличие записей в bits_user_trade
+    user_robots = db["bits_user_trade"].distinct("nickname")
+    if user_robots:
+        markup.add(telebot.types.InlineKeyboardButton(
+            texts['robots'], 
+            callback_data='stats_robots'
+        ))
+    
+    # Добавляем кнопку "Назад"
+    markup.add(telebot.types.InlineKeyboardButton(
+        texts['back'], 
+        callback_data='stats_back'
+    ))
+    
+    return markup
+
+def create_robots_menu(nicknames, lang='en'):
+    markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+    
+    # Добавляем кнопку для каждого никнейма
+    for nickname in nicknames:
+        markup.add(telebot.types.InlineKeyboardButton(
+            f"🤖 {nickname}", 
+            callback_data=f'robot_{nickname}'
+        ))
+    
+    # Добавляем кнопку "Назад" в меню статистики
+    back_texts = {
+        'ru': '⬅️ Назад',
+        'en': '⬅️ Back',
+        'fr': '⬅️ Retour',
+        'de': '⬅️ Zurück',
+        'es': '⬅️ Volver',
+        'zh': '⬅️ 返回'
+    }
+    markup.add(telebot.types.InlineKeyboardButton(
+        back_texts.get(lang, back_texts['en']), 
+        callback_data='stats_menu'
+    ))
+    
+    return markup
+
+def format_robot_stats(robot_data, lang='en'):
+    # Форматирование данных робота для разных языков
+    date_format = "%Y-%m-%d %H:%M:%S"
+    
+    texts = {
+        'ru': {
+            'nickname': 'Никнейм',
+            'date_end': 'Дата окончания',
+            'deposit_end': 'Конечный депозит',
+            'deposit_start': 'Начальный депозит',
+            'date_pay': 'Дата оплаты',
+            'share_profit': 'Доля прибыли',
+            'refferal': 'Реферальный ранг'
+        },
+        'en': {
+            'nickname': 'Nickname',
+            'date_end': 'End Date',
+            'deposit_end': 'Final Deposit',
+            'deposit_start': 'Initial Deposit',
+            'date_pay': 'Payment Date',
+            'share_profit': 'Profit Share',
+            'refferal': 'Referral Rank'
+        }
+        # Добавьте переводы для других языков...
+    }
+    
+    t = texts.get(lang, texts['en'])
+    
+    return (
+        f"{t['nickname']}: {robot_data['nickname']}\n"
+        f"{t['date_end']}: {robot_data['date_end'].strftime(date_format)}\n"
+        f"{t['deposit_end']}: {robot_data['deposit_end']}\n"
+        f"{t['deposit_start']}: {robot_data['deposit_start']}\n"
+        f"{t['date_pay']}: {robot_data['date_pay'].strftime(date_format)}\n"
+        f"{t['share_profit']}: {robot_data['share_profit_rank']}\n"
+        f"{t['refferal']}: {robot_data['refferal_rank']}"
+    )
+
+def get_statistics(bot, chat_id, lang='en'):
+    """Основная функция статистики"""
+    try:
+        # Создаем и отправляем меню статистики
+        markup = create_statistics_menu(bot, chat_id, lang)
+        
+        # Тексты заголовка для разных языков
+        header_texts = {
+            'ru': '📊 Статистика',
+            'en': '📊 Statistics',
+            'fr': '📊 Statistiques',
+            'de': '📊 Statistiken',
+            'es': '📊 Estadísticas',
+            'zh': '📊 统计'
+        }
+        
+        bot.send_message(
+            chat_id,
+            header_texts.get(lang, header_texts['en']),
+            reply_markup=markup
+        )
+        
+        return {"success": "Menu sent successfully"}
+    except Exception as e:
+        logger.error(f"Error in get_statistics: {e}")
+        return {"error": f"Error in get_statistics: {str(e)}"}
 
 # Функция для публикации в Telegram
 def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
