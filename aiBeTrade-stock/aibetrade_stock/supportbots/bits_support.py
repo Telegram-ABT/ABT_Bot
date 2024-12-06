@@ -114,6 +114,10 @@ bot = telebot.TeleBot(TOKEN)
 # Устновка команд меню бота
 def setup_bot_commands():
     try:
+        logger.info(f"Кода выбрали команду setup_bot_commands {bot.message.chat.id} {bot.message.from_user.id} ")
+        user_id = bits_user_settings.find_one({'user_id': bot.message.from_user.id})
+        lang = user_id.get('lang_set', 'en') if user_id else 'en'
+        logger.info(f"Кода выбрали команду setup_bot_commands {lang} для пользователя {bot.message.from_user.id}")
         # Команды для разных языков
         commands = {
             "ru": [
@@ -154,8 +158,9 @@ def setup_bot_commands():
         }
         
         # Устанавливаем команды для каждого языка
-        for lang_code, lang_commands in commands.items():
-            bot.set_my_commands(lang_commands, language_code=lang_code)
+        bot.set_my_commands(commands[lang], language_code=lang)
+        # for lang_code, lang_commands in commands.items():
+        #     bot.set_my_commands(lang_commands, language_code=lang_code)
         
         print("Команды меню бота успешно установлены")
     except Exception as e:
