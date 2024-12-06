@@ -174,7 +174,7 @@ def setup_bot_commands():
 # Обработчики команд
 @bot.message_handler(commands=['help'])
 def handle_help(message):
-    # Получаем настройки пользователя из базы данных
+    # Получаем настройки пользователя из базы данн��х
     user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
     # Используем язык из настроек или английский по умолчанию
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
@@ -730,4 +730,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def get_user_language(user_id):
+    """Получение языка пользователя из базы данных"""
+    try:
+        user_settings = bits_user_settings.find_one({'user_id': user_id})
+        return user_settings.get('lang_set', 'en') if user_settings else 'en'
+    except Exception as e:
+        logger.error(f"Ошибка при получении языка пользователя {user_id}: {e}")
+        return 'en'  # Возвращаем английский язык по умолчанию
 
