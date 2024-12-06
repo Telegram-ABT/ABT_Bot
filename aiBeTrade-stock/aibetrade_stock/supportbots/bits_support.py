@@ -291,7 +291,7 @@ def handle_info(message):
         'fr': "ℹ️ Informations sur le bot et ses capacités",
         'de': "ℹ️ Informationen über den Bot und seine Fähigkeiten",
         'es': "ℹ️ Información sobre el bot y sus capacidades",
-        'zh': "ℹ️ 关于机器人及其功能的信息"
+        'zh': "ℹ️ 关于机器人及其功能的信息",
         'en': "ℹ️ Information about the bot and its capabilities"
     }
     bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']))
@@ -353,7 +353,7 @@ def welcome_text_lang(lang):
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     try:
-        # Проверяем, есть ли пользователь в базе
+        # Проверяем, есть ли п��льзователь в базе
         user_system = bits_user_settings.find_one({'user_id': message.from_user.id})
         
         if not user_system:
