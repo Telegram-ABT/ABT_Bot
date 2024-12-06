@@ -229,9 +229,10 @@ def handle_language(message):
 
 @bot.message_handler(commands=['status'])
 def handle_status(message):
-    user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
+    user_id = bot.get_chat_member(message.chat.id, message.from_user.id).user.id
+    user_settings = bits_user_settings.find_one({'user_id': user_id})
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
-    
+    logger.info(f"User language кода вызвали команду status: {user_id} {user_lang}")
     status_texts = {
         'ru': "🔄 Проверка статуса сервисов...",
         'fra': "🔄 Vérification de l'état des services...",
