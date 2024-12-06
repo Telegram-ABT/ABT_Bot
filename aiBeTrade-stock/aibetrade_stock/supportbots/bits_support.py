@@ -418,25 +418,25 @@ def handle_callback_query(call):
             )
             return
         
-        elif call.data.startswith("exchange_"):
-            logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
-            # Инициализируем состояние пользователя
-            if not hasattr(bot, 'user_states'):
-                bot.user_states = {}
+        # elif call.data.startswith("exchange_"):
+        #     logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
+        #     # Инициализируем состояние пользователя
+        #     if not hasattr(bot, 'user_states'):
+        #         bot.user_states = {}
             
-            bot.user_states[call.from_user.id] = {
-                'step': 'key',
-                'user_id': call.from_user.id
-            }
+        #     bot.user_states[call.from_user.id] = {
+        #         'step': 'key',
+        #         'user_id': call.from_user.id
+        #     }
             
-            # Вызываем handle_new_connection из bits_status
-            handle_new_connection(
-                message=call.message,
-                bot=bot,
-                state=bot.user_states[call.from_user.id],
-                user_id=call.from_user.id
-            )
-            return
+        #     # Вызываем handle_new_connection из bits_status
+        #     handle_new_connection(
+        #         message=call.message,
+        #         bot=bot,
+        #         state=bot.user_states[call.from_user.id],
+        #         user_id=call.from_user.id
+        #     )
+        #     return
         # Обработка информационного меню
         if call.data == "info":
             # Удаляем предыдущее сообщение
