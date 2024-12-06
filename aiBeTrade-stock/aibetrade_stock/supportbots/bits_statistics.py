@@ -36,10 +36,10 @@ def get_statistics_system(bot,chat_id,lang='en'):
         if last_record:
             logger.info(f"Last record: {last_record}")
             send_bot = publish_to_telegram(bot,chat_id,last_record,lang) 
-            markup = create_statistics_menu(lang)
+            markup = get_statistics(lang)
             return markup
         else:
-            markup = create_statistics_menu(lang)
+            markup = get_statistics(lang)
             return markup
             
     except Exception as e:
