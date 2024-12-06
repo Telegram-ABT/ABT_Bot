@@ -168,6 +168,7 @@ def handle_help(message):
     user_settings = bits_user_settings.find_one({'user_id': message.from_user.id})
     # Используем язык из настроек или английский по умолчанию
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
+    logger.info(f"Кода выбрали команду help: {user_settings} {message.from_user.id} {user_lang}")
     
     help_texts = {
         'ru': """
