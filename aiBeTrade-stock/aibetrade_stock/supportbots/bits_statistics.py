@@ -201,13 +201,13 @@ def format_robot_stats(robot_data, lang='en'):
     
     for robot in robot_data:
         message = []
-        message.append("----------------------------------")
+        message.append("----------<b>{robot['nickname']}</b>----------")
         message.append(f"{t['nickname']}: <b>{robot['nickname']}</b>")
-        message.append(f"{t['date_start']}: {robot['date_start'].strftime(date_format)}")
-        message.append(f"{t['deposit_start']}: <b>{robot['deposit_start']}</b> usdt")
-        
+         
         if robot['is_pay']:
             message.append("🟢 Close period")
+            message.append(f"{t['date_start']}: {robot['date_start'].strftime(date_format)}")
+            message.append(f"{t['deposit_start']}: <b>{robot['deposit_start']}</b> usdt")
             message.append(f"{t['date_end']}: {robot['date_end'].strftime(date_format)}")
             message.append(f"{t['deposit_end']}: <b>{robot['deposit_end']}</b> usdt")
             
@@ -221,6 +221,8 @@ def format_robot_stats(robot_data, lang='en'):
             
         elif not robot['is_pay'] and robot['calc_ready']:
             message.append("🔴 wait payments")
+            message.append(f"{t['date_start']}: {robot['date_start'].strftime(date_format)}")
+            message.append(f"{t['deposit_start']}: <b>{robot['deposit_start']}</b> usdt")
             message.append(f"{t['date_end']}: {robot['date_end'].strftime(date_format)}")
             message.append(f"{t['deposit_end']}: <b>{robot['deposit_end']}</b> usdt")
             
@@ -234,6 +236,8 @@ def format_robot_stats(robot_data, lang='en'):
             
         else:
             message.append("⚪ in progress...")
+            message.append(f"{t['date_start']}: {robot['date_start'].strftime(date_format)}")
+            message.append(f"{t['deposit_start']}: <b>{robot['deposit_start']}</b> usdt")
             deposit_start = float(robot['deposit_start'])
             
             if deposit_start < 10000:
