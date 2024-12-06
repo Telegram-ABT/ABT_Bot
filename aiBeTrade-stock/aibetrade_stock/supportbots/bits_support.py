@@ -46,10 +46,10 @@ def create_lang_menu(lang='en'):
     buttons = [
         types.InlineKeyboardButton("🇺🇸 English", callback_data="eng"),
         types.InlineKeyboardButton("🇷🇺 Русский", callback_data="rus"),
-        types.InlineKeyboardButton("🇫🇷 Français", callback_data="fra"),
-        types.InlineKeyboardButton("🇩🇪 Deutsch", callback_data="deu"),
-        types.InlineKeyboardButton("🇪🇸 Español", callback_data="esp"),
-        types.InlineKeyboardButton("🇨🇳 中文", callback_data="lang_zh")
+        types.InlineKeyboardButton("🇫🇷 Français", callback_data="fr"),
+        types.InlineKeyboardButton("🇩🇪 Deutsch", callback_data="de"),
+        types.InlineKeyboardButton("🇪🇸 Español", callback_data="es"),
+        types.InlineKeyboardButton("🇨🇳 中文", callback_data="zh")
     ]
     markup.add(*buttons)
     return markup
@@ -59,37 +59,37 @@ def create_main_menu(lang='en'):
     
     menu_buttons = {
         'ru': [
-            ("🛠️ Помощь", "help"),
+            ("🛠️ Команды", "help"),
             ("ℹ️ Информация", "info"),
             ("🔔 Статистика", "status"),
             ("🌐 Язык", "lang")
         ],
         'en': [
-            ("🛠️ Help", "help"),
+            ("🛠️ Commands", "help"),
             ("ℹ️ Information", "info"),
             ("🔔 Status", "status"),
             ("🌐 Language", "lang")
         ],
-        'fra': [
-            ("🛠️ Aide", "help"),
+        'fr': [
+            ("🛠️ Befehle", "help"),
             ("ℹ️ Information", "info"),
             ("🔔 Statistiques", "status"),
             ("🌐 Langue", "lang")
         ],
-        'deu': [
-            ("🛠️ Hilfe", "help"),
+        'de': [
+            ("🛠️ Befehle", "help"),
             ("ℹ️ Information", "info"),
             ("🔔 Statistiken", "status"),
             ("🌐 Sprache", "lang")
         ],
-        'esp': [
-            ("🛠️ Ayuda", "help"),
+        'es': [
+            ("🛠️ Comandos", "help"),
             ("ℹ️ Información", "info"),
             ("🔔 Estadísticas", "status"),
             ("🌐 Idioma", "lang")
         ],
-        'lang_zh': [
-            ("🛠️ 帮助", "help"),
+        'zh': [
+            ("🛠️ 命令", "help"),
             ("ℹ️ 信息", "info"),
             ("🔔 统计", "status"),
             ("🌐 语言", "lang")
@@ -121,38 +121,45 @@ def setup_bot_commands(lang='en'):
         commands = {
             "ru": [
                 telebot.types.BotCommand("start", "Запустить бота"),
-                telebot.types.BotCommand("help", "Помощь"),
+                telebot.types.BotCommand("help", "Команды"),
                 telebot.types.BotCommand("language", "Выбор языка"),
                 telebot.types.BotCommand("status", "Статус сервисов"),
                 telebot.types.BotCommand("info", "Информация о боте")
             ],
             "en": [
                 telebot.types.BotCommand("start", "Start the bot"),
-                telebot.types.BotCommand("help", "Help"),
+                telebot.types.BotCommand("help", "Commands"),
                 telebot.types.BotCommand("language", "Choose language"),
                 telebot.types.BotCommand("status", "Service status"),
                 telebot.types.BotCommand("info", "Information")
             ],
-            "fra": [
+            "fr": [
                 telebot.types.BotCommand("start", "Démarrer le bot"),
-                telebot.types.BotCommand("help", "Aide"),
+                telebot.types.BotCommand("help", "Commandes"),
                 telebot.types.BotCommand("language", "Choisir la langue"),
                 telebot.types.BotCommand("status", "État des services"),
                 telebot.types.BotCommand("info", "Information")
             ],
-            "deu": [
+            "de": [
                 telebot.types.BotCommand("start", "Bot starten"),
-                telebot.types.BotCommand("help", "Hilfe"),
+                telebot.types.BotCommand("help", "Befehle"),
                 telebot.types.BotCommand("language", "Sprache wählen"),
                 telebot.types.BotCommand("status", "Servicestatus"),
                 telebot.types.BotCommand("info", "Bot-Information")
             ],
-            "esp": [
+            "es": [
                 telebot.types.BotCommand("start", "Iniciar el bot"),
-                telebot.types.BotCommand("help", "Ayuda"),
+                telebot.types.BotCommand("help", "Comandos"),
                 telebot.types.BotCommand("language", "Elegir idioma"),
                 telebot.types.BotCommand("status", "Estado del servicio"),
                 telebot.types.BotCommand("info", "Información del bot")
+            ],
+            "zh": [
+                telebot.types.BotCommand("start", "启动机器人"),
+                telebot.types.BotCommand("help", "命令"),
+                telebot.types.BotCommand("language", "选择语言"),
+                telebot.types.BotCommand("status", "服务状态"),
+                telebot.types.BotCommand("info", "机器人信息")
             ]
         }
         
@@ -184,7 +191,7 @@ def handle_help(message):
 /status - Статус сервисов
 /info - Информация о боте
 """,
-        'fra': """
+        'fr': """
 🤖 Commandes disponibles:
 /start - Démarrer le bot
 /help - Afficher ce message
@@ -192,7 +199,7 @@ def handle_help(message):
 /status - État des services
 /info - Information sur le bot
 """,
-        'deu': """
+        'de': """
 🤖 Verfügbare Befehle:
 /start - Bot starten
 /help - Diese Nachricht anzeigen
@@ -200,7 +207,7 @@ def handle_help(message):
 /status - Servicestatus
 /info - Bot-Information
 """,
-        'esp': """
+        'es': """
 🤖 Comandos disponibles:
 /start - Iniciar el bot
 /help - Mostrar este mensaje
@@ -208,7 +215,7 @@ def handle_help(message):
 /status - Estado del servicio
 /info - Información del bot
 """,
-        'lang_zh': """
+        'zh': """
 🤖 可用命令：
 /start - 启动机器人
 /help - 显示此消息
@@ -248,9 +255,9 @@ def handle_status(message):
     logger.info(f"User language кода вызвали команду status: {user_id} {user_lang}")
     status_texts = {
         'ru': "🔄 Проверка статуса сервисов...",
-        'fra': "🔄 Vérification de l'état des services...",
-        'deu': "🔄 Überprüfung des Servicestatus...",
-        'esp': "🔄 Comprobando el estado del servicio...",
+        'fr': "🔄 Vérification de l'état des services...",
+        'de': "🔄 Überprüfung des Servicestatus...",
+        'es': "🔄 Comprobando el estado del servicio...",
         'en': "🔄 Checking service status..."
     }
     
@@ -261,10 +268,10 @@ def handle_status(message):
     menu_texts = {
         'ru': "Выберите нужное действие:",
         'en': "Please select an action:",
-        'fra': "Veuillez sélectionner une action:",
-        'deu': "Bitte wählen Sie eine Aktion:",
-        'esp': "Por favor, seleccione una acción:",
-        'lang_zh': "请选择操作："
+        'fr': "Veuillez sélectionner une action:",
+        'de': "Bitte wählen Sie eine Aktion:",
+        'es': "Por favor, seleccione una acción:",
+        'zh': "请选择操作："
     }
     
     # Отправляем приветствие и меню на языке пользователя
@@ -281,9 +288,10 @@ def handle_info(message):
     
     info_texts = {
         'ru': "ℹ️ Информация о боте и его возможностях",
-        'fra': "ℹ️ Informations sur le bot et ses capacités",
-        'deu': "ℹ️ Informationen über den Bot und seine Fähigkeiten",
-        'esp': "ℹ️ Información sobre el bot y sus capacidades",
+        'fr': "ℹ️ Informations sur le bot et ses capacités",
+        'de': "ℹ️ Informationen über den Bot und seine Fähigkeiten",
+        'es': "ℹ️ Información sobre el bot y sus capacidades",
+        'zh': "ℹ️ 关于机器人及其功能的信息"
         'en': "ℹ️ Information about the bot and its capabilities"
     }
     bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']))
@@ -306,31 +314,37 @@ def welcome_text_lang(lang):
             "Я твой персональный помощник в мире трейдинга. "
             "Я помогу тебе отслеживать сигналы, управлять портфелем "
             "и быть в курсе всех важных событий на рынке.\n\n"
+            "Если у тебя возникнут вопросы, просто отправь сообщение в этом же чате.\n\n"
         ),
-        'lang_zh': (
+        'zh': (
             "你好，我的朋友！👋\n\n"
             "我是你的个人交易助理。我将帮助你跟踪信号、管理你的投资组合，并随时了解所有重要的市场事件。\n\n"
+            "如果遇到问题，请直接在聊天中发送 /help 消息，我会帮助你。\n\n"
         ),
-        'fra': (
+        'fr': (
             "Bonjour, mon ami! 👋\n\n"
             "Je suis votre assistant de trading personnel. Je vous aidera à suivre les signaux, "
             "gérer votre portefeuille et rester à jour avec tous les événements importants du marché.\n\n"
+            "Si vous avez des questions, envoyez simplement un message dans ce même chat.\n\n"
         ),
-        'deu': (
+        'de': (
             "Hallo, mein Freund! 👋\n\n"
             "Ich bin Ihr persönlicher Handelsassistent. Ich werde Ihnen helfen, die Signale zu verfolgen, "
             "Ihr Portfolio zu verwalten und stets über alle wichtigen Marktveranstaltungen auf dem Laufenden zu bleiben.\n\n"
+            "Wenn Sie Fragen haben, senden Sie einfach eine Nachricht in diesem gleichen Chat.\n\n"
         ),
-        'esp': (
+        'es': (
             "¡Hola, mi amigo! 👋\n\n"
             "Soy tu asistente de trading personal. Te ayudaré a seguir las señales, "
             "gestionar tu cartera y mantenerte al margen de todos los eventos importantes del mercado.\n\n"
+            "Si tienes alguna pregunta, simplemente envía un mensaje en este mismo chat.\n\n"
         ),
         'en': (
             "Hello, my friend! 👋\n\n"
             "I'm your personal trading assistant. "
             "I'll help you track signals, manage your portfolio, "
             "and stay updated with all important market events.\n\n"
+            "If you have any questions, simply send a message in this same chat.\n\n"
         )
     }
     return welcome_texts.get(lang, welcome_texts['en'])
@@ -368,10 +382,10 @@ def handle_start(message):
             menu_texts = {
                 'ru': "Выберите нужное действие:",
                 'en': "Please select an action:",
-                'fra': "Veuillez sélectionner une action:",
-                'deu': "Bitte wählen Sie eine Aktion:",
-                'esp': "Por favor, seleccione una acción:",
-                'lang_zh': "请选择操作："
+                'fr': "Veuillez sélectionner une action:",
+                'de': "Bitte wählen Sie eine Aktion:",
+                'es': "Por favor, seleccione una acción:",
+                'zh': "请选择操作："
             }
             
             # Отправляем приветствие и меню на языке пользователя
@@ -429,15 +443,15 @@ def handle_callback_query(call):
                 )
         
         # Обработка выбора языка и других callback-запросов
-        elif call.data in ["rus", "eng", "fra", "deu", "esp", "lang_zh"]:
+        elif call.data in ["ru", "en", "fr", "de", "es", "zh"]:
             # Маппинг кодов языков из кнопок в коды для системы
             lang_mapping = {
-                "rus": "ru",
-                "eng": "en",
-                "fra": "fra",
-                "deu": "deu",
-                "esp": "esp",
-                "lang_zh": "lang_zh"
+                "ru": "ru",
+                "en": "en",
+                "fr": "fr",
+                "de": "de",
+                "es": "es",
+                "zh": "zh"
             }
             selected_lang = lang_mapping[call.data]
             setup_bot_commands(selected_lang)
@@ -465,10 +479,10 @@ def handle_callback_query(call):
             confirmation_texts = {
                 'ru': "✅ Язык успешно изменен на Русский",
                 'en': "✅ Language successfully changed to English",
-                'fra': "✅ Langue changée avec succès en Français",
-                'deu': "✅ Sprache erfolgreich auf Deutsch geändert",
-                'esp': "✅ Idioma cambiado exitosamente a Español",
-                'lang_zh': "✅ 语言已成功更改为中文"
+                'fr': "✅ Langue changée avec succès en Français",
+                'de': "✅ Sprache erfolgreich auf Deutsch geändert",
+                'es': "✅ Idioma cambiado exitosamente a Español",
+                'zh': "✅ 语言已成功更改为中文"
             }
             
             # Отправляем подтверждение
@@ -483,10 +497,10 @@ def handle_callback_query(call):
             menu_texts = {
                 'ru': "Выберит нужное действие:",
                 'en': "Please select an action:",
-                'fra': "Veuillez sélectionner une action:",
-                'deu': "Bitte wählen Sie eine Aktion:",
-                'esp': "Por favor, seleccione una acción:",
-                'lang_zh': "请选择操作："
+                'fr': "Veuillez sélectionner une action:",
+                'de': "Bitte wählen Sie eine Aktion:",
+                'es': "Por favor, seleccione una acción:",
+                'zh': "请选择操作："
             }
             
             bot.send_message(

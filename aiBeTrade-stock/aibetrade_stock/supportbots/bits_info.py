@@ -22,7 +22,7 @@ def create_info_menu(lang='en'):
             ("🔗 How to Connect?", "howtoconnect"),
             ("⬅️ Back", "back")
         ],
-        'fra': [
+        'fr': [
             ("📊 Stratégie", "strategy"),
             ("💱 Exchanges Crypto", "exchanges"),
             ("🔐 Sécurité", "security"),
@@ -31,7 +31,7 @@ def create_info_menu(lang='en'):
             ("🔗 Comment se Connecter?", "howtoconnect"),
             ("⬅️ Retour", "back")
         ],
-        'deu': [
+        'de': [
             ("📊 Strategie", "strategy"),
             ("💱 Kryptobörsen", "exchanges"),
             ("🔐 Sicherheit", "security"),
@@ -40,7 +40,7 @@ def create_info_menu(lang='en'):
             ("🔗 Wie verbinden?", "howtoconnect"),
             ("⬅️ Zurück", "back")
         ],
-        'esp': [
+        'es': [
             ("📊 Estrategia", "strategy"),
             ("💱 Exchanges de Cripto", "exchanges"),
             ("🔐 Seguridad", "security"),
@@ -49,7 +49,7 @@ def create_info_menu(lang='en'):
             ("🔗 ¿Cómo Conectarse?", "howtoconnect"),
             ("⬅️ Volver", "back")
         ],
-        'lang_zh': [
+        'zh': [
             ("📊 策略", "strategy"),
             ("💱 加密货币交易所", "exchanges"),
             ("🔐 安全", "security"),
@@ -96,7 +96,7 @@ def get_info_texts(lang='en'):
             'extraincome': "🔔 <b>Earn with Autotrade PRO!</b>\n\nInvite new clients to our service and receive a referral reward of up to 15% of the service's reward amount for the entire period, while your invited client earns with us! 💰\n\n<b>This is a great opportunity both for you and for your friends:</b>\n\n- Clients earn on cryptocurrency deals with our strategy 🔐📈\n\n- You consistently receive up to 15% of their earnings for the entire period of their work with the service! 🚀\n\n<b>Don't miss the chance to increase your earnings together with Autotrade PRO!</b> 🎯",
             'howtoconnect': "<b>Connection Procedure:</b>\n\nTo connect to Autotrade Pro, you need to provide the API data of your cryptocurrency exchange account 🔐.\n\nIn the API settings of the exchange, you need to specify the IP addresses of our servers:\n\n<code>5.181.20.47,146.19.196.69,91.194.160.154,209.38.243.235</code>\n\nMinimum deposit amount is 1000 USDT\n\nThis is absolutely safe ✅, since we do not have access to your funds 💵 — only to sending trading signals\n\nIf you have any questions, write to this chatbot 👇\n\n<b>We are available for any questions.</b>"
     }
-    info_texts_fra = {
+    info_texts_fr = {
             'menu_title': "Vous avez sélectionné le menu d'information. Voici les informations principales :",
             'strategy': "<b>Description de la Stratégie:</b>\n\nStratégie de faible risque 🛡️, qui combine des éléments d'analyse technique 📊 et le réseau neuronal AiBeTrade 🤖 pour déterminer avec précision les points d'entrée et de sortie pour plus de 20 paires de devises 💱.\n\nLes données historiques montrent des résultats excellents 📈 — le rendement pour l'année dernière a été de 214,62% 🎯, tandis que l'attention principale est portée sur la réduction des risques de liquidation des positions ⚖️.\n\nLe suivi constant de l'efficacité de la stratégie permet de préserver et de faire croître le capital de manière stable 💰.",
             'exchanges': "<b>Exchanges Supportés:</b>\n\nBinance, Bybit, OKX, Bitget, BingX 🏦.\n\nNous recommandons d'utiliser un sous-compte séparé pour l'autotrading 🧩.",
@@ -105,7 +105,7 @@ def get_info_texts(lang='en'):
             'extraincome': "🔔 <b>Gagnez avec Autotrade PRO!</b>\n\nInvitez de nouveaux clients à notre service et recevez une récompense de parrainage de jusqu'à 15% du montant de la récompense du service pour la période entière, tandis que votre client invité gagne avec nous! 💰\n\n<b>C'est une excellente opportunité pour vous et pour vos amis :</b>\n\n- Les clients gagnent sur les transactions en crypto avec notre stratégie 🔐📈\n\n- Vous recevez jusqu'à 15% de leurs gains pour la période entière de leur travail avec le service! 🚀\n\n<b>Ne manquez pas l'opportunité d'augmenter vos gains ensemble avec Autotrade PRO!</b> 🎯",
             'howtoconnect': "<b>Procédure de connexion :</b>\n\nPour vous connecter à Autotrade Pro, vous devez fournir les données API de votre compte d'échange de crypto-monnaies 🔐.\n\nDans les paramètres API de l'échange, vous devez spécifier les adresses IP de nos serveurs :\n\n<code>5.181.20.47,146.19.196.69,91.194.160.154,209.38.243.235</code>\n\nMontant minimum du dépôt est de 1000 USDT\n\nC'est absolument sécurisé ✅, car nous n'avons pas accès aux fonds 💵 — seulement à l'envoi de signaux de trading\n\nSi vous avez des questions, écrivez dans ce chat-bot 👇\n\n<b>Nous sommes disponibles pour toute question.</b>"            
     }
-    info_texts_deu = {
+    info_texts_de = {
             'menu_title': "Sie haben das Informationsmenü ausgewählt. Hier finden Sie die wichtigsten Informationen:",
             'strategy': "<b>Strategiebeschreibung:</b>\n\nNiedrigrisiko-Strategie 🛡️, die Elemente der technischen Analyse 📊 und das AiBeTrade-Neuronale Netzwerk 🤖 kombiniert, um präzise Einstiegs- und Ausstiegspunkte für mehr als 20 Währungspaare 💱 zu bestimmen.\n\nHistorische Daten zeigen hervorragende Ergebnisse 📈 — die Rendite im letzten Jahr betrug 214,62% 🎯, wobei besonderes Augenmerk auf die Reduzierung der Risiken der Liquidation von Positionen ⚖️ gelegt wird.\n\nDurch ständige Überwachung der Effektivität der Strategie wird eine stabile Erhaltung und Wachstum des Kapitals 💰 ermöglicht.",
             'exchanges': "<b>Unterstützte Börsen:</b>\n\nBinance, Bybit, OKX, Bitget, BingX 🏦.\n\nWir empfehlen die Verwendung eines separaten Unterkontos für den Autohandel 🧩.",
@@ -114,7 +114,7 @@ def get_info_texts(lang='en'):
             'extraincome': "🔔 <b>Verdienen Sie mit Autotrade PRO!</b>\n\nInvitez de nouveaux clients à notre service et recevez une récompense de parrainage de jusqu'à 15% du montant de la récompense du service pour la période entière, tandis que votre client invité gagne avec nous! 💰\n\n<b>C'est une excellente opportunité pour vous et pour vos amis :</b>\n\n- Les clients gagnent sur les transactions en crypto avec notre stratégie 🔐📈\n\n- Vous recevez jusqu'à 15% de leurs gains pour la période entière de leur travail avec le service! 🚀\n\n<b>Ne manquez pas l'opportunité d'augmenter vos gains ensemble avec Autotrade PRO!</b> 🎯",
             'howtoconnect': "<b>Verbindungsverfahren:</b>\n\nUm eine Verbindung zu Autotrade Pro herzustellen, müssen Sie die API-Daten Ihres Kryptowährungsbörsenkontos bereitstellen 🔐.\n\nIn den API-Einstellungen der Börse müssen Sie die IP-Adressen unserer Server angeben:\n\n<code>5.181.20.47,146.19.196.69,91.194.160.154,209.38.243.235</code>\n\nDer Mindestbetrag für die Einzahlung beträgt 1000 USDT\n\nDas ist absolut sicher ✅, da wir keinen Zugriff auf Gelder 💵 haben — nur auf das Senden von Handelssignalen.\n\nWenn Sie Fragen haben, schreiben Sie in diesem Chat-Bot 👇\n\n<b>Wir sind für alle Fragen erreichbar.</b>"            
     }
-    info_texts_esp = {
+    info_texts_es = {
             'menu_title': "Has seleccionado el menú de información. Aquí puedes encontrar la información principal:",
             'strategy': "<b>Descripción de la Estrategia:</b>\n\nEstrategia de bajo riesgo 🛡️, que combina elementos de análisis técnico 📊 y la red neuronal AiBeTrade 🤖 para determinar con precisión los puntos de entrada y salida para más de 20 pares de divisas 💱.\n\nLos datos históricos muestran resultados excelentes 📈 — el rendimiento del último año fue del 214,62% 🎯, mientras que la atención principal se centra en la reducción de los riesgos de liquidación de posiciones ⚖️.\n\nEl seguimiento constante de la efectividad de la estrategia permite una preservación y crecimiento estable del capital 💰.",
             'exchanges': "<b>Exchanges Soportados:</b>\n\nBinance, Bybit, OKX, Bitget, BingX 🏦.\n\nRecomendamos usar una subcuenta separada para el autotrading 🧩.",
@@ -134,13 +134,13 @@ def get_info_texts(lang='en'):
    
     if lang == 'ru':
         return info_texts_ru
-    elif lang == 'fra':
-        return info_texts_fra
-    elif lang == 'deu':
-        return info_texts_deu
-    elif lang == 'esp':
-        return info_texts_esp
-    elif lang == 'lang_zh':
+    elif lang == 'fr':
+        return info_texts_fr
+    elif lang == 'de':
+        return info_texts_de
+    elif lang == 'es':
+        return info_texts_es
+    elif lang == 'zh':
         return info_texts_zh
     else:
         return info_texts_en

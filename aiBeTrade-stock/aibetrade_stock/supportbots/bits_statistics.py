@@ -52,7 +52,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Общая прибыль: <b>{totalProfit}%</b>\n"
                     f"Количество торговых дней: <b>{days}</b>"
                 )
-            elif lang == 'fra':
+            elif lang == 'fr':
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: jour de trading réussi!</b>\n\n"
                     f"Stratégie: <b>{strategy_name}</b>\n"
@@ -60,7 +60,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Profit total: <b>{totalProfit}%</b>\n"
                     f"Nombre de jours de trading: <b>{days}</b>"
                 )
-            elif lang == 'deu':
+            elif lang == 'de':
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: Tagestrading erfolgreich!</b>\n\n"
                     f"Strategie: <b>{strategy_name}</b>\n"
@@ -68,7 +68,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Gesamtprofit: <b>{totalProfit}%</b>\n"
                     f"Anzahl der Trading-Tage: <b>{days}</b>"
                 )
-            elif lang == 'esp':
+            elif lang == 'es':
                 # TODO: перевести на испанский
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: día de trading exitoso!</b>\n\n"
@@ -77,7 +77,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Profit total: <b>{totalProfit}%</b>\n"
                     f"Número de días de trading: <b>{days}</b>"
                 )
-            elif lang == 'lang_zh':
+            elif lang == 'zh':
                 message_text = (
                     f"🟢 <b>ABT Bits Pro: 日交易成功！</b>\n\n"
                     f"策略: <b>{strategy_name}</b>\n"
@@ -102,7 +102,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Общая прибыль: <b>{totalProfit}%</b>\n"
                     f"Количество торговых дней: <b>{days}</b>"
                 )
-            elif lang == 'lang_zh':
+            elif lang == 'zh':
                 message_text = (
                     f"🔴 <b>ABT Bits Pro: 日交易失败！</b>\n\n"
                     f"策略: <b>{strategy_name}</b>\n"
@@ -110,7 +110,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"总利润: <b>{totalProfit}%</b>\n"
                     f"交易天数: <b>{days}</b>"
                 )
-            elif lang == 'fra':
+            elif lang == 'fr':
                 # TODO: перевести на французский
                 message_text = (
                     f"🔴 <b>ABT Bits Pro: jour de trading échoué !</b>\n\n"
@@ -119,7 +119,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Profit total: <b>{totalProfit}%</b>\n"
                     f"Nombre de jours de trading: <b>{days}</b>"
                 )
-            elif lang == 'deu':
+            elif lang == 'de':
                  # TODO: перевести на немецкий
                message_text = (
                     f"🔴 <b>ABT Bits Pro: Tagestrading fehlgeschlagen!</b>\n\n"
@@ -128,7 +128,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Gesamtprofit: <b>{totalProfit}%</b>\n"
                     f"Anzahl der Trading-Tage: <b>{days}</b>"
                 )
-            elif lang == 'esp':
+            elif lang == 'es':
                   # TODO: перевести на испанский
                message_text = (
                     f"🔴 <b>ABT Bits Pro: día de trading fallido!</b>\n\n"
