@@ -301,10 +301,8 @@ def format_robot_stats(robot_data, lang='en'):
             
             if deposit_start < 10000:
                 count_date_pay = 30
-            elif 1000 <= deposit_start < 10000:
-                count_date_pay = 60
             else:
-                count_date_pay = 90
+                count_date_pay = 60
                 
             date_pay = robot['date_start'] + timedelta(days=count_date_pay)
             days_remaining = (date_pay - datetime.now()).days
