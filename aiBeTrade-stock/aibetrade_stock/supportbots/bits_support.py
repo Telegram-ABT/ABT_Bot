@@ -263,7 +263,7 @@ def handle_status(message):
     
     bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
     
-    status_texts = get_statistics(bot,message.chat.id,user_lang)
+    status_texts = get_statistics(bot,message.chat.id,message.message_id,user_lang)
     
     # menu_texts = {
     #     'ru': "Выберите нужное действие:",
@@ -411,7 +411,7 @@ def handle_callback_query(call):
         if call.data.startswith('stats_') or call.data.startswith('robot_'):
             if call.data == 'stats_trading':
                 # Показываем торговый результат
-                get_statistics_system(bot, call.message.chat.id, call.message.message_id, user_lang)
+                get_statistics_system(bot, call.message.chat.id,bot.last_message_id, user_lang)
                 
             elif call.data == 'stats_robots':
                 # Получаем список никнеймов

@@ -10,8 +10,14 @@ db = mongo_client["nntcapital"]
 collection = db["bits_data_trade"]
 
 
-def get_statistics_user_trade(bot,chat_id,lang='en'):
+def get_statistics_user_trade(bot,chat_id,message_id,lang='en'):
     try:
+        # Удаляем предыдущее сообщение с кнопками
+        try:
+            bot.delete_message(chat_id, message_id)
+        except Exception as e:
+            logger.error(f"Error deleting message: {e}")
+            
         strategy_id = "roman_strat"
         last_record = collection.find_one(
             {"strategy_id": strategy_id},  # пустой фильтр для выбора всех документов
@@ -196,9 +202,9 @@ def format_robot_stats(robot_data, lang='en'):
         f"{t['refferal']}: {robot_data['refferal_rank']}"
     )
 
-def get_statistics(bot, chat_id, lang='en'):
+def get_statistics(bot, chat_id, message_id, lang='en'):
     """Основная функция статистики"""
-    bot.delete_message(chat_id, bot.last_message_id)
+    bot.delete_message(chat_id, message_id)
     try:
         # Создаем и отправляем меню статистики
         markup = create_statistics_menu(lang)
