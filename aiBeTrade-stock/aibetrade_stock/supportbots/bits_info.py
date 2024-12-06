@@ -140,7 +140,7 @@ def get_info_texts(lang='en'):
         return info_texts_deu
     elif lang == 'esp':
         return info_texts_esp
-    elif lang == 'zh':
+    elif lang == 'lang_zh':
         return info_texts_zh
     else:
         return info_texts_en
