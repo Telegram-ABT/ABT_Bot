@@ -78,9 +78,6 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
                     f"Total profit: <b>{totalProfit}%</b>\n"
                     f"Number of Trading Days: <b>{days}</b>"
                 )
-
-
-
         # Публикация английского поста с картинкой
         button1_en = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
         button2_en = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://forms.gle/abtbitxx")
