@@ -22,7 +22,7 @@ def get_statistics(bot,chat_id,lang):
         )
         
         if last_record:
-            # Преобразуем ObjectId в строку для возможности сериализации
+            logger.info(f"Last record: {last_record}")
             send_bot = publish_to_telegram(bot,chat_id,last_record,lang) 
             return send_bot
         else:
@@ -35,7 +35,8 @@ def get_statistics(bot,chat_id,lang):
 
 # Функция для публикации в Telegram
 def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
-
+    logger.info(f"Publish to Telegram: {chat_id} {lang}")
+    try:
         image_path = stst_data['image_path']
         days = stst_data['days']
         is_successful = stst_data['is_successful']
@@ -94,3 +95,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
             bot.send_photo(chat_id, photo, caption=message_text, reply_markup=markup, parse_mode='HTML')
 
         logger.info("Сообщения успешно опубликованы в Telegram.")
+        return {"success": "Сообщения успешно опубликованы в Telegram."}
+    except Exception as e:
+        logger.error(f"Ошибка при публикации в Telegram: {e}")
+        return {"error": f"Ошибка при публикации в Telegram: {e}"}
