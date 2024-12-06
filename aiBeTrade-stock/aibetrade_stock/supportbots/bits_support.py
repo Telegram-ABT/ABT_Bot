@@ -395,11 +395,30 @@ def handle_callback_query(call):
         if "create_account" in call.data:
             logger.info(f"Обработка create_account для пользователя {call.from_user.id}")
             global user_states  # Добавляем global
-            user_states[call.from_user.id] = {
-                'creating_account': True,
-                'step': 'exchange',
-                'user_id': call.from_user.id
-            }
+            if bot.user_states.step == 'exchange':
+                user_states[call.from_user.id] = {
+                    'creating_account': True,
+                    'step': 'exchange',
+                    'user_id': call.from_user.id
+                }
+            if bot.user_states.step == 'key':
+                user_states[call.from_user.id] = {
+                    'creating_account': True,
+                    'step': 'key',
+                    'user_id': call.from_user.id
+                }
+            if bot.user_states.step == 'secret':
+                user_states[call.from_user.id] = {
+                    'creating_account': True,
+                    'step': 'secret',
+                    'user_id': call.from_user.id
+                }
+            if bot.user_states.step == 'deposit':
+                user_states[call.from_user.id] = {
+                    'creating_account': True,
+                    'step': 'deposit',
+                    'user_id': call.from_user.id
+                }
             handle_new_connection(
                 message=call.message,
                 bot=bot,
