@@ -2,9 +2,10 @@ from pymongo import MongoClient
 import os
 from datetime import datetime
 
-def get_statistics():
+def get_statistics(lang):
     try:
         # Подключение к MongoDB
+        user_lang = lang
         mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
         db = mongo_client["nntcapital"]
         collection = db["bits_data_trade"]
