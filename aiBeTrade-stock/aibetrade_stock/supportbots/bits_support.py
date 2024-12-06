@@ -7,6 +7,10 @@ import langdetect
 from bits_info import create_info_menu, get_info_texts, handle_info_section
 from bits_chat_helping import bot_chat_user, handle_support_reply, SUPPORT_GROUP_ID, handle_edited_message, handle_deleted_message
 from bits_statistics import get_statistics
+import logging
+
+logger = logging.getLogger('BitsBot')
+
 # Укажите токен вашего бота
 # Подключение к MongoDB
 mongo_url = os.getenv('MONGO_URL_SERV')
@@ -372,7 +376,7 @@ def handle_start(message):
         print(f"Ошибка при обработке команды start: {str(e)}")
         bot.reply_to(message, "An error occurred. Please try again later.")
 
-# Обработчик callback-запросов от inline-кнопок
+# Об��аботчик callback-запросов от inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
     try:
