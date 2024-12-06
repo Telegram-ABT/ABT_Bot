@@ -259,6 +259,7 @@ def handle_status(message):
         'de': "🔄 Überprüfung des Servicestatus...",
         'es': "🔄 Comprobando el estado del servicio...",
         'en': "🔄 Checking service status..."
+        'zh': "🔄 检查服务状态..."
     }
     
     bot.send_message(message.chat.id, status_texts.get(user_lang, status_texts['en']))
