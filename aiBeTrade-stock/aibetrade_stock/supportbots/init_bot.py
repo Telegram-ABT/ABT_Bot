@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 from threading import Thread
+import psutil  # Добавляем импорт psutil
 from nfterrium_support import run_support_bot as run_nfterrium_bot
 import bits_support  # Импортируем весь модуль
 from pymongo import MongoClient
@@ -40,11 +41,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger('BitsBot')
 
+def kill_existing_process(process_name):
+    """
+    Проверяет и завершает существующий процесс, если он запущен
+    """
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            # Проверяем командную строку процесса
+            if proc.info['cmdline'] and any(process_name in cmd for cmd in proc.info['cmdline']):
+                if proc.pid != os.getpid():  # Не убиваем текущий процесс
+                    logger.info(f"Завершаем существующий процесс {process_name} (PID: {proc.pid})")
+                    proc.kill()
+                    proc.wait()  # Ждем завершения процесса
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
 def run_nfterrium():
     """
     Запуск бота NFTerrium
     """
     try:
+        kill_existing_process('nfterrium_support.py')  # Завершаем существующий процесс
         token = get_ket_bot('nfterrium')
         if not token:
             logger.error("Не удалось получить токен для NFTerrium бота")
@@ -59,6 +76,7 @@ def run_bits():
     Запуск бота Bits
     """
     try:
+        kill_existing_process('bits_support.py')  # Завершаем существующий процесс
         token = get_ket_bot('bits')
         if not token:
             logger.error("Не удалось получить токен для Bits бота")
