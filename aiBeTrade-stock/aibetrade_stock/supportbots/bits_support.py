@@ -428,7 +428,7 @@ def handle_callback_query(call):
             elif call.data.startswith('robot_'):
                 # Получаем данные конкретного робота
                 nickname = call.data.replace('robot_', '')
-                robot_data = db["bits_user_trade"].find_one({"nickname": nickname})
+                robot_data = db["bits_user_trade"].find({"nickname": nickname})
                 
                 if robot_data:
                     # Форматируем и отправляем данные

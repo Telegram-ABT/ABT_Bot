@@ -164,17 +164,22 @@ def create_robots_menu(nicknames, lang='en'):
 
 def format_robot_stats(robot_data, lang='en'):
     # Форматирование данных робота для разных языков
-    date_format = "%Y-%m-%d %H:%M:%S"
+    date_format = "%Y-%m-%d"
     
     texts = {
         'ru': {
-            'nickname': 'Никнейм',
+            'nickname': 'Название',
             'date_end': 'Дата окончания',
             'deposit_end': 'Конечный депозит',
             'deposit_start': 'Начальный депозит',
             'date_pay': 'Дата оплаты',
             'share_profit': 'Доля прибыли',
-            'refferal': 'Реферальный ранг'
+            'refferal': 'Реферальный ранг',
+            'date_start': 'Дата начала',
+            'percent_profit': '% прибыли',
+            'profit': 'Прибыль',
+            'share_profit_rank': 'Ставка комиссии',
+            'count_pay_day': 'Дней до оплаты'
         },
         'en': {
             'nickname': 'Nickname',
@@ -183,22 +188,119 @@ def format_robot_stats(robot_data, lang='en'):
             'deposit_start': 'Initial Deposit',
             'date_pay': 'Payment Date',
             'share_profit': 'Profit Share',
-            'refferal': 'Referral Rank'
+            'refferal': 'Referral Rank',
+            'date_start': 'Start Date',
+            'percent_profit': 'Profit %',
+            'profit': 'Profit',
+            'share_profit_rank': 'Commission Share',
+            'count_pay_day': 'Days to pay'
+        },
+        # TODO: перевести на французский
+        'fr': {
+            'nickname': 'Nom d\'utilisateur',
+            'date_start': 'Date de début',
+            'date_end': 'Date de fin',
+            'deposit_start': 'Dépôt initial',
+            'deposit_end': 'Dépôt final',
+            'date_pay': 'Date de paiement',
+            'share_profit': 'Part de profit',
+            'refferal': 'Rang de référencement',
+            'percent_profit': '% de profit',
+            'profit': 'Profit',
+            'share_profit_rank': 'Commission de profit',
+            'count_pay_day': 'Jours avant le paiement'
+        },
+        # TODO: перевести на немецкий
+        'de': {
+            'nickname': 'Benutzername',
+            'date_end': 'End Datum',
+            'deposit_end': 'Endkapital',
+            'deposit_start': 'Anfangskapital',
+            'date_pay': 'Zahlungsdatum',
+            'share_profit': 'Profitanteil',
+            'refferal': 'Referenz-Rang',
+            'date_start': 'Start Datum',
+            'percent_profit': 'Profit %',
+            'profit': 'Profit',
+            'share_profit_rank': 'Gewinnanteil',
+            'count_pay_day': 'Tage bis zur Zahlung'
+        },
+        # TODO: перевести на китайский
+        'zh': {
+            'nickname': '昵称',
+            'date_end': '结束日期',
+            'deposit_end': '最终存款',
+            'deposit_start': '初始存款',
+            'date_pay': '付款日期',
+            'share_profit': '利润份额',
+            'refferal': '推荐等级',
+            'date_start': '开始日期',
+            'percent_profit': '%利润',
+            'profit': '利润',
+            'share_profit_rank': '佣金份额',
+            'count_pay_day': '天数到付款'
+        },
+        # TODO: перевести на испанский
+        'es': {
+            'nickname': 'Nombre de usuario',
+            'date_end': 'Fecha de finalización',
+            'deposit_end': 'Depósito final',
+            'deposit_start': 'Depósito inicial',
+            'date_pay': 'Fecha de pago',
+            'share_profit': 'Parte de la ganancia',
+            'refferal': 'Rango de referido',
+            'date_start': 'Fecha de inicio',
+            'percent_profit': 'Porcentaje de ganancia',
+            'profit': 'Ganancia',
+            'share_profit_rank': 'Comisión de ganancia',
+            'count_pay_day': 'Días antes del pago'
         }
-        # Добавьте переводы для других языков...
     }
-    
     t = texts.get(lang, texts['en'])
+
+    for robot in robot_data:
+        
     
-    return (
-        f"{t['nickname']}: {robot_data['nickname']}\n"
-        f"{t['date_end']}: {robot_data['date_end'].strftime(date_format)}\n"
-        f"{t['deposit_end']}: {robot_data['deposit_end']}\n"
-        f"{t['deposit_start']}: {robot_data['deposit_start']}\n"
-        f"{t['date_pay']}: {robot_data['date_pay'].strftime(date_format)}\n"
-        f"{t['share_profit']}: {robot_data['share_profit_rank']}\n"
-        f"{t['refferal']}: {robot_data['refferal_rank']}"
-    )
+        
+        return (
+            f"----------------------------------\n"
+            f"{t['nickname']}: <b>{robot['nickname']}</b>\n"
+            f"{t['date_start']}: {robot['date_start'].strftime(date_format)}\n"
+            f"{t['deposit_start']}: <b>{robot['deposit_start']}</b> usdt\n"
+            if robot['is_pay']
+              f"🟢 Close period\n" 
+              f"{t['date_end']}: {robot['date_end'].strftime(date_format)}\n"
+              f"{t['deposit_end']}: <b>{robot['deposit_end']}</b> usdt\n"
+              profit = float(robot['deposit_end']) - float(robot['deposit_start'])
+              persent_profit = profit / float(robot['deposit_start']) * 100
+              share_profit = profit * float(robot['share_profit_rank'])/100
+              f"{t['profit']}: <b>{profit:2f} usdt ({persent_profit:2f}%)</b>\n"
+              f"{t['share_profit']}: <b>{share_profit:2f} usdt</b>\n"
+              f"{t['date_pay']}: {robot['date_pay'].strftime(date_format)}\n"
+            
+            elif robot['is_pay']== False and robot['calc_ready']:
+              f"🔴 wait payments\n"
+              f"{t['date_end']}: {robot['date_end'].strftime(date_format)}\n"
+              f"{t['deposit_end']}: <b>{robot['deposit_end']}</b> usdt\n"
+              profit = float(robot['deposit_end']) - float(robot['deposit_start'])
+              persent_profit = profit / float(robot['deposit_start']) * 100
+              share_profit = profit * float(robot['share_profit_rank'])/100
+              f"{t['profit']}: <b>{profit:2f} usdt ({persent_profit:2f}%)</b>\n"
+              f"{t['share_profit']}: <b>{share_profit:2f} usdt</b>\n"
+              f"{t['date_pay']}: {robot['date_pay'].strftime(date_format)}\n"
+            else:
+                f"⚪ in progress...\n"
+                if float(robot['deposit_start']) < 10000:
+                    count_date_pay = 30
+                elif float(robot['deposit_start']) < 10000 and float(robot['deposit_start']) >= 1000:
+                    count_date_pay = 60
+                else
+                    count_date_pay = 90
+                date_pay = robot['date_start']+timedelta(days=count_date_pay)
+                # TODO: Формат даты без времени
+                f"{t['date_pay']}: <b>{date_pay.strftime(date_format)} ({date_pay-datetime.now().date()} days)</b>\n"
+
+        )
 
 def get_statistics(bot, chat_id, message_id, lang='en'):
     """Основная функция статистики"""
