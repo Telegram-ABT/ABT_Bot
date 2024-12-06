@@ -265,21 +265,21 @@ def handle_status(message):
     
     status_texts = get_statistics(bot,message.chat.id,user_lang)
     
-    menu_texts = {
-        'ru': "Выберите нужное действие:",
-        'en': "Please select an action:",
-        'fr': "Veuillez sélectionner une action:",
-        'de': "Bitte wählen Sie eine Aktion:",
-        'es': "Por favor, seleccione una acción:",
-        'zh': "请选择操作："
-    }
+    # menu_texts = {
+    #     'ru': "Выберите нужное действие:",
+    #     'en': "Please select an action:",
+    #     'fr': "Veuillez sélectionner une action:",
+    #     'de': "Bitte wählen Sie eine Aktion:",
+    #     'es': "Por favor, seleccione una acción:",
+    #     'zh': "请选择操作："
+    # }
     
-    # Отправляем приветствие и меню на языке пользователя
-    bot.send_message(
-        message.chat.id,
-        f"{menu_texts.get(user_lang, menu_texts['en'])}",
-        reply_markup=create_main_menu(user_lang)
-    )
+    # # Отправляем приветствие и меню на языке пользователя
+    # bot.send_message(
+    #     message.chat.id,
+    #     f"{menu_texts.get(user_lang, menu_texts['en'])}",
+    #     reply_markup=create_main_menu(user_lang)
+    # )
 
 @bot.message_handler(commands=['info'])
 def handle_info(message):

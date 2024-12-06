@@ -178,19 +178,20 @@ def get_statistics(bot, chat_id, lang='en'):
         markup = create_statistics_menu(bot, chat_id, lang)
         
         # Тексты заголовка для разных языков
-        header_texts = {
-            'ru': '📊 Статистика',
-            'en': '📊 Statistics',
-            'fr': '📊 Statistiques',
-            'de': '📊 Statistiken',
-            'es': '📊 Estadísticas',
-            'zh': '📊 统计'
+        menu_texts = {
+            'ru': "📊 Статистика\nВыберите нужное действие:",
+            'en': "📊 Statistics\nPlease select an action:",
+            'fr': "📊 Statistiques\nVeuillez sélectionner une action:",
+            'de': "📊 Statistiken\nBitte wählen Sie eine Aktion:",
+            'es': "📊 Estadísticas\nPor favor, seleccione una acción:",
+            'zh': "📊 统计\n请选择操作："
         }
         
+        # Отправляем приветствие и меню на языке пользователя
         bot.send_message(
             chat_id,
-            header_texts.get(lang, header_texts['en']),
-            reply_markup=markup
+            f"{menu_texts.get(lang, menu_texts['en'])}",
+                reply_markup=markup
         )
         
         return {"success": "Menu sent successfully"}
