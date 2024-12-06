@@ -558,6 +558,8 @@ def handle_statistics_callback(call):
         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
         user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
         
+        logger.info(f"Вошли в stats_trading: {user_id} {user_lang} {call.data}")
+        
         if call.data == 'stats_trading':
             # Показываем торговый результат
             get_statistics_system(bot, call.message.chat.id, user_lang)

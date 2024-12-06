@@ -46,7 +46,7 @@ def get_statistics_system(bot,chat_id,lang='en'):
         mongo_client.close()
 
 
-def create_statistics_menu(bot, chat_id, lang='en'):
+def create_statistics_menu(lang='en'):
     markup = telebot.types.InlineKeyboardMarkup(row_width=1)
     
     # Тексты для кнопок на разных языках
@@ -175,7 +175,7 @@ def get_statistics(bot, chat_id, lang='en'):
     """Основная функция статистики"""
     try:
         # Создаем и отправляем меню статистики
-        markup = create_statistics_menu(bot, chat_id, lang)
+        markup = create_statistics_menu(lang)
         
         # Тексты заголовка для разных языков
         menu_texts = {
