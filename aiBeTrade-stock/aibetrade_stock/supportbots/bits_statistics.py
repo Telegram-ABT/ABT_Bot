@@ -1,8 +1,12 @@
 from pymongo import MongoClient
 import os
 from datetime import datetime
+import telebot
+import logging
 
-def get_statistics(lang):
+logger = logging.getLogger('BitsBot')
+
+def get_statistics(bot,chat_id,lang):
     try:
         # Подключение к MongoDB
         user_lang = lang
@@ -19,8 +23,8 @@ def get_statistics(lang):
         
         if last_record:
             # Преобразуем ObjectId в строку для возможности сериализации
-            last_record['_id'] = str(last_record['_id'])
-            return last_record
+            send_bot = publish_to_telegram(last_record['_id']) 
+            return send_bot
         else:
             return {"error": "Записи не найдены"}
             
@@ -30,44 +34,45 @@ def get_statistics(lang):
         mongo_client.close()
 
 # Функция для публикации в Telegram
-def publish_to_telegram(combo_text_ru, combo_text_en):
-        # Публикация русского поста с картинкой
-        markup_ru = telebot.types.InlineKeyboardMarkup()
-        button1_ru = telebot.types.InlineKeyboardButton("🚀 Go to ABT Miner", url="https://t.me/aibetradecombot")
-        button2_ru = telebot.types.InlineKeyboardButton("💼 Амбассадорство", url="https://forms.gle/CuJJGWReWM8STR1S7")
-        button1 = telebot.types.InlineKeyboardButton("🎉", callback_data='celebrate')
-        button2 = telebot.types.InlineKeyboardButton("🔥", callback_data='fire')
-        button3 = telebot.types.InlineKeyboardButton("😎", callback_data='cool')
-        button4 = telebot.types.InlineKeyboardButton("😍", callback_data='love')
-        button5 = telebot.types.InlineKeyboardButton("🤩", callback_data='star')
+def publish_to_telegram(bot, chat_id, stst_data):
+        image_path = stst_data['image_path']
+        days = stst_data['days']
+        is_successful = stst_data['is_successful']
+        profit = stst_data['profit']
+        totalProfit = stst_data['totalProfit']
+        strategy_name = stst_data['strategy_name']
+        if is_successful:
+            image_path = image_path
+            message_text = (
+                f"🟢 <b>ABT Bits Pro: day trading was Successful!</b>\n\n"
+                f"Strategy: <b>{strategy_name}</b>\n"
+                f"Profit of trade is: <b>{profit}%</b>\n"
+                f"Total profit: <b>{totalProfit}%</b>\n"
+                f"Number of Trading Days: <b>{days}</b>"
+            )
+        else:
+            image_path = "pic/failure.jpg"
+            message_text = (
+                f"🔴 <b>ABT Bits Pro: day trading was Failure!</b>\n\n"
+                f"Strategy: <b>{strategy_name}</b>\n"
+                f"Profit of trade is: <b>{profit}%</b>\n"
+                f"Total profit: <b>{totalProfit}%</b>\n"
+                f"Number of Trading Days: <b>{days}</b>"
+            )
 
-        # Добавление кнопок в одну строку
-        markup_ru.add(button1, button2, button3, button4, button5)
-        markup_ru.add(button1_ru)
-        markup_ru.add(button2_ru)
 
-
-        with open(image_path_ru, 'rb') as photo_ru:
-            bot.send_photo(chat_id_ru, photo_ru, caption=combo_text_ru, reply_markup=markup_ru, parse_mode='HTML')
 
         # Публикация английского поста с картинкой
-        markup_en = telebot.types.InlineKeyboardMarkup()
-        button1_en = telebot.types.InlineKeyboardButton("🚀 Go to ABT Miner", url="https://t.me/aibetradecombot")
-        button2_en = telebot.types.InlineKeyboardButton("💼 Be Ambassador", url="https://forms.gle/2P3GwRaMWt1Q381A6")
+        button1_en = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
+        button2_en = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://forms.gle/abtbitxx")
 
-
-        button1 = telebot.types.InlineKeyboardButton("🎉", callback_data='celebrate')
-        button2 = telebot.types.InlineKeyboardButton("🔥", callback_data='fire')
-        button3 = telebot.types.InlineKeyboardButton("😎", callback_data='cool')
-        button4 = telebot.types.InlineKeyboardButton("😍", callback_data='love')
-        button5 = telebot.types.InlineKeyboardButton("🤩", callback_data='star')
 
         # Добавление кнопок в одну строку
-        markup_en.add(button1, button2, button3, button4, button5)
-        markup_en.add(button1_en)
-        markup_en.add(button2_en)
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.add(button1_en)
+        markup.add(button2_en)
 
-        with open(image_path_en, 'rb') as photo_en:
-            bot.send_photo(chat_id_en, photo_en, caption=combo_text_en, reply_markup=markup_en, parse_mode='HTML')
+        with open(image_path, 'rb') as photo:
+            bot.send_photo(chat_id, photo, caption=message_text, reply_markup=markup, parse_mode='HTML')
 
         logger.info("Сообщения успешно опубликованы в Telegram.")
