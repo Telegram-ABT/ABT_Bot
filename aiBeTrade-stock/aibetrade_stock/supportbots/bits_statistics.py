@@ -73,8 +73,6 @@ def get_statistics_system(bot, chat_id, message_id, lang='en'):
             
     except Exception as e:
         return {"error": f"Ошибка при получении статистики: {str(e)}"}
-    finally:
-        mongo_client.close()
 
 
 def create_statistics_menu(bot,chat_id,lang='en'):
