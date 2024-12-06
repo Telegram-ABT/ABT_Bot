@@ -233,7 +233,10 @@ def handle_language(message):
 
 @bot.message_handler(commands=['status'])
 def handle_status(message):
-    user_id = message.from_user.id
+    user_id = message.chat.id
+    logger.info(f"message.from_user.id: {message.from_user.id}")
+    logger.info(f"message.chat.id: {message.chat.id}")
+    
     user_settings = bits_user_settings.find_one({'user_id': user_id})
     user_lang = user_settings.get('lang_set', 'en') if user_settings else 'en'
     logger.info(f"User language кода вызвали команду status: {user_id} {user_lang}")
@@ -376,7 +379,7 @@ def handle_start(message):
         print(f"Ошибка при обработке команды start: {str(e)}")
         bot.reply_to(message, "An error occurred. Please try again later.")
 
-# Об��аботчик callback-запросов от inline-кнопок
+# Обработчик callback-запросов от inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
     try:
