@@ -158,8 +158,9 @@ def setup_bot_commands(lang='en'):
         
         # Устанавливаем команды для каждого языка
         bot.set_my_commands(commands[lang], language_code=lang)
-        # for lang_code, lang_commands in commands.items():
-        #     bot.set_my_commands(lang_commands, language_code=lang_code)
+        
+        for lang_code, lang_commands in commands.items():
+            bot.set_my_commands(lang_commands, language_code=lang_code)
         
         print("Команды меню бота успешно установлены")
     except Exception as e:
