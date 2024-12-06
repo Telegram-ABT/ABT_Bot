@@ -148,7 +148,7 @@ def publish_to_telegram(bot, chat_id, stst_data,lang='en'):
         # Публикация английского поста с картинкой
         if lang == 'ru':
             button1 = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
-            button2 = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://forms.gle/abtbit")
+            button2 = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://t.me/abtbit")
         else:
             button1 = telebot.types.InlineKeyboardButton("🚀 ABT Bits Pro chanel", url="https://t.me/abtbits")
             button2 = telebot.types.InlineKeyboardButton("💼 ABT Bits Pro news", url="https://t.me/abtbitxx")
