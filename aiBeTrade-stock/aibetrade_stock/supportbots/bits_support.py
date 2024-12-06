@@ -255,15 +255,14 @@ def handle_info(message):
         'esp': "ℹ️ Información sobre el bot y sus capacidades",
         'en': "ℹ️ Information about the bot and its capabilities"
     }
+    bot.send_message(message.chat.id, info_texts.get(user_lang, info_texts['en']))
 
-    bot.delete_message(message.chat.id, message.message_id)
-    
     # Получаем тексты ля текущго языка
     texts = get_info_texts(user_lang)
     
     # Отправляем заголовок информационного меню с кнопками
     bot.send_message(
-        call.message.chat.id,
+        message.chat.id,
         texts['menu_title'],
         reply_markup=create_info_menu(user_lang),
         parse_mode='HTML'
