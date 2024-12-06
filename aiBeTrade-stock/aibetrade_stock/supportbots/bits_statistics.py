@@ -201,8 +201,7 @@ def format_robot_stats(robot_data, lang='en'):
     
     for robot in robot_data:
         message = []
-        message.append("----------<b>{robot['nickname']}</b>----------")
-        message.append(f"{t['nickname']}: <b>{robot['nickname']}</b>")
+        message.append(f"----------<b>{robot['nickname']}</b>----------")
          
         if robot['is_pay']:
             message.append("🟢 Close period")
