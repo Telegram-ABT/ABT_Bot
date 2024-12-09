@@ -256,7 +256,8 @@ services:
       - API_BYBIT_CR_1=${API_BYBIT_CR_1}
       - API_BYBIT_SEC_CR_1=${API_BYBIT_SEC_CR_1}   
       - API_BYBIT_CR_2=${API_BYBIT_CR_2}
-      - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}      
+      - API_BYBIT_SEC_CR_2=${API_BYBIT_SEC_CR_2}  
+      - MONGO_URL_SERV=${MONGO_URL_SERV}
   
   # combo_publisher:
   #   image: combo_publisher
