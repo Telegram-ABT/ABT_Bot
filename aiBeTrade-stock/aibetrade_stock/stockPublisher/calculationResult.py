@@ -293,23 +293,23 @@ def main():
         main_for_account(account)
 
 # Функция для ожидания до 9 утра
-def wait_until_9am():
-    now = datetime.now()
-    target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
+# def wait_until_9am():
+#     now = datetime.now()
+#     target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
 
-    # Если текущее время уже прошло 9:00, ждем до 9 утра следующего дня
-    if now > target_time:
-        target_time += timedelta(days=1)
+#     # Если текущее время уже прошло 9:00, ждем до 9 утра следующего дня
+#     if now > target_time:
+#         target_time += timedelta(days=1)
 
-    # Вычисляем, сколько времени осталось до 9 утра
-    time_to_wait = (target_time - now).total_seconds()
-    logger.info(f"Waiting until 9 AM. Time to wait: {int(time_to_wait // 3600)} hours and {int((time_to_wait % 3600) // 60)} minutes")
+#     # Вычисляем, сколько времени осталось до 9 утра
+#     time_to_wait = (target_time - now).total_seconds()
+#     logger.info(f"Waiting until 9 AM. Time to wait: {int(time_to_wait // 3600)} hours and {int((time_to_wait % 3600) // 60)} minutes")
     
-    time.sleep(time_to_wait)
+#     time.sleep(time_to_wait)
 
 # Основной код
 if __name__ == "__main__":
-    while True:
+    # while True:
         # Проверяем, если текущее время не 9 утра, переходим в режим ожидания
         # now = datetime.now()
         # if now.hour == 9 and now.minute == 0:
