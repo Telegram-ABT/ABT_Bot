@@ -278,7 +278,10 @@ def main_for_account(account):
                     # Определяем успех или провал и публикуем сообщение в Telegram
                     is_successful = resultBalance > preBalance
                     # publish_to_telegram(profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"])
-                    save_balance_to_mongo(preBalance, resultBalance, profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"], account["strategy_id"])
+                    try:
+                        save_balance_to_mongo(preBalance, resultBalance, profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"], account["strategy_id"])
+                    except Exception as e:
+                        logger.error(f"Error saving balance to MongoDB: {e}")
                 
             except (KeyError, IndexError) as e:
                 logger.error(f'Error extracting resultBalance: {e}')
