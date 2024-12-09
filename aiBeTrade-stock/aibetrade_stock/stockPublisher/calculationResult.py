@@ -8,6 +8,13 @@ import time
 import logging
 from pathlib import Path
 from datetime import datetime
+from pymongo import MongoClient
+
+mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
+db = mongo_client["nntcapital"]
+collection = db["bits_data_trade"]
+
+
 
 # Настройки логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -103,6 +110,31 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
             logger.error(f"Failed to send message: {response.status_code}, {response.text}")
     except Exception as e:
         logger.error(f"Error publishing to Telegram: {e}")
+
+
+def save_balance_to_mongo(prebalance, balance, profit, totalProfit, days, is_successful, strategy_name, channel_id, strategy_id):
+
+    if is_successful:
+        image_path = "pic/successful.jpg"
+    else:
+        image_path = "pic/failure.jpg"
+
+    data = {
+        "date": datetime.now().strftime('%d.%m.%Y'),
+        "days": days,
+        "is_successful": is_successful,
+        "profit": profit,
+        "totalProfit": totalProfit,
+        "image_path": image_path,
+        "strategy_id": strategy_id,
+        "strategy_name": strategy_name,
+        "deposit": balance,
+        "deposit_start": 4950,
+        "prebalance": prebalance
+    }
+
+    collection.insert_one(data)    
+    logger.info(f"Balance saved to MongoDB for strategy {strategy_id}.")
 
 # Функция для записи нового баланса и даты в файл
 def save_balance_to_file(balance, strategy_id, filename=None):
@@ -245,7 +277,8 @@ def main_for_account(account):
                 if profit is not None and totalProfit is not None:
                     # Определяем успех или провал и публикуем сообщение в Telegram
                     is_successful = resultBalance > preBalance
-                    publish_to_telegram(profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"])
+                    # publish_to_telegram(profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"])
+                    save_balance_to_mongo(preBalance, resultBalance, profit, totalProfit, days, is_successful, account["strategy_name"], account["channel_id"], account["strategy_id"])
                 
             except (KeyError, IndexError) as e:
                 logger.error(f'Error extracting resultBalance: {e}')
@@ -278,10 +311,10 @@ def wait_until_9am():
 if __name__ == "__main__":
     while True:
         # Проверяем, если текущее время не 9 утра, переходим в режим ожидания
-        now = datetime.now()
-        if now.hour == 9 and now.minute == 0:
+        # now = datetime.now()
+        # if now.hour == 9 and now.minute == 0:
             # Выполняем основную задачу только в 9 утра
             main()
 
         # После выполнения основной задачи ждем до следующего 9 утра
-        wait_until_9am()
+        # wait_until_9am()
