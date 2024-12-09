@@ -10,11 +10,18 @@ from pathlib import Path
 from datetime import datetime
 from pymongo import MongoClient
 
-mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
-db = mongo_client["nntcapital"]
-collection = db["bits_data_trade"]
+mongo_available = False  # глобальная переменная по умолчанию
 
-
+try:
+    mongo_client = MongoClient(os.getenv('MONGO_URL_SERV'))
+    mongo_client.server_info()
+    db = mongo_client["nntcapital"]
+    collection = db["bits_data_trade"]
+    mongo_available = True
+    logger.info("Successfully connected to MongoDB")
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
+    mongo_available = False
 
 # Настройки логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -113,28 +120,51 @@ def publish_to_telegram(profit, totalProfit, days, is_successful, strategy_name,
 
 
 def save_balance_to_mongo(prebalance, balance, profit, totalProfit, days, is_successful, strategy_name, channel_id, strategy_id):
+    if not mongo_available:
+        logger.warning("Skipping MongoDB save - connection not available")
+        return
 
-    if is_successful:
-        image_path = "pic/successful.jpg"
-    else:
-        image_path = "pic/failure.jpg"
+    try:
+        # Используем полную дату со временем
+        current_datetime = datetime.now()
+        # Для поиска используем только дату без времени
+        current_date = current_datetime.strftime('%d.%m.%Y')
+        
+        # Проверяем существование записи
+        existing_record = collection.find_one({
+            "date_str": current_date,
+            "strategy_id": strategy_id
+        })
 
-    data = {
-        "date": datetime.now().strftime('%d.%m.%Y'),
-        "days": days,
-        "is_successful": is_successful,
-        "profit": profit,
-        "totalProfit": totalProfit,
-        "image_path": image_path,
-        "strategy_id": strategy_id,
-        "strategy_name": strategy_name,
-        "deposit": balance,
-        "deposit_start": 4950,
-        "prebalance": prebalance
-    }
+        data = {
+            "datetime": current_datetime,  # Сохраняем полную дату со временем
+            "date_str": current_date,      # Строковое представление даты для удобства чтения
+            "days": days,
+            "is_successful": is_successful,
+            "profit": profit,
+            "totalProfit": totalProfit,
+            "image_path": "pic/successful.jpg" if is_successful else "pic/failure.jpg",
+            "strategy_id": strategy_id,
+            "strategy_name": strategy_name,
+            "deposit": balance,
+            "deposit_start": float(4950),
+            "prebalance": prebalance
+        }
 
-    collection.insert_one(data)    
-    logger.info(f"Balance saved to MongoDB for strategy {strategy_id}.")
+        if existing_record:
+            # Обновляем существующую запись
+            collection.update_one(
+                {"date": current_date, "strategy_id": strategy_id},
+                {"$set": data}
+            )
+            logger.info(f"Updated existing MongoDB record for strategy {strategy_id} on {current_date}")
+        else:
+            # Создаем новую запись
+            collection.insert_one(data)    
+            logger.info(f"Created new MongoDB record for strategy {strategy_id} on {current_date}")
+
+    except Exception as e:
+        logger.error(f"Error saving balance to MongoDB: {e}")
 
 # Функция для записи нового баланса и даты в файл
 def save_balance_to_file(balance, strategy_id, filename=None):
