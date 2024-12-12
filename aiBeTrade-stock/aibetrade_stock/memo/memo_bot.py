@@ -131,10 +131,10 @@ class MemeBot:
         self.user_data = {}
         self.setup_handlers()
 
-    async def generate_image(self, prompt: str) -> Optional[bytes]:
+    def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
         try:
-            response = await openai.Image.create(
+            response = openai.Image.create(
                 prompt=prompt,
                 n=1,
                 size=DEFAULT_IMAGE_SIZE,
@@ -156,25 +156,26 @@ class MemeBot:
             logger.error(f"Ошибка при генерации изображения: {str(e)}")
             return None
 
-    async def generate_command(self, update: Update, context: CallbackContext):
+    def generate_command(self, update: Update, context: CallbackContext):
         """Обработчик команды /generate."""
         if not context.args:
-            await update.message.reply_text("Пожалуйста, добавьте описание изображения после команды /generate")
+            update.message.reply_text("Пожалуйста, добавьте описание изображения после команды /generate")
             return
 
         prompt = ' '.join(context.args)
-        await update.message.reply_text("🎨 Генерирую изображение, пожалуйста подождите...")
+        message = update.message.reply_text("🎨 Генерирую изображение, пожалуйста подождите...")
 
-        image_data = await self.generate_image(prompt)
+        image_data = self.generate_image(prompt)
         if image_data:
             # Отправляем изображение
-            await context.bot.send_photo(
+            context.bot.send_photo(
                 chat_id=update.effective_chat.id,
                 photo=image_data,
                 caption="✨ Вот ваше изображение!"
             )
+            message.delete()
         else:
-            await update.message.reply_text("😔 Извините, произошла ошибка при генерации изображения")
+            message.edit_text("😔 Извините, произошла ошибка при генерации изображения")
 
     def setup_handlers(self):
         self.dp.add_handler(CommandHandler("start", self.start_command))
