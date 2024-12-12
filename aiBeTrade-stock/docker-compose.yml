@@ -309,6 +309,16 @@ services:
     environment:
       - MONGO_URL_SERV=${MONGO_URL_SERV}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+  memo:
+    image: memo
+    volumes:
+      - ./aibetrade_stock/memo:/app
+    restart: unless-stopped
+    build:
+      context: ./aibetrade_stock/memo/
+      dockerfile: DockerFile.app.memo
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
 
   # botknow:
   #   image: botknow
