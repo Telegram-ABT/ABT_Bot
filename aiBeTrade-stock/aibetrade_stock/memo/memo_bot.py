@@ -130,31 +130,33 @@ class MemeBot:
         # Позиции текста
         self.positions = POSITIONS
 
-    async def generate_image(self, prompt: str) -> Optional[bytes]:
-        """Генерация изображения с помощью DALL-E."""
+    async def generate_image(self, prompt: str):
+        """Генерация изображения с помощью DALL-E 3."""
         try:
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                None,
-                lambda: client.images.generate(
-                    prompt=prompt,
-                    n=1,
-                    size=DEFAULT_IMAGE_SIZE,
-                    quality=DEFAULT_IMAGE_QUALITY,
-                    style=DEFAULT_IMAGE_STYLE
-                )
+            client = OpenAI()
+            response = await asyncio.to_thread(
+                client.images.generate,
+                model="dall-e-3",  # Используем DALL-E 3
+                prompt=prompt,
+                size="1024x1024",  # Максимальное качество
+                quality="hd",  # Высокое качество
+                style="vivid",  # Более яркие и контрастные изображения
+                n=1
             )
             
+            # Получаем URL изображения
             image_url = response.data[0].url
-            # Загружаем изображение
+            
+            # Скачиваем изображение
             async with aiohttp.ClientSession() as session:
                 async with session.get(image_url) as response:
                     if response.status == 200:
-                        return await response.read()
+                        image_data = await response.read()
+                        return image_data
                     else:
-                        logger.error(f"Ошибка при загрузке изображения: {response.status}")
+                        logger.error(f"Ошибка при скачивании изображения: {response.status}")
                         return None
-                
+                        
         except Exception as e:
             logger.error(f"Ошибка при генерации изображения: {str(e)}")
             return None
