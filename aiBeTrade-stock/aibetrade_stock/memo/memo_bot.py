@@ -72,16 +72,11 @@ FONTS = {
 
 # Размеры текста
 FONT_SIZES = {
-    '🔍 Очень маленький': 20,
-    '📝 Маленький': 30,
-    '📄 Средний-': 40,
-    '📑 Средний': 50,
-    '📰 Средний+': 60,
-    '📋 Большой-': 70,
-    '📊 Большой': 80,
-    '📈 Большой+': 90,
-    '📉 Огромный': 100,
-    '📗 Гигантский': 120
+    '🔍 Маленький': 50,
+    '📝 Средний': 70,
+    '📄 Большой': 90,
+    '📑 Огромный': 120,
+    '📰 Гигантский': 150
 }
 
 # Стили текста
@@ -418,10 +413,10 @@ class MemeBot:
     def _draw_text_with_outline(self, draw, position, text, font, text_color):
         """Рисует текст с обводкой."""
         x, y = position
-        # Рисуем обводку
+        # Рисуем обводку (более толстая)
         outline_color = 'black'
-        for adj in range(-2, 3):
-            for adj2 in range(-2, 3):
+        for adj in range(-3, 4):  
+            for adj2 in range(-3, 4):  
                 draw.text((x+adj, y+adj2), text, font=font, fill=outline_color)
         # Рисуем основной текст
         draw.text((x, y), text, font=font, fill=text_color)
