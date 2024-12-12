@@ -80,17 +80,38 @@ class MemeBot:
         
         # Доступные шрифты и цвета
         self.fonts = {
-            'default': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            'bold': '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-            'comic': '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+            'Arial': '/usr/share/fonts/truetype/arial.ttf',
+            'Montserrat': '/usr/share/fonts/truetype/montserrat.ttf',
+            'Myriad Pro': '/usr/share/fonts/truetype/myriad.ttf',
+            'Unbounded': '/usr/share/fonts/truetype/unbounded.ttf',
+            'Roboto': '/usr/share/fonts/truetype/roboto.ttf',
+            'Open Sans': '/usr/share/fonts/truetype/opensans.ttf',
+            'Helvetica': '/usr/share/fonts/truetype/helvetica.ttf',
+            'Futura': '/usr/share/fonts/truetype/futura.ttf',
+            'Times New Roman': '/usr/share/fonts/truetype/times.ttf',
+            'Comic Sans': '/usr/share/fonts/truetype/comic.ttf'
         }
         
+        # Цвета с эмодзи
         self.colors = {
-            'white': 'white',
-            'yellow': 'yellow',
-            'red': 'red',
-            'blue': 'blue',
-            'green': 'green'
+            '⚪️ Белый': 'white',
+            '🟡 Жёлтый': 'yellow',
+            '🔴 Красный': 'red',
+            '🔵 Синий': 'blue',
+            '🟢 Зелёный': 'green',
+            '🟣 Фиолетовый': 'purple',
+            '🟤 Коричневый': 'brown',
+            '⚫️ Чёрный': 'black',
+            '🟠 Оранжевый': 'orange',
+            '🩷 Розовый': 'pink'
+        }
+        
+        # Позиции текста
+        self.positions = {
+            '⬆️ Сверху': 'top',
+            '⬇️ Снизу': 'bottom',
+            '↕️ Сверху и снизу': 'both',
+            '⭐️ По центру': 'center'
         }
 
     async def generate_image(self, prompt: str) -> Optional[bytes]:
@@ -208,9 +229,17 @@ class MemeBot:
             # Сохраняем текст
             context.user_data['meme_text'] = update.message.text
             
-            # Показываем выбор шрифта
-            keyboard = [[InlineKeyboardButton(name, callback_data=f'font_{name}') 
-                        for name in self.fonts.keys()]]
+            # Разбиваем шрифты на ряды по 2 кнопки
+            keyboard = []
+            row = []
+            for name in self.fonts.keys():
+                row.append(InlineKeyboardButton(name, callback_data=f'font_{name}'))
+                if len(row) == 2:
+                    keyboard.append(row)
+                    row = []
+            if row:  # Добавляем оставшиеся кнопки
+                keyboard.append(row)
+                
             keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
             reply_markup = InlineKeyboardMarkup(keyboard)
             
@@ -241,8 +270,15 @@ class MemeBot:
                 context.user_data['font'] = font_name
                 
                 # Показываем выбор цвета
-                keyboard = [[InlineKeyboardButton(name, callback_data=f'color_{name}') 
-                           for name in self.colors.keys()]]
+                keyboard = []
+                row = []
+                for name in self.colors.keys():
+                    row.append(InlineKeyboardButton(name, callback_data=f'color_{name}'))
+                    if len(row) == 2:
+                        keyboard.append(row)
+                        row = []
+                if row:
+                    keyboard.append(row)
                 keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
@@ -253,13 +289,32 @@ class MemeBot:
                 return
 
             if query.data.startswith('color_'):
-                # Получаем все необходимые данные
+                # Сохраняем выбранный цвет
                 color_name = query.data.replace('color_', '')
+                context.user_data['color'] = color_name
+                
+                # Показываем выбор позиции
+                keyboard = []
+                for name in self.positions.keys():
+                    keyboard.append([InlineKeyboardButton(name, callback_data=f'pos_{name}')])
+                keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await query.message.edit_text(
+                    "📍 Выберите расположение текста:",
+                    reply_markup=reply_markup
+                )
+                return
+
+            if query.data.startswith('pos_'):
+                # Получаем все необходимые данные
+                position = self.positions[query.data.replace('pos_', '')]
                 text = context.user_data.get('meme_text')
                 photo_id = context.user_data.get('current_photo')
                 font_name = context.user_data.get('font')
+                color_name = context.user_data.get('color')
                 
-                if not all([text, photo_id, font_name]):
+                if not all([text, photo_id, font_name, color_name]):
                     await query.message.edit_text("😔 Что-то пошло не так, попробуйте сначала")
                     return
 
@@ -271,8 +326,9 @@ class MemeBot:
                 meme_bytes = await self.create_meme(
                     photo_bytes, 
                     text,
-                    self.fonts[font_name],  # Получаем путь к шрифту
-                    self.colors[color_name]  # Получаем название цвета
+                    self.fonts[font_name],
+                    self.colors[color_name],
+                    position
                 )
                 
                 if meme_bytes:
@@ -280,7 +336,7 @@ class MemeBot:
                     await context.bot.send_photo(
                         chat_id=update.effective_chat.id,
                         photo=meme_bytes,
-                        caption="✨ Ваш мем готов!"
+                        caption=f"✨ Ваш мем готов!\nШрифт: {font_name}\nЦвет: {color_name}"
                     )
                     await query.message.delete()
                 else:
@@ -294,7 +350,7 @@ class MemeBot:
             await query.message.edit_text("😔 Произошла ошибка, попробуйте сначала")
             context.user_data.clear()
 
-    async def create_meme(self, image_bytes: bytes, text: str, font_name: str, text_color: str) -> Optional[bytes]:
+    async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
             # Открываем изображение
@@ -305,7 +361,7 @@ class MemeBot:
             
             # Загружаем шрифт
             try:
-                font = ImageFont.truetype(font_name, FONT_SIZE)
+                font = ImageFont.truetype(font_path, FONT_SIZE)
             except:
                 # Если не удалось загрузить шрифт, используем дефолтный
                 font = ImageFont.load_default()
@@ -316,27 +372,50 @@ class MemeBot:
             # Разбиваем текст на строки
             lines = self._wrap_text(text, font, width - 20)
             
-            # Вычисляем общую высоту текста
+            # Вычисляем высоту одной строки
             line_height = font.getsize('hg')[1] + 5
             text_height = len(lines) * line_height
             
-            # Рисуем каждую строку текста
-            y = height - text_height - 10
+            # Определяем позицию текста
+            if position == 'top':
+                y = 10
+            elif position == 'bottom':
+                y = height - text_height - 10
+            elif position == 'center':
+                y = (height - text_height) // 2
+            else:  # both
+                # Разделяем текст пополам
+                mid = len(lines) // 2
+                top_lines = lines[:mid]
+                bottom_lines = lines[mid:]
+                
+                # Рисуем верхний текст
+                y = 10
+                for line in top_lines:
+                    line_width = font.getsize(line)[0]
+                    x = (width - line_width) // 2
+                    self._draw_text_with_outline(draw, (x, y), line, font, text_color)
+                    y += line_height
+                
+                # Рисуем нижний текст
+                y = height - len(bottom_lines) * line_height - 10
+                for line in bottom_lines:
+                    line_width = font.getsize(line)[0]
+                    x = (width - line_width) // 2
+                    self._draw_text_with_outline(draw, (x, y), line, font, text_color)
+                    y += line_height
+                
+                # Сохраняем результат
+                output = io.BytesIO()
+                image.save(output, format='JPEG')
+                output.seek(0)
+                return output.getvalue()
+            
+            # Для остальных позиций рисуем текст
             for line in lines:
-                # Вычисляем ширину текста
                 line_width = font.getsize(line)[0]
-                
-                # Центрируем текст
                 x = (width - line_width) // 2
-                
-                # Рисуем обводку
-                for offset in range(-2, 3):
-                    for offset2 in range(-2, 3):
-                        draw.text((x + offset, y + offset2), line, font=font, fill='black')
-                
-                # Рисуем текст
-                draw.text((x, y), line, font=font, fill=text_color)
-                
+                self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                 y += line_height
             
             # Сохраняем результат
@@ -348,6 +427,16 @@ class MemeBot:
         except Exception as e:
             logger.error(f"Ошибка при создании мема: {str(e)}")
             return None
+
+    def _draw_text_with_outline(self, draw: ImageDraw, position: Tuple[int, int], text: str, font: ImageFont, color: str):
+        """Рисует текст с обводкой."""
+        x, y = position
+        # Рисуем обводку
+        for offset in range(-2, 3):
+            for offset2 in range(-2, 3):
+                draw.text((x + offset, y + offset2), text, font=font, fill='black')
+        # Рисуем текст
+        draw.text((x, y), text, font=font, fill=color)
 
     def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
         """Разбивает текст на строки, чтобы он поместился по ширине."""
