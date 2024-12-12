@@ -44,67 +44,71 @@ if not OPENAI_API_KEY:
 # Константы приложения
 ###########################################
 
+# Пути к шрифтам
+FONTS_DIR = os.path.join(os.path.dirname(__file__), 'fonts')
+os.makedirs(FONTS_DIR, exist_ok=True)
+
 # Доступные шрифты и их варианты
 FONTS = {
     'Arial': {
-        'regular': '/System/Library/Fonts/Supplemental/Arial.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Arial Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf'
-    },
-    'Montserrat': {
-        'regular': '/System/Library/Fonts/Supplemental/Montserrat-Regular.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Montserrat-Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Montserrat-Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Montserrat-BoldItalic.ttf'
-    },
-    'Helvetica': {
-        'regular': '/System/Library/Fonts/Helvetica.ttc',
-        'bold': '/System/Library/Fonts/Helvetica Bold.ttc',
-        'italic': '/System/Library/Fonts/Helvetica Oblique.ttc',
-        'bold_italic': '/System/Library/Fonts/Helvetica Bold Oblique.ttc'
+        'regular': 'arial.ttf',
+        'bold': 'arialbd.ttf',
+        'italic': 'ariali.ttf',
+        'bold_italic': 'arialbi.ttf'
     },
     'Times New Roman': {
-        'regular': '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Times New Roman Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Times New Roman Bold Italic.ttf'
+        'regular': 'times.ttf',
+        'bold': 'timesbd.ttf',
+        'italic': 'timesi.ttf',
+        'bold_italic': 'timesbi.ttf'
     },
-    'Roboto': {
-        'regular': '/System/Library/Fonts/Supplemental/Roboto-Regular.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Roboto-Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Roboto-Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Roboto-BoldItalic.ttf'
-    },
-    'Open Sans': {
-        'regular': '/System/Library/Fonts/Supplemental/OpenSans-Regular.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/OpenSans-Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/OpenSans-Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/OpenSans-BoldItalic.ttf'
-    },
-    'Georgia': {
-        'regular': '/System/Library/Fonts/Supplemental/Georgia.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Georgia Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf'
+    'Helvetica': {
+        'regular': 'helvetica.ttf',
+        'bold': 'helveticabd.ttf',
+        'italic': 'helveticai.ttf',
+        'bold_italic': 'helveticabi.ttf'
     },
     'Verdana': {
-        'regular': '/System/Library/Fonts/Supplemental/Verdana.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Verdana Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Verdana Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Verdana Bold Italic.ttf'
+        'regular': 'verdana.ttf',
+        'bold': 'verdanab.ttf',
+        'italic': 'verdanai.ttf',
+        'bold_italic': 'verdanaz.ttf'
+    },
+    'Tahoma': {
+        'regular': 'tahoma.ttf',
+        'bold': 'tahomabd.ttf',
+        'italic': 'tahoma.ttf',
+        'bold_italic': 'tahomabd.ttf'
+    },
+    'Georgia': {
+        'regular': 'georgia.ttf',
+        'bold': 'georgiab.ttf',
+        'italic': 'georgiai.ttf',
+        'bold_italic': 'georgiaz.ttf'
+    },
+    'Courier New': {
+        'regular': 'cour.ttf',
+        'bold': 'courbd.ttf',
+        'italic': 'couri.ttf',
+        'bold_italic': 'courbi.ttf'
     },
     'Comic Sans MS': {
-        'regular': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold Italic.ttf'
+        'regular': 'comic.ttf',
+        'bold': 'comicbd.ttf',
+        'italic': 'comic.ttf',
+        'bold_italic': 'comicbd.ttf'
     },
     'Impact': {
-        'regular': '/System/Library/Fonts/Supplemental/Impact.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Impact.ttf',  # Impact имеет только regular
-        'italic': '/System/Library/Fonts/Supplemental/Impact.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Impact.ttf'
+        'regular': 'impact.ttf',
+        'bold': 'impact.ttf',
+        'italic': 'impact.ttf',
+        'bold_italic': 'impact.ttf'
+    },
+    'DejaVu Sans': {
+        'regular': 'DejaVuSans.ttf',
+        'bold': 'DejaVuSans-Bold.ttf',
+        'italic': 'DejaVuSans-Oblique.ttf',
+        'bold_italic': 'DejaVuSans-BoldOblique.ttf'
     }
 }
 
@@ -428,7 +432,7 @@ class MemeBot:
                 meme_bytes = await self.create_meme(
                     photo_bytes, 
                     text,
-                    self.fonts[font_name][font_style],
+                    os.path.join(FONTS_DIR, self.fonts[font_name][font_style]),
                     self.colors[color_name],
                     position,
                     font_size
@@ -463,12 +467,43 @@ class MemeBot:
             draw = ImageDraw.Draw(image)
             
             # Загружаем шрифт
+            font = None
             try:
-                font = ImageFont.truetype(font_path, font_size)
+                # Пробуем загрузить указанный шрифт
+                if os.path.exists(font_path):
+                    font = ImageFont.truetype(font_path, font_size)
+                else:
+                    # Пробуем найти шрифт в системных директориях
+                    system_font_dirs = [
+                        '/System/Library/Fonts',
+                        '/System/Library/Fonts/Supplemental',
+                        '/Library/Fonts',
+                        os.path.expanduser('~/Library/Fonts'),
+                        FONTS_DIR
+                    ]
+                    
+                    font_found = False
+                    for font_dir in system_font_dirs:
+                        try_path = os.path.join(font_dir, os.path.basename(font_path))
+                        if os.path.exists(try_path):
+                            font = ImageFont.truetype(try_path, font_size)
+                            font_found = True
+                            break
+                    
+                    if not font_found:
+                        # Если шрифт не найден, используем DejaVu Sans
+                        default_font = os.path.join(FONTS_DIR, 'DejaVuSans.ttf')
+                        if os.path.exists(default_font):
+                            font = ImageFont.truetype(default_font, font_size)
+                        else:
+                            # Если и DejaVu Sans не найден, используем дефолтный шрифт
+                            font = ImageFont.load_default()
+                            logger.warning("Используется системный шрифт по умолчанию")
             except Exception as e:
                 logger.error(f"Ошибка загрузки шрифта: {str(e)}")
-                # Если не удалось загрузить шрифт, используем дефолтный
+                # Используем дефолтный шрифт
                 font = ImageFont.load_default()
+                logger.warning("Используется системный шрифт по умолчанию")
             
             # Получаем размеры изображения
             width, height = image.size
