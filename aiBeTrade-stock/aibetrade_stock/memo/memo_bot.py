@@ -8,10 +8,6 @@ import openai
 import requests
 from typing import Tuple, Optional
 from dotenv import load_dotenv
-import atexit
-import fcntl
-import sys
-import signal
 import asyncio
 import aiohttp
 
@@ -21,52 +17,6 @@ load_dotenv()
 # Конфигурация логирования
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-class SingletonBot:
-    _lock_file = '/tmp/memo_bot.lock'
-    _lock_fd = None
-
-    @classmethod
-    def check_singleton(cls):
-        try:
-            # Пытаемся создать и заблокировать файл
-            cls._lock_fd = open(cls._lock_file, 'w')
-            fcntl.flock(cls._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            
-            # Записываем PID в файл блокировки
-            cls._lock_fd.write(str(os.getpid()))
-            cls._lock_fd.flush()
-            
-            # Регистрируем очистку при выходе
-            atexit.register(cls.cleanup)
-            signal.signal(signal.SIGTERM, cls.signal_handler)
-            signal.signal(signal.SIGINT, cls.signal_handler)
-            
-            return True
-            
-        except IOError:
-            logger.error("Бот уже запущен! Завершаем работу...")
-            return False
-
-    @classmethod
-    def cleanup(cls):
-        if cls._lock_fd:
-            try:
-                fcntl.flock(cls._lock_fd, fcntl.LOCK_UN)
-                cls._lock_fd.close()
-                os.unlink(cls._lock_file)
-            except:
-                pass
-
-    @classmethod
-    def signal_handler(cls, signum, frame):
-        logger.info("Получен сигнал завершения, очищаем ресурсы...")
-        cls.cleanup()
-        sys.exit(0)
-
-###########################################
-# Переменные окружения и их значения по умолчанию
-###########################################
 
 # API ключи и токены
 TELEGRAM_BOT_TOKEN = '7828437733:AAGYTT94utDZa1MPGSnvlfGLsTxa0HsmEc0'  # Токен Telegram бота
@@ -125,9 +75,6 @@ COLORS = {
 class MemeBot:
     def __init__(self, token: str = TELEGRAM_BOT_TOKEN):
         """Инициализация бота с настройками из переменных окружения."""
-        if not SingletonBot.check_singleton():
-            sys.exit(1)
-            
         self.application = Application.builder().token(token).build()
         self.setup_handlers()
 
@@ -222,36 +169,14 @@ class MemeBot:
         """Обработчик ошибок."""
         logger.error(f"Update {update} caused error {context.error}")
 
-    async def start(self):
-        """Запуск бота."""
-        try:
-            await self.application.initialize()
-            await self.application.start()
-            await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
-        finally:
-            await self.application.stop()
-            await self.application.shutdown()
-
-async def main():
-    """Основная функция запуска бота."""
+if __name__ == '__main__':
     try:
+        # Создаем бота
         bot = MemeBot()
-        await bot.start()
-    except Exception as e:
-        logger.error(f"Ошибка при работе бота: {e}")
-        raise
-    finally:
-        SingletonBot.cleanup()
-
-def run_bot():
-    """Запуск бота с обработкой исключений."""
-    try:
-        asyncio.run(main())
+        
+        # Запускаем бота
+        bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем")
     except Exception as e:
         logger.error(f"Критическая ошибка: {e}")
-        sys.exit(1)
-
-if __name__ == '__main__':
-    run_bot()
