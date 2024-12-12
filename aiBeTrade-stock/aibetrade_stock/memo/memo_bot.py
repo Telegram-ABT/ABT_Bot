@@ -44,32 +44,76 @@ if not OPENAI_API_KEY:
 # Константы приложения
 ###########################################
 
-# Доступные шрифты
+# Доступные шрифты и их варианты
 FONTS = {
-    'roboto': '/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf',
-    'dejavu': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    'liberation': '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
-    'ubuntu': '/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf',
-    'noto': '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf',
-    'freefont': '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
-    'arial': 'arial.ttf',
-    'times': 'times.ttf',
-    'helvetica': 'helvetica.ttf',
-    'verdana': 'verdana.ttf'
+    'Arial': {
+        'regular': '/usr/share/fonts/truetype/arial.ttf',
+        'bold': '/usr/share/fonts/truetype/arialbd.ttf',
+        'italic': '/usr/share/fonts/truetype/ariali.ttf',
+        'bold_italic': '/usr/share/fonts/truetype/arialbi.ttf'
+    },
+    'Montserrat': {
+        'regular': '/usr/share/fonts/truetype/montserrat.ttf',
+        'bold': '/usr/share/fonts/truetype/montserrat-bold.ttf',
+        'italic': '/usr/share/fonts/truetype/montserrat-italic.ttf',
+        'bold_italic': '/usr/share/fonts/truetype/montserrat-bolditalic.ttf'
+    },
+    'Myriad Pro': {
+        'regular': '/usr/share/fonts/truetype/myriad.ttf',
+        'bold': '/usr/share/fonts/truetype/myriadbd.ttf',
+        'italic': '/usr/share/fonts/truetype/myriadi.ttf',
+        'bold_italic': '/usr/share/fonts/truetype/myriadbi.ttf'
+    },
+    'Unbounded': {
+        'regular': '/usr/share/fonts/truetype/unbounded.ttf',
+        'bold': '/usr/share/fonts/truetype/unbounded-bold.ttf',
+        'italic': '/usr/share/fonts/truetype/unbounded-italic.ttf',
+        'bold_italic': '/usr/share/fonts/truetype/unbounded-bolditalic.ttf'
+    }
 }
 
-# Доступные цвета с их RGB значениями
+# Размеры текста
+FONT_SIZES = {
+    '🔍 Очень маленький': 20,
+    '📝 Маленький': 30,
+    '📄 Средний-': 40,
+    '📑 Средний': 50,
+    '📰 Средний+': 60,
+    '📋 Большой-': 70,
+    '📊 Большой': 80,
+    '📈 Большой+': 90,
+    '📉 Огромный': 100,
+    '📗 Гигантский': 120
+}
+
+# Стили текста
+FONT_STYLES = {
+    '📝 Обычный': 'regular',
+    '🖊 Жирный': 'bold',
+    '✒️ Наклонный': 'italic',
+    '✏️ Жирный наклонный': 'bold_italic'
+}
+
+# Цвета с эмодзи
 COLORS = {
-    'белый': 'white',
-    'черный': 'black',
-    'красный': 'red',
-    'синий': 'blue',
-    'зеленый': 'green',
-    'желтый': 'yellow',
-    'оранжевый': 'orange',
-    'фиолетовый': 'purple',
-    'розовый': 'pink',
-    'голубой': 'cyan'
+    '⚪️ Белый': 'white',
+    '🟡 Жёлтый': 'yellow',
+    '🔴 Красный': 'red',
+    '🔵 Синий': 'blue',
+    '🟢 Зелёный': 'green',
+    '🟣 Фиолетовый': 'purple',
+    '🟤 Коричневый': 'brown',
+    '⚫️ Чёрный': 'black',
+    '🟠 Оранжевый': 'orange',
+    '🩷 Розовый': 'pink'
+}
+
+# Позиции текста
+POSITIONS = {
+    '⬆️ Сверху': 'top',
+    '⬇️ Снизу': 'bottom',
+    '↕️ Сверху и снизу': 'both',
+    '⭐️ По центру': 'center'
 }
 
 class MemeBot:
@@ -78,41 +122,20 @@ class MemeBot:
         self.application = Application.builder().token(token).build()
         self.setup_handlers()
         
-        # Доступные шрифты и цвета
-        self.fonts = {
-            'Arial': '/usr/share/fonts/truetype/arial.ttf',
-            'Montserrat': '/usr/share/fonts/truetype/montserrat.ttf',
-            'Myriad Pro': '/usr/share/fonts/truetype/myriad.ttf',
-            'Unbounded': '/usr/share/fonts/truetype/unbounded.ttf',
-            'Roboto': '/usr/share/fonts/truetype/roboto.ttf',
-            'Open Sans': '/usr/share/fonts/truetype/opensans.ttf',
-            'Helvetica': '/usr/share/fonts/truetype/helvetica.ttf',
-            'Futura': '/usr/share/fonts/truetype/futura.ttf',
-            'Times New Roman': '/usr/share/fonts/truetype/times.ttf',
-            'Comic Sans': '/usr/share/fonts/truetype/comic.ttf'
-        }
+        # Доступные шрифты и их варианты
+        self.fonts = FONTS
+        
+        # Размеры текста
+        self.font_sizes = FONT_SIZES
+        
+        # Стили текста
+        self.font_styles = FONT_STYLES
         
         # Цвета с эмодзи
-        self.colors = {
-            '⚪️ Белый': 'white',
-            '🟡 Жёлтый': 'yellow',
-            '🔴 Красный': 'red',
-            '🔵 Синий': 'blue',
-            '🟢 Зелёный': 'green',
-            '🟣 Фиолетовый': 'purple',
-            '🟤 Коричневый': 'brown',
-            '⚫️ Чёрный': 'black',
-            '🟠 Оранжевый': 'orange',
-            '🩷 Розовый': 'pink'
-        }
+        self.colors = COLORS
         
         # Позиции текста
-        self.positions = {
-            '⬆️ Сверху': 'top',
-            '⬇️ Снизу': 'bottom',
-            '↕️ Сверху и снизу': 'both',
-            '⭐️ По центру': 'center'
-        }
+        self.positions = POSITIONS
 
     async def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
@@ -229,22 +252,21 @@ class MemeBot:
             # Сохраняем текст
             context.user_data['meme_text'] = update.message.text
             
-            # Разбиваем шрифты на ряды по 2 кнопки
+            # Показываем выбор размера текста
             keyboard = []
             row = []
-            for name in self.fonts.keys():
-                row.append(InlineKeyboardButton(name, callback_data=f'font_{name}'))
+            for name, size in self.font_sizes.items():
+                row.append(InlineKeyboardButton(name, callback_data=f'size_{size}'))
                 if len(row) == 2:
                     keyboard.append(row)
                     row = []
-            if row:  # Добавляем оставшиеся кнопки
+            if row:
                 keyboard.append(row)
-                
             keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
             reply_markup = InlineKeyboardMarkup(keyboard)
             
             await update.message.reply_text(
-                "🎨 Выберите шрифт для текста:",
+                "📏 Выберите размер текста:",
                 reply_markup=reply_markup
             )
             
@@ -264,10 +286,52 @@ class MemeBot:
                 await query.message.edit_text("❌ Создание мема отменено")
                 return
 
+            if query.data.startswith('size_'):
+                # Сохраняем выбранный размер
+                size = int(query.data.replace('size_', ''))
+                context.user_data['font_size'] = size
+                
+                # Показываем выбор стиля
+                keyboard = []
+                for name, style in self.font_styles.items():
+                    keyboard.append([InlineKeyboardButton(name, callback_data=f'style_{style}')])
+                keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await query.message.edit_text(
+                    "✒️ Выберите стиль текста:",
+                    reply_markup=reply_markup
+                )
+                return
+
+            if query.data.startswith('style_'):
+                # Сохраняем выбранный стиль
+                style = query.data.replace('style_', '')
+                context.user_data['font_style'] = style
+                
+                # Показываем выбор шрифта
+                keyboard = []
+                row = []
+                for name in self.fonts.keys():
+                    row.append(InlineKeyboardButton(name, callback_data=f'font_{name}'))
+                    if len(row) == 2:
+                        keyboard.append(row)
+                        row = []
+                if row:
+                    keyboard.append(row)
+                keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await query.message.edit_text(
+                    "🎨 Выберите шрифт:",
+                    reply_markup=reply_markup
+                )
+                return
+
             if query.data.startswith('font_'):
                 # Сохраняем выбранный шрифт
                 font_name = query.data.replace('font_', '')
-                context.user_data['font'] = font_name
+                context.user_data['font_name'] = font_name
                 
                 # Показываем выбор цвета
                 keyboard = []
@@ -311,10 +375,12 @@ class MemeBot:
                 position = self.positions[query.data.replace('pos_', '')]
                 text = context.user_data.get('meme_text')
                 photo_id = context.user_data.get('current_photo')
-                font_name = context.user_data.get('font')
+                font_name = context.user_data.get('font_name')
+                font_style = context.user_data.get('font_style')
+                font_size = context.user_data.get('font_size')
                 color_name = context.user_data.get('color')
                 
-                if not all([text, photo_id, font_name, color_name]):
+                if not all([text, photo_id, font_name, font_style, font_size, color_name]):
                     await query.message.edit_text("😔 Что-то пошло не так, попробуйте сначала")
                     return
 
@@ -326,9 +392,10 @@ class MemeBot:
                 meme_bytes = await self.create_meme(
                     photo_bytes, 
                     text,
-                    self.fonts[font_name],
+                    self.fonts[font_name][font_style],
                     self.colors[color_name],
-                    position
+                    position,
+                    font_size
                 )
                 
                 if meme_bytes:
@@ -336,7 +403,7 @@ class MemeBot:
                     await context.bot.send_photo(
                         chat_id=update.effective_chat.id,
                         photo=meme_bytes,
-                        caption=f"✨ Ваш мем готов!\nШрифт: {font_name}\nЦвет: {color_name}"
+                        caption=f"✨ Ваш мем готов!\nШрифт: {font_name}\nСтиль: {font_style}\nРазмер: {font_size}\nЦвет: {color_name}"
                     )
                     await query.message.delete()
                 else:
@@ -350,7 +417,7 @@ class MemeBot:
             await query.message.edit_text("😔 Произошла ошибка, попробуйте сначала")
             context.user_data.clear()
 
-    async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str) -> Optional[bytes]:
+    async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str, font_size: int) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
             # Открываем изображение
@@ -361,7 +428,7 @@ class MemeBot:
             
             # Загружаем шрифт
             try:
-                font = ImageFont.truetype(font_path, FONT_SIZE)
+                font = ImageFont.truetype(font_path, font_size)
             except:
                 # Если не удалось загрузить шрифт, используем дефолтный
                 font = ImageFont.load_default()
@@ -373,7 +440,8 @@ class MemeBot:
             lines = self._wrap_text(text, font, width - 20)
             
             # Вычисляем высоту одной строки
-            line_height = font.getsize('hg')[1] + 5
+            bbox = font.getbbox('hg')
+            line_height = bbox[3] - bbox[1] + 5
             text_height = len(lines) * line_height
             
             # Определяем позицию текста
@@ -392,7 +460,8 @@ class MemeBot:
                 # Рисуем верхний текст
                 y = 10
                 for line in top_lines:
-                    line_width = font.getsize(line)[0]
+                    bbox = font.getbbox(line)
+                    line_width = bbox[2] - bbox[0]
                     x = (width - line_width) // 2
                     self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                     y += line_height
@@ -400,7 +469,8 @@ class MemeBot:
                 # Рисуем нижний текст
                 y = height - len(bottom_lines) * line_height - 10
                 for line in bottom_lines:
-                    line_width = font.getsize(line)[0]
+                    bbox = font.getbbox(line)
+                    line_width = bbox[2] - bbox[0]
                     x = (width - line_width) // 2
                     self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                     y += line_height
@@ -413,7 +483,8 @@ class MemeBot:
             
             # Для остальных позиций рисуем текст
             for line in lines:
-                line_width = font.getsize(line)[0]
+                bbox = font.getbbox(line)
+                line_width = bbox[2] - bbox[0]
                 x = (width - line_width) // 2
                 self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                 y += line_height
@@ -434,9 +505,9 @@ class MemeBot:
         # Рисуем обводку
         for offset in range(-2, 3):
             for offset2 in range(-2, 3):
-                draw.text((x + offset, y + offset2), text, font=font, fill='black')
+                draw.text((x + offset, y + offset2), text, font=font, fill='black', encoding='utf-8')
         # Рисуем текст
-        draw.text((x, y), text, font=font, fill=color)
+        draw.text((x, y), text, font=font, fill=color, encoding='utf-8')
 
     def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
         """Разбивает текст на строки, чтобы он поместился по ширине."""
@@ -445,26 +516,19 @@ class MemeBot:
         current_line = []
         
         for word in words:
-            # Добавляем слово к текущей строке
             current_line.append(word)
+            bbox = font.getbbox(' '.join(current_line))
+            line_width = bbox[2] - bbox[0]
             
-            # Проверяем ширину
-            line = ' '.join(current_line)
-            width = font.getsize(line)[0]
-            
-            # Если строка слишком широкая, начинаем новую строку
-            if width > max_width:
-                # Убираем последнее слово
-                current_line.pop()
-                
-                # Добавляем строку к результату
-                if current_line:
+            if line_width > max_width:
+                if len(current_line) == 1:
+                    lines.append(current_line[0])
+                    current_line = []
+                else:
+                    current_line.pop()
                     lines.append(' '.join(current_line))
-                
-                # Начинаем новую строку с убранным словом
-                current_line = [word]
+                    current_line = [word]
         
-        # Добавляем последнюю строку
         if current_line:
             lines.append(' '.join(current_line))
         
