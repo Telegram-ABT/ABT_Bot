@@ -5,6 +5,7 @@ import io
 import os
 import logging
 from typing import Tuple, Optional
+import platform
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -12,7 +13,15 @@ logger = logging.getLogger(__name__)
 
 # Constants
 FONT_SIZE = 40
-DEFAULT_FONT = 'arial.ttf'
+
+# Определяем системный шрифт в зависимости от операционной системы
+if platform.system() == 'Darwin':  # macOS
+    DEFAULT_FONT = '/System/Library/Fonts/Supplemental/Arial.ttf'
+elif platform.system() == 'Linux':
+    DEFAULT_FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+else:  # Windows
+    DEFAULT_FONT = 'arial.ttf'
+
 DEFAULT_COLOR = 'white'
 AVAILABLE_COLORS = ['white', 'black', 'red', 'blue', 'green', 'yellow']
 TEXT_POSITIONS = ['top', 'bottom', 'center']
@@ -140,7 +149,7 @@ class MemeBot:
             try:
                 font = ImageFont.truetype(DEFAULT_FONT, size=FONT_SIZE)
             except OSError:
-                # Fallback to default font if arial.ttf is not available
+                # Fallback to default font if system font is not available
                 font = ImageFont.load_default()
             
             # Get text dimensions
