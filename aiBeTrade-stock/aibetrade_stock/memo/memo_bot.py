@@ -161,37 +161,39 @@ class MemeBot:
 
     async def handle_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Обработчик входящих фотографий."""
-        # Получаем файл с наилучшим качеством
-        photo = update.message.photo[-1]
-        
-        # Сохраняем информацию о фото в контексте пользователя
-        if 'user_data' not in context:
-            context.user_data = {}
-        context.user_data['current_photo'] = photo.file_id
-        
-        # Запрашиваем текст для мема
-        keyboard = [
-            [InlineKeyboardButton("Отмена", callback_data='cancel')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.message.reply_text(
-            "📝 Отправьте текст, который нужно добавить на изображение\n"
-            "Или нажмите 'Отмена' для отмены",
-            reply_markup=reply_markup
-        )
+        try:
+            # Получаем файл с наилучшим качеством
+            photo = update.message.photo[-1]
+            
+            # Сохраняем информацию о фото в контексте пользователя
+            context.user_data['current_photo'] = photo.file_id
+            
+            # Запрашиваем текст для мема
+            keyboard = [
+                [InlineKeyboardButton("Отмена", callback_data='cancel')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(
+                "📝 Отправьте текст, который нужно добавить на изображение\n"
+                "Или нажмите 'Отмена' для отмены",
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            logger.error(f"Ошибка в handle_photo: {str(e)}")
+            await update.message.reply_text("😔 Произошла ошибка при обработке фото")
 
     async def handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Обработчик текста для создания мема."""
-        if 'user_data' not in context or 'current_photo' not in context.user_data:
-            await update.message.reply_text("Сначала отправьте изображение!")
-            return
-
-        # Получаем фото и текст
-        photo_file_id = context.user_data['current_photo']
-        text = update.message.text
-
         try:
+            if 'current_photo' not in context.user_data:
+                await update.message.reply_text("Сначала отправьте изображение!")
+                return
+
+            # Получаем фото и текст
+            photo_file_id = context.user_data['current_photo']
+            text = update.message.text
+
             # Загружаем фото
             photo_file = await context.bot.get_file(photo_file_id)
             photo_bytes = await photo_file.download_as_bytearray()
@@ -215,6 +217,16 @@ class MemeBot:
         except Exception as e:
             logger.error(f"Ошибка при создании мема: {str(e)}")
             await update.message.reply_text("😔 Извините, произошла ошибка при создании мема")
+
+    async def callback_query(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик callback-запросов."""
+        query = update.callback_query
+        await query.answer()
+
+        if query.data == 'cancel':
+            if 'current_photo' in context.user_data:
+                del context.user_data['current_photo']
+            await query.message.edit_text("❌ Создание мема отменено")
 
     async def create_meme(self, image_bytes: bytes, text: str) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
@@ -312,6 +324,7 @@ class MemeBot:
         # Добавляем обработчики для создания мемов
         self.application.add_handler(MessageHandler(filters.PHOTO, self.handle_photo))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text))
+        self.application.add_handler(CallbackQueryHandler(self.callback_query))
         
         # Добавляем обработчик ошибок
         self.application.add_error_handler(self.error_handler)
