@@ -47,28 +47,64 @@ if not OPENAI_API_KEY:
 # Доступные шрифты и их варианты
 FONTS = {
     'Arial': {
-        'regular': '/usr/share/fonts/truetype/arial.ttf',
-        'bold': '/usr/share/fonts/truetype/arialbd.ttf',
-        'italic': '/usr/share/fonts/truetype/ariali.ttf',
-        'bold_italic': '/usr/share/fonts/truetype/arialbi.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Arial.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Arial Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf'
     },
     'Montserrat': {
-        'regular': '/usr/share/fonts/truetype/montserrat.ttf',
-        'bold': '/usr/share/fonts/truetype/montserrat-bold.ttf',
-        'italic': '/usr/share/fonts/truetype/montserrat-italic.ttf',
-        'bold_italic': '/usr/share/fonts/truetype/montserrat-bolditalic.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Montserrat-Regular.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Montserrat-Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Montserrat-Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Montserrat-BoldItalic.ttf'
     },
-    'Myriad Pro': {
-        'regular': '/usr/share/fonts/truetype/myriad.ttf',
-        'bold': '/usr/share/fonts/truetype/myriadbd.ttf',
-        'italic': '/usr/share/fonts/truetype/myriadi.ttf',
-        'bold_italic': '/usr/share/fonts/truetype/myriadbi.ttf'
+    'Helvetica': {
+        'regular': '/System/Library/Fonts/Helvetica.ttc',
+        'bold': '/System/Library/Fonts/Helvetica Bold.ttc',
+        'italic': '/System/Library/Fonts/Helvetica Oblique.ttc',
+        'bold_italic': '/System/Library/Fonts/Helvetica Bold Oblique.ttc'
     },
-    'Unbounded': {
-        'regular': '/usr/share/fonts/truetype/unbounded.ttf',
-        'bold': '/usr/share/fonts/truetype/unbounded-bold.ttf',
-        'italic': '/usr/share/fonts/truetype/unbounded-italic.ttf',
-        'bold_italic': '/usr/share/fonts/truetype/unbounded-bolditalic.ttf'
+    'Times New Roman': {
+        'regular': '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Times New Roman Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Times New Roman Bold Italic.ttf'
+    },
+    'Roboto': {
+        'regular': '/System/Library/Fonts/Supplemental/Roboto-Regular.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Roboto-Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Roboto-Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Roboto-BoldItalic.ttf'
+    },
+    'Open Sans': {
+        'regular': '/System/Library/Fonts/Supplemental/OpenSans-Regular.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/OpenSans-Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/OpenSans-Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/OpenSans-BoldItalic.ttf'
+    },
+    'Georgia': {
+        'regular': '/System/Library/Fonts/Supplemental/Georgia.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Georgia Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf'
+    },
+    'Verdana': {
+        'regular': '/System/Library/Fonts/Supplemental/Verdana.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Verdana Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Verdana Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Verdana Bold Italic.ttf'
+    },
+    'Comic Sans MS': {
+        'regular': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold Italic.ttf'
+    },
+    'Impact': {
+        'regular': '/System/Library/Fonts/Supplemental/Impact.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Impact.ttf',  # Impact имеет только regular
+        'italic': '/System/Library/Fonts/Supplemental/Impact.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Impact.ttf'
     }
 }
 
@@ -420,8 +456,8 @@ class MemeBot:
     async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str, font_size: int) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
-            # Открываем изображение
-            image = Image.open(io.BytesIO(image_bytes))
+            # Открываем изображение и конвертируем в RGBA
+            image = Image.open(io.BytesIO(image_bytes)).convert('RGBA')
             
             # Создаем объект для рисования
             draw = ImageDraw.Draw(image)
@@ -429,7 +465,8 @@ class MemeBot:
             # Загружаем шрифт
             try:
                 font = ImageFont.truetype(font_path, font_size)
-            except:
+            except Exception as e:
+                logger.error(f"Ошибка загрузки шрифта: {str(e)}")
                 # Если не удалось загрузить шрифт, используем дефолтный
                 font = ImageFont.load_default()
             
@@ -475,9 +512,12 @@ class MemeBot:
                     self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                     y += line_height
                 
+                # Конвертируем в RGB перед сохранением
+                image = image.convert('RGB')
+                
                 # Сохраняем результат
                 output = io.BytesIO()
-                image.save(output, format='JPEG')
+                image.save(output, format='JPEG', quality=95)
                 output.seek(0)
                 return output.getvalue()
             
@@ -489,9 +529,12 @@ class MemeBot:
                 self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                 y += line_height
             
+            # Конвертируем в RGB перед сохранением
+            image = image.convert('RGB')
+            
             # Сохраняем результат
             output = io.BytesIO()
-            image.save(output, format='JPEG')
+            image.save(output, format='JPEG', quality=95)
             output.seek(0)
             return output.getvalue()
             
@@ -505,9 +548,24 @@ class MemeBot:
         # Рисуем обводку
         for offset in range(-2, 3):
             for offset2 in range(-2, 3):
-                draw.text((x + offset, y + offset2), text, font=font, fill='black', encoding='utf-8')
+                draw.text(
+                    (x + offset, y + offset2),
+                    text,
+                    font=font,
+                    fill='black',
+                    embedded_color=True,
+                    stroke_width=3,
+                    stroke_fill='black'
+                )
         # Рисуем текст
-        draw.text((x, y), text, font=font, fill=color, encoding='utf-8')
+        draw.text(
+            (x, y),
+            text,
+            font=font,
+            fill=color,
+            embedded_color=True,
+            stroke_width=0
+        )
 
     def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
         """Разбивает текст на строки, чтобы он поместился по ширине."""
