@@ -77,6 +77,21 @@ class MemeBot:
         """Инициализация бота с настройками из переменных окружения."""
         self.application = Application.builder().token(token).build()
         self.setup_handlers()
+        
+        # Доступные шрифты и цвета
+        self.fonts = {
+            'default': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            'bold': '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            'comic': '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+        }
+        
+        self.colors = {
+            'white': 'white',
+            'yellow': 'yellow',
+            'red': 'red',
+            'blue': 'blue',
+            'green': 'green'
+        }
 
     async def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
@@ -190,45 +205,91 @@ class MemeBot:
                 await update.message.reply_text("Сначала отправьте изображение!")
                 return
 
-            # Получаем фото и текст
-            photo_file_id = context.user_data['current_photo']
-            text = update.message.text
-
-            # Загружаем фото
-            photo_file = await context.bot.get_file(photo_file_id)
-            photo_bytes = await photo_file.download_as_bytearray()
+            # Сохраняем текст
+            context.user_data['meme_text'] = update.message.text
             
-            # Создаем мем
-            meme_bytes = await self.create_meme(photo_bytes, text)
+            # Показываем выбор шрифта
+            keyboard = [[InlineKeyboardButton(name, callback_data=f'font_{font}') 
+                        for name, font in self.fonts.items()]]
+            keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
+            reply_markup = InlineKeyboardMarkup(keyboard)
             
-            if meme_bytes:
-                # Отправляем готовый мем
-                await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=meme_bytes,
-                    caption="✨ Ваш мем готов!"
-                )
-            else:
-                await update.message.reply_text("😔 Извините, произошла ошибка при создании мема")
-            
-            # Очищаем данные
-            del context.user_data['current_photo']
+            await update.message.reply_text(
+                "🎨 Выберите шрифт для текста:",
+                reply_markup=reply_markup
+            )
             
         except Exception as e:
-            logger.error(f"Ошибка при создании мема: {str(e)}")
-            await update.message.reply_text("😔 Извините, произошла ошибка при создании мема")
+            logger.error(f"Ошибка при обработке текста: {str(e)}")
+            await update.message.reply_text("😔 Извините, произошла ошибка при обработке текста")
 
     async def callback_query(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Обработчик callback-запросов."""
         query = update.callback_query
         await query.answer()
 
-        if query.data == 'cancel':
-            if 'current_photo' in context.user_data:
-                del context.user_data['current_photo']
-            await query.message.edit_text("❌ Создание мема отменено")
+        try:
+            if query.data == 'cancel':
+                # Очищаем данные
+                context.user_data.clear()
+                await query.message.edit_text("❌ Создание мема отменено")
+                return
 
-    async def create_meme(self, image_bytes: bytes, text: str) -> Optional[bytes]:
+            if query.data.startswith('font_'):
+                # Сохраняем выбранный шрифт
+                font = query.data.replace('font_', '')
+                context.user_data['font'] = font
+                
+                # Показываем выбор цвета
+                keyboard = [[InlineKeyboardButton(name, callback_data=f'color_{color}') 
+                           for name, color in self.colors.items()]]
+                keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await query.message.edit_text(
+                    "🎨 Выберите цвет текста:",
+                    reply_markup=reply_markup
+                )
+                return
+
+            if query.data.startswith('color_'):
+                # Получаем все необходимые данные
+                color = query.data.replace('color_', '')
+                text = context.user_data.get('meme_text')
+                photo_id = context.user_data.get('current_photo')
+                font = context.user_data.get('font')
+                
+                if not all([text, photo_id, font]):
+                    await query.message.edit_text("😔 Что-то пошло не так, попробуйте сначала")
+                    return
+
+                # Загружаем фото
+                photo_file = await context.bot.get_file(photo_id)
+                photo_bytes = await photo_file.download_as_bytearray()
+                
+                # Создаем мем
+                meme_bytes = await self.create_meme(photo_bytes, text, font, color)
+                
+                if meme_bytes:
+                    # Отправляем готовый мем
+                    await context.bot.send_photo(
+                        chat_id=update.effective_chat.id,
+                        photo=meme_bytes,
+                        caption="✨ Ваш мем готов!"
+                    )
+                    await query.message.delete()
+                else:
+                    await query.message.edit_text("😔 Извините, произошла ошибка при создании мема")
+                
+                # Очищаем данные
+                context.user_data.clear()
+                
+        except Exception as e:
+            logger.error(f"Ошибка в callback_query: {str(e)}")
+            await query.message.edit_text("😔 Произошла ошибка, попробуйте сначала")
+            context.user_data.clear()
+
+    async def create_meme(self, image_bytes: bytes, text: str, font_name: str, text_color: str) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
             # Открываем изображение
@@ -239,7 +300,7 @@ class MemeBot:
             
             # Загружаем шрифт
             try:
-                font = ImageFont.truetype(DEFAULT_FONT_PATH, FONT_SIZE)
+                font = ImageFont.truetype(self.fonts[font_name], FONT_SIZE)
             except:
                 # Если не удалось загрузить шрифт, используем дефолтный
                 font = ImageFont.load_default()
@@ -269,7 +330,7 @@ class MemeBot:
                         draw.text((x + offset, y + offset2), line, font=font, fill='black')
                 
                 # Рисуем текст
-                draw.text((x, y), line, font=font, fill='white')
+                draw.text((x, y), line, font=font, fill=self.colors[text_color])
                 
                 y += line_height
             
