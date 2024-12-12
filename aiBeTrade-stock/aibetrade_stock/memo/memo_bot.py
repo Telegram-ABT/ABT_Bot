@@ -222,29 +222,51 @@ class MemeBot:
         """Обработчик ошибок."""
         logger.error(f"Update {update} caused error {context.error}")
 
-    async def run(self):
+    async def start(self):
         """Запуск бота."""
         await self.application.initialize()
         await self.application.start()
-        await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+        logger.info("Бот запущен и готов к работе!")
+        
+        try:
+            await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+        finally:
+            logger.info("Останавливаем бота...")
+            await self.application.stop()
+            await self.application.shutdown()
+            logger.info("Бот остановлен.")
+
+    async def stop(self):
+        """Остановка бота."""
+        try:
+            await self.application.stop()
+            await self.application.shutdown()
+        except Exception as e:
+            logger.error(f"Ошибка при остановке бота: {str(e)}")
 
 async def main():
+    bot = None
     try:
         bot = MemeBot()
-        logger.info("Бот запущен. Нажмите Ctrl+C для завершения.")
-        await bot.run()
+        await bot.start()
+    except KeyboardInterrupt:
+        logger.info("Получен сигнал завершения работы")
     except Exception as e:
         logger.error(f"Ошибка при запуске бота: {str(e)}")
+    finally:
+        if bot:
+            await bot.stop()
         SingletonBot.cleanup()
-        sys.exit(1)
 
-if __name__ == '__main__':
+def run_bot():
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем")
-        SingletonBot.cleanup()
     except Exception as e:
         logger.error(f"Критическая ошибка: {str(e)}")
+    finally:
         SingletonBot.cleanup()
-        sys.exit(1)
+
+if __name__ == '__main__':
+    run_bot()
