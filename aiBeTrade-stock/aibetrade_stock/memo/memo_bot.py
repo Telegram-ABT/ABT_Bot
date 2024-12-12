@@ -159,11 +159,159 @@ class MemeBot:
         else:
             await message.edit_text("😔 Извините, произошла ошибка при генерации изображения")
 
+    async def handle_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик входящих фотографий."""
+        # Получаем файл с наилучшим качеством
+        photo = update.message.photo[-1]
+        
+        # Сохраняем информацию о фото в контексте пользователя
+        if 'user_data' not in context:
+            context.user_data = {}
+        context.user_data['current_photo'] = photo.file_id
+        
+        # Запрашиваем текст для мема
+        keyboard = [
+            [InlineKeyboardButton("Отмена", callback_data='cancel')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            "📝 Отправьте текст, который нужно добавить на изображение\n"
+            "Или нажмите 'Отмена' для отмены",
+            reply_markup=reply_markup
+        )
+
+    async def handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик текста для создания мема."""
+        if 'user_data' not in context or 'current_photo' not in context.user_data:
+            await update.message.reply_text("Сначала отправьте изображение!")
+            return
+
+        # Получаем фото и текст
+        photo_file_id = context.user_data['current_photo']
+        text = update.message.text
+
+        try:
+            # Загружаем фото
+            photo_file = await context.bot.get_file(photo_file_id)
+            photo_bytes = await photo_file.download_as_bytearray()
+            
+            # Создаем мем
+            meme_bytes = await self.create_meme(photo_bytes, text)
+            
+            if meme_bytes:
+                # Отправляем готовый мем
+                await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=meme_bytes,
+                    caption="✨ Ваш мем готов!"
+                )
+            else:
+                await update.message.reply_text("😔 Извините, произошла ошибка при создании мема")
+            
+            # Очищаем данные
+            del context.user_data['current_photo']
+            
+        except Exception as e:
+            logger.error(f"Ошибка при создании мема: {str(e)}")
+            await update.message.reply_text("😔 Извините, произошла ошибка при создании мема")
+
+    async def create_meme(self, image_bytes: bytes, text: str) -> Optional[bytes]:
+        """Создание мема из изображения и текста."""
+        try:
+            # Открываем изображение
+            image = Image.open(io.BytesIO(image_bytes))
+            
+            # Создаем объект для рисования
+            draw = ImageDraw.Draw(image)
+            
+            # Загружаем шрифт
+            try:
+                font = ImageFont.truetype(DEFAULT_FONT_PATH, FONT_SIZE)
+            except:
+                # Если не удалось загрузить шрифт, используем дефолтный
+                font = ImageFont.load_default()
+            
+            # Получаем размеры изображения
+            width, height = image.size
+            
+            # Разбиваем текст на строки
+            lines = self._wrap_text(text, font, width - 20)
+            
+            # Вычисляем общую высоту текста
+            line_height = font.getsize('hg')[1] + 5
+            text_height = len(lines) * line_height
+            
+            # Рисуем каждую строку текста
+            y = height - text_height - 10
+            for line in lines:
+                # Вычисляем ширину текста
+                line_width = font.getsize(line)[0]
+                
+                # Центрируем текст
+                x = (width - line_width) // 2
+                
+                # Рисуем обводку
+                for offset in range(-2, 3):
+                    for offset2 in range(-2, 3):
+                        draw.text((x + offset, y + offset2), line, font=font, fill='black')
+                
+                # Рисуем текст
+                draw.text((x, y), line, font=font, fill='white')
+                
+                y += line_height
+            
+            # Сохраняем результат
+            output = io.BytesIO()
+            image.save(output, format='JPEG')
+            output.seek(0)
+            return output.getvalue()
+            
+        except Exception as e:
+            logger.error(f"Ошибка при создании мема: {str(e)}")
+            return None
+
+    def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
+        """Разбивает текст на строки, чтобы он поместился по ширине."""
+        words = text.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            # Добавляем слово к текущей строке
+            current_line.append(word)
+            
+            # Проверяем ширину
+            line = ' '.join(current_line)
+            width = font.getsize(line)[0]
+            
+            # Если строка слишком широкая, начинаем новую строку
+            if width > max_width:
+                # Убираем последнее слово
+                current_line.pop()
+                
+                # Добавляем строку к результату
+                if current_line:
+                    lines.append(' '.join(current_line))
+                
+                # Начинаем новую строку с убранным словом
+                current_line = [word]
+        
+        # Добавляем последнюю строку
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return lines
+
     def setup_handlers(self):
         """Настройка обработчиков команд."""
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("help", self.help_command))
         self.application.add_handler(CommandHandler("generate", self.generate_command))
+        
+        # Добавляем обработчики для создания мемов
+        self.application.add_handler(MessageHandler(filters.PHOTO, self.handle_photo))
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text))
         
         # Добавляем обработчик ошибок
         self.application.add_error_handler(self.error_handler)
