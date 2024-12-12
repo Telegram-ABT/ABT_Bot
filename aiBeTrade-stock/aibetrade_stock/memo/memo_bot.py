@@ -222,20 +222,36 @@ class MemeBot:
         """Обработчик ошибок."""
         logger.error(f"Update {update} caused error {context.error}")
 
-async def main() -> None:
-    # Создаем и запускаем бота
-    bot = MemeBot()
-    
-    # Запускаем бота и ждем его остановки
-    await bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
+    async def start(self):
+        """Запуск бота."""
+        try:
+            await self.application.initialize()
+            await self.application.start()
+            await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+        finally:
+            await self.application.stop()
+            await self.application.shutdown()
 
-if __name__ == '__main__':
+async def main():
+    """Основная функция запуска бота."""
     try:
-        # Запускаем бота
+        bot = MemeBot()
+        await bot.start()
+    except Exception as e:
+        logger.error(f"Ошибка при работе бота: {e}")
+        raise
+    finally:
+        SingletonBot.cleanup()
+
+def run_bot():
+    """Запуск бота с обработкой исключений."""
+    try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        # Обработка Ctrl+C
         logger.info("Бот остановлен пользователем")
-    finally:
-        # Очищаем ресурсы
-        SingletonBot.cleanup()
+    except Exception as e:
+        logger.error(f"Критическая ошибка: {e}")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    run_bot()
