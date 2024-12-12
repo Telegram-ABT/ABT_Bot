@@ -209,8 +209,8 @@ class MemeBot:
             context.user_data['meme_text'] = update.message.text
             
             # Показываем выбор шрифта
-            keyboard = [[InlineKeyboardButton(name, callback_data=f'font_{font}') 
-                        for name, font in self.fonts.items()]]
+            keyboard = [[InlineKeyboardButton(name, callback_data=f'font_{name}') 
+                        for name in self.fonts.keys()]]
             keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
             reply_markup = InlineKeyboardMarkup(keyboard)
             
@@ -237,12 +237,12 @@ class MemeBot:
 
             if query.data.startswith('font_'):
                 # Сохраняем выбранный шрифт
-                font = query.data.replace('font_', '')
-                context.user_data['font'] = font
+                font_name = query.data.replace('font_', '')
+                context.user_data['font'] = font_name
                 
                 # Показываем выбор цвета
-                keyboard = [[InlineKeyboardButton(name, callback_data=f'color_{color}') 
-                           for name, color in self.colors.items()]]
+                keyboard = [[InlineKeyboardButton(name, callback_data=f'color_{name}') 
+                           for name in self.colors.keys()]]
                 keyboard.append([InlineKeyboardButton("Отмена", callback_data='cancel')])
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
@@ -254,12 +254,12 @@ class MemeBot:
 
             if query.data.startswith('color_'):
                 # Получаем все необходимые данные
-                color = query.data.replace('color_', '')
+                color_name = query.data.replace('color_', '')
                 text = context.user_data.get('meme_text')
                 photo_id = context.user_data.get('current_photo')
-                font = context.user_data.get('font')
+                font_name = context.user_data.get('font')
                 
-                if not all([text, photo_id, font]):
+                if not all([text, photo_id, font_name]):
                     await query.message.edit_text("😔 Что-то пошло не так, попробуйте сначала")
                     return
 
@@ -268,7 +268,12 @@ class MemeBot:
                 photo_bytes = await photo_file.download_as_bytearray()
                 
                 # Создаем мем
-                meme_bytes = await self.create_meme(photo_bytes, text, font, color)
+                meme_bytes = await self.create_meme(
+                    photo_bytes, 
+                    text,
+                    self.fonts[font_name],  # Получаем путь к шрифту
+                    self.colors[color_name]  # Получаем название цвета
+                )
                 
                 if meme_bytes:
                     # Отправляем готовый мем
@@ -300,7 +305,7 @@ class MemeBot:
             
             # Загружаем шрифт
             try:
-                font = ImageFont.truetype(self.fonts[font_name], FONT_SIZE)
+                font = ImageFont.truetype(font_name, FONT_SIZE)
             except:
                 # Если не удалось загрузить шрифт, используем дефолтный
                 font = ImageFont.load_default()
@@ -330,7 +335,7 @@ class MemeBot:
                         draw.text((x + offset, y + offset2), line, font=font, fill='black')
                 
                 # Рисуем текст
-                draw.text((x, y), line, font=font, fill=self.colors[text_color])
+                draw.text((x, y), line, font=font, fill=text_color)
                 
                 y += line_height
             
