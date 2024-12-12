@@ -51,64 +51,34 @@ os.makedirs(FONTS_DIR, exist_ok=True)
 # Доступные шрифты и их варианты
 FONTS = {
     'Arial': {
-        'regular': 'arial.ttf',
-        'bold': 'arialbd.ttf',
-        'italic': 'ariali.ttf',
-        'bold_italic': 'arialbi.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Arial.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Arial Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf'
     },
     'Times New Roman': {
-        'regular': 'times.ttf',
-        'bold': 'timesbd.ttf',
-        'italic': 'timesi.ttf',
-        'bold_italic': 'timesbi.ttf'
-    },
-    'Helvetica': {
-        'regular': 'helvetica.ttf',
-        'bold': 'helveticabd.ttf',
-        'italic': 'helveticai.ttf',
-        'bold_italic': 'helveticabi.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Times New Roman Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Times New Roman Bold Italic.ttf'
     },
     'Verdana': {
-        'regular': 'verdana.ttf',
-        'bold': 'verdanab.ttf',
-        'italic': 'verdanai.ttf',
-        'bold_italic': 'verdanaz.ttf'
-    },
-    'Tahoma': {
-        'regular': 'tahoma.ttf',
-        'bold': 'tahomabd.ttf',
-        'italic': 'tahoma.ttf',
-        'bold_italic': 'tahomabd.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Verdana.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Verdana Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Verdana Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Verdana Bold Italic.ttf'
     },
     'Georgia': {
-        'regular': 'georgia.ttf',
-        'bold': 'georgiab.ttf',
-        'italic': 'georgiai.ttf',
-        'bold_italic': 'georgiaz.ttf'
-    },
-    'Courier New': {
-        'regular': 'cour.ttf',
-        'bold': 'courbd.ttf',
-        'italic': 'couri.ttf',
-        'bold_italic': 'courbi.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Georgia.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Georgia Italic.ttf',
+        'bold_italic': '/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf'
     },
     'Comic Sans MS': {
-        'regular': 'comic.ttf',
-        'bold': 'comicbd.ttf',
-        'italic': 'comic.ttf',
-        'bold_italic': 'comicbd.ttf'
-    },
-    'Impact': {
-        'regular': 'impact.ttf',
-        'bold': 'impact.ttf',
-        'italic': 'impact.ttf',
-        'bold_italic': 'impact.ttf'
-    },
-    'DejaVu Sans': {
-        'regular': 'DejaVuSans.ttf',
-        'bold': 'DejaVuSans-Bold.ttf',
-        'italic': 'DejaVuSans-Oblique.ttf',
-        'bold_italic': 'DejaVuSans-BoldOblique.ttf'
+        'regular': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',
+        'bold': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf',
+        'italic': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',  # Comic Sans не имеет italic
+        'bold_italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf'  # и bold italic версий
     }
 }
 
@@ -461,9 +431,10 @@ class MemeBot:
         """Рисует текст с обводкой."""
         x, y = position
         # Рисуем обводку
+        outline_color = 'black'
         for adj in range(-2, 3):
             for adj2 in range(-2, 3):
-                draw.text((x+adj, y+adj2), text, font=font, fill='black')
+                draw.text((x+adj, y+adj2), text, font=font, fill=outline_color)
         # Рисуем основной текст
         draw.text((x, y), text, font=font, fill=text_color)
 
@@ -496,23 +467,32 @@ class MemeBot:
     async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str, font_size: int) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
-            # Открываем изображение и конвертируем в RGBA для поддержки прозрачности
-            image = Image.open(io.BytesIO(image_bytes)).convert('RGBA')
+            # Открываем изображение
+            image = Image.open(io.BytesIO(image_bytes))
+            
+            # Создаем новое RGBA изображение
+            new_image = Image.new('RGBA', image.size, (0, 0, 0, 0))
+            new_image.paste(image)
             
             # Создаем объект для рисования
-            draw = ImageDraw.Draw(image)
+            draw = ImageDraw.Draw(new_image)
             
             # Загружаем шрифт
             try:
                 font = ImageFont.truetype(font_path, font_size)
             except Exception as e:
-                logger.error(f"Ошибка загрузки шрифта: {str(e)}")
-                # Используем дефолтный шрифт
-                font = ImageFont.load_default()
-                logger.warning("Используется системный шрифт по умолчанию")
+                logger.error(f"Ошибка загрузки шрифта {font_path}: {str(e)}")
+                # Пробуем загрузить обычный Arial как запасной вариант
+                try:
+                    font = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', font_size)
+                except Exception as e:
+                    logger.error(f"Ошибка загрузки запасного шрифта Arial: {str(e)}")
+                    # Если и это не получилось, используем дефолтный шрифт
+                    font = ImageFont.load_default()
+                    logger.warning("Используется системный шрифт по умолчанию")
             
             # Получаем размеры изображения
-            width, height = image.size
+            width, height = new_image.size
             
             # Разбиваем текст на строки
             lines = self._wrap_text(text, font, width - 20)
@@ -553,12 +533,13 @@ class MemeBot:
                     self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                     y += line_height
                 
-                # Конвертируем обратно в RGB перед сохранением
-                image = image.convert('RGB')
+                # Конвертируем в RGB и сохраняем
+                rgb_image = Image.new('RGB', new_image.size, (255, 255, 255))
+                rgb_image.paste(new_image, mask=new_image.split()[3])
                 
                 # Сохраняем результат
                 output = io.BytesIO()
-                image.save(output, format='JPEG', quality=95)
+                rgb_image.save(output, format='JPEG', quality=95)
                 output.seek(0)
                 return output.getvalue()
             
@@ -570,12 +551,13 @@ class MemeBot:
                 self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                 y += line_height
             
-            # Конвертируем обратно в RGB перед сохранением
-            image = image.convert('RGB')
+            # Конвертируем в RGB и сохраняем
+            rgb_image = Image.new('RGB', new_image.size, (255, 255, 255))
+            rgb_image.paste(new_image, mask=new_image.split()[3])
             
             # Сохраняем результат
             output = io.BytesIO()
-            image.save(output, format='JPEG', quality=95)
+            rgb_image.save(output, format='JPEG', quality=95)
             output.seek(0)
             return output.getvalue()
             
