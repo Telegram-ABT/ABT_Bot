@@ -6,7 +6,7 @@ import os
 import logging
 from openai import OpenAI
 import requests
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from dotenv import load_dotenv
 import asyncio
 import aiohttp
@@ -457,48 +457,54 @@ class MemeBot:
             await query.message.edit_text("😔 Произошла ошибка, попробуйте сначала")
             context.user_data.clear()
 
+    def _draw_text_with_outline(self, draw, position, text, font, text_color):
+        """Рисует текст с обводкой."""
+        x, y = position
+        # Рисуем обводку
+        for adj in range(-2, 3):
+            for adj2 in range(-2, 3):
+                draw.text((x+adj, y+adj2), text, font=font, fill='black')
+        # Рисуем основной текст
+        draw.text((x, y), text, font=font, fill=text_color)
+
+    def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> List[str]:
+        """Разбивает текст на строки, чтобы он поместился в указанную ширину."""
+        words = text.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            # Добавляем слово к текущей строке
+            test_line = ' '.join(current_line + [word])
+            bbox = font.getbbox(test_line)
+            width = bbox[2] - bbox[0]
+            
+            if width <= max_width:
+                current_line.append(word)
+            else:
+                # Если текущая строка не пустая, добавляем её к результату
+                if current_line:
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+        
+        # Добавляем последнюю строку
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return lines
+
     async def create_meme(self, image_bytes: bytes, text: str, font_path: str, text_color: str, position: str, font_size: int) -> Optional[bytes]:
         """Создание мема из изображения и текста."""
         try:
-            # Открываем изображение и конвертируем в RGBA
+            # Открываем изображение и конвертируем в RGBA для поддержки прозрачности
             image = Image.open(io.BytesIO(image_bytes)).convert('RGBA')
             
             # Создаем объект для рисования
             draw = ImageDraw.Draw(image)
             
             # Загружаем шрифт
-            font = None
             try:
-                # Пробуем загрузить указанный шрифт
-                if os.path.exists(font_path):
-                    font = ImageFont.truetype(font_path, font_size)
-                else:
-                    # Пробуем найти шрифт в системных директориях
-                    system_font_dirs = [
-                        '/System/Library/Fonts',
-                        '/System/Library/Fonts/Supplemental',
-                        '/Library/Fonts',
-                        os.path.expanduser('~/Library/Fonts'),
-                        FONTS_DIR
-                    ]
-                    
-                    font_found = False
-                    for font_dir in system_font_dirs:
-                        try_path = os.path.join(font_dir, os.path.basename(font_path))
-                        if os.path.exists(try_path):
-                            font = ImageFont.truetype(try_path, font_size)
-                            font_found = True
-                            break
-                    
-                    if not font_found:
-                        # Если шрифт не найден, используем DejaVu Sans
-                        default_font = os.path.join(FONTS_DIR, 'DejaVuSans.ttf')
-                        if os.path.exists(default_font):
-                            font = ImageFont.truetype(default_font, font_size)
-                        else:
-                            # Если и DejaVu Sans не найден, используем дефолтный шрифт
-                            font = ImageFont.load_default()
-                            logger.warning("Используется системный шрифт по умолчанию")
+                font = ImageFont.truetype(font_path, font_size)
             except Exception as e:
                 logger.error(f"Ошибка загрузки шрифта: {str(e)}")
                 # Используем дефолтный шрифт
@@ -512,8 +518,8 @@ class MemeBot:
             lines = self._wrap_text(text, font, width - 20)
             
             # Вычисляем высоту одной строки
-            bbox = font.getbbox('hg')
-            line_height = bbox[3] - bbox[1] + 5
+            line_spacing = 5  # дополнительный отступ между строками
+            line_height = font.size + line_spacing
             text_height = len(lines) * line_height
             
             # Определяем позицию текста
@@ -547,7 +553,7 @@ class MemeBot:
                     self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                     y += line_height
                 
-                # Конвертируем в RGB перед сохранением
+                # Конвертируем обратно в RGB перед сохранением
                 image = image.convert('RGB')
                 
                 # Сохраняем результат
@@ -564,7 +570,7 @@ class MemeBot:
                 self._draw_text_with_outline(draw, (x, y), line, font, text_color)
                 y += line_height
             
-            # Конвертируем в RGB перед сохранением
+            # Конвертируем обратно в RGB перед сохранением
             image = image.convert('RGB')
             
             # Сохраняем результат
@@ -576,56 +582,6 @@ class MemeBot:
         except Exception as e:
             logger.error(f"Ошибка при создании мема: {str(e)}")
             return None
-
-    def _draw_text_with_outline(self, draw: ImageDraw, position: Tuple[int, int], text: str, font: ImageFont, color: str):
-        """Рисует текст с обводкой."""
-        x, y = position
-        # Рисуем обводку
-        for offset in range(-2, 3):
-            for offset2 in range(-2, 3):
-                draw.text(
-                    (x + offset, y + offset2),
-                    text,
-                    font=font,
-                    fill='black',
-                    embedded_color=True,
-                    stroke_width=3,
-                    stroke_fill='black'
-                )
-        # Рисуем текст
-        draw.text(
-            (x, y),
-            text,
-            font=font,
-            fill=color,
-            embedded_color=True,
-            stroke_width=0
-        )
-
-    def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
-        """Разбивает текст на строки, чтобы он поместился по ширине."""
-        words = text.split()
-        lines = []
-        current_line = []
-        
-        for word in words:
-            current_line.append(word)
-            bbox = font.getbbox(' '.join(current_line))
-            line_width = bbox[2] - bbox[0]
-            
-            if line_width > max_width:
-                if len(current_line) == 1:
-                    lines.append(current_line[0])
-                    current_line = []
-                else:
-                    current_line.pop()
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
-        
-        if current_line:
-            lines.append(' '.join(current_line))
-        
-        return lines
 
     def setup_handlers(self):
         """Настройка обработчиков команд."""
