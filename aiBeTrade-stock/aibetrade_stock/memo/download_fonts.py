@@ -1,41 +1,57 @@
 import os
-import urllib.request
+import requests
 import logging
+from pathlib import Path
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Создаем директорию для шрифтов
-FONTS_DIR = os.path.join(os.path.dirname(__file__), 'fonts')
-os.makedirs(FONTS_DIR, exist_ok=True)
+# URL-адреса открытых шрифтов
+FONT_URLS = {
+    # Open Sans
+    'OpenSans-Regular.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Regular.ttf',
+    'OpenSans-Bold.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Bold.ttf',
+    'OpenSans-Italic.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Italic.ttf',
+    'OpenSans-BoldItalic.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-BoldItalic.ttf',
+    
+    # Roboto
+    'Roboto-Regular.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Regular.ttf',
+    'Roboto-Bold.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf',
+    'Roboto-Italic.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Italic.ttf',
+    'Roboto-BoldItalic.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-BoldItalic.ttf',
+    
+    # PT Sans
+    'PTSans-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Regular.ttf',
+    'PTSans-Bold.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Bold.ttf',
+    'PTSans-Italic.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Italic.ttf',
+    'PTSans-BoldItalic.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-BoldItalic.ttf'
+}
 
-# URL для скачивания DejaVu Sans (как запасной вариант)
-DEJAVU_URL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
-DEJAVU_BOLD_URL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf"
-DEJAVU_OBLIQUE_URL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Oblique.ttf"
-DEJAVU_BOLDOBLIQUE_URL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-BoldOblique.ttf"
-
-def download_font(url, filename):
-    """Скачивает шрифт по URL и сохраняет в папку fonts."""
-    try:
-        filepath = os.path.join(FONTS_DIR, filename)
-        if not os.path.exists(filepath):
-            logger.info(f"Скачиваем {filename}...")
-            urllib.request.urlretrieve(url, filepath)
-            logger.info(f"Шрифт {filename} успешно скачан")
-        else:
-            logger.info(f"Шрифт {filename} уже существует")
-    except Exception as e:
-        logger.error(f"Ошибка при скачивании {filename}: {str(e)}")
-
-def main():
-    """Скачивает все необходимые шрифты."""
-    # Скачиваем DejaVu Sans как запасной вариант
-    download_font(DEJAVU_URL, 'DejaVuSans.ttf')
-    download_font(DEJAVU_BOLD_URL, 'DejaVuSans-Bold.ttf')
-    download_font(DEJAVU_OBLIQUE_URL, 'DejaVuSans-Oblique.ttf')
-    download_font(DEJAVU_BOLDOBLIQUE_URL, 'DejaVuSans-BoldOblique.ttf')
+def download_fonts():
+    # Создаем директорию fonts если она не существует
+    fonts_dir = Path(__file__).parent / 'fonts'
+    fonts_dir.mkdir(exist_ok=True)
+    
+    for font_name, url in FONT_URLS.items():
+        font_path = fonts_dir / font_name
+        
+        # Пропускаем если файл уже существует
+        if font_path.exists():
+            logger.info(f"Шрифт {font_name} уже существует")
+            continue
+            
+        try:
+            logger.info(f"Скачиваем шрифт {font_name}...")
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            with open(font_path, 'wb') as f:
+                f.write(response.content)
+            logger.info(f"Шрифт {font_name} успешно скачан")
+            
+        except Exception as e:
+            logger.error(f"Ошибка при скачивании шрифта {font_name}: {str(e)}")
 
 if __name__ == '__main__':
-    main()
+    download_fonts()

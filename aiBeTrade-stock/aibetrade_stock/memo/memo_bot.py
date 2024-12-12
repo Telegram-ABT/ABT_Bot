@@ -50,35 +50,23 @@ os.makedirs(FONTS_DIR, exist_ok=True)
 
 # Доступные шрифты и их варианты
 FONTS = {
-    'Arial': {
-        'regular': '/System/Library/Fonts/Supplemental/Arial.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Arial Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf'
+    'Open Sans': {
+        'regular': os.path.join(FONTS_DIR, 'OpenSans-Regular.ttf'),
+        'bold': os.path.join(FONTS_DIR, 'OpenSans-Bold.ttf'),
+        'italic': os.path.join(FONTS_DIR, 'OpenSans-Italic.ttf'),
+        'bold_italic': os.path.join(FONTS_DIR, 'OpenSans-BoldItalic.ttf')
     },
-    'Times New Roman': {
-        'regular': '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Times New Roman Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Times New Roman Bold Italic.ttf'
+    'Roboto': {
+        'regular': os.path.join(FONTS_DIR, 'Roboto-Regular.ttf'),
+        'bold': os.path.join(FONTS_DIR, 'Roboto-Bold.ttf'),
+        'italic': os.path.join(FONTS_DIR, 'Roboto-Italic.ttf'),
+        'bold_italic': os.path.join(FONTS_DIR, 'Roboto-BoldItalic.ttf')
     },
-    'Verdana': {
-        'regular': '/System/Library/Fonts/Supplemental/Verdana.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Verdana Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Verdana Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Verdana Bold Italic.ttf'
-    },
-    'Georgia': {
-        'regular': '/System/Library/Fonts/Supplemental/Georgia.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Georgia Italic.ttf',
-        'bold_italic': '/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf'
-    },
-    'Comic Sans MS': {
-        'regular': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',
-        'bold': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf',
-        'italic': '/System/Library/Fonts/Supplemental/Comic Sans MS.ttf',  # Comic Sans не имеет italic
-        'bold_italic': '/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf'  # и bold italic версий
+    'PT Sans': {
+        'regular': os.path.join(FONTS_DIR, 'PTSans-Regular.ttf'),
+        'bold': os.path.join(FONTS_DIR, 'PTSans-Bold.ttf'),
+        'italic': os.path.join(FONTS_DIR, 'PTSans-Italic.ttf'),
+        'bold_italic': os.path.join(FONTS_DIR, 'PTSans-BoldItalic.ttf')
     }
 }
 
@@ -482,14 +470,9 @@ class MemeBot:
                 font = ImageFont.truetype(font_path, font_size)
             except Exception as e:
                 logger.error(f"Ошибка загрузки шрифта {font_path}: {str(e)}")
-                # Пробуем загрузить обычный Arial как запасной вариант
-                try:
-                    font = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', font_size)
-                except Exception as e:
-                    logger.error(f"Ошибка загрузки запасного шрифта Arial: {str(e)}")
-                    # Если и это не получилось, используем дефолтный шрифт
-                    font = ImageFont.load_default()
-                    logger.warning("Используется системный шрифт по умолчанию")
+                # Используем дефолтный шрифт
+                font = ImageFont.load_default()
+                logger.warning("Используется системный шрифт по умолчанию")
             
             # Получаем размеры изображения
             width, height = new_image.size
@@ -497,9 +480,10 @@ class MemeBot:
             # Разбиваем текст на строки
             lines = self._wrap_text(text, font, width - 20)
             
-            # Вычисляем высоту одной строки
-            line_spacing = 5  # дополнительный отступ между строками
-            line_height = font.size + line_spacing
+            # Вычисляем высоту одной строки используя getbbox
+            test_text = "Aj"  # Текст для измерения высоты строки
+            bbox = font.getbbox(test_text)
+            line_height = bbox[3] - bbox[1] + 5  # Добавляем отступ между строками
             text_height = len(lines) * line_height
             
             # Определяем позицию текста
