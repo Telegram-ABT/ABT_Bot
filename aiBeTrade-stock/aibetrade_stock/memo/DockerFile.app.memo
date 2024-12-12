@@ -22,11 +22,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
-    fonts-roboto \
-    fonts-dejavu \
-    fonts-liberation \
-    fonts-ubuntu \
-    fonts-noto \
+    fonts-dejavu-core \
+    fonts-dejavu-extra \
+    fonts-liberation2 \
+    fonts-noto-core \
     fonts-freefont-ttf \
     && rm -rf /var/lib/apt/lists/*
 
