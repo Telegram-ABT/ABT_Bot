@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import os
 import logging
-import openai
+from openai import OpenAI
 import requests
 from typing import Tuple, Optional
 from dotenv import load_dotenv
@@ -26,19 +26,19 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')  # API ключ OpenAI
 FONT_SIZE = int(os.getenv('FONT_SIZE', '40'))  # Размер шрифта
 DEFAULT_FONT_PATH = os.getenv('DEFAULT_FONT_PATH', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')  # Путь к шрифту по умолчанию
 
-# Настройки генерации изображений
-DEFAULT_IMAGE_SIZE = os.getenv('DEFAULT_IMAGE_SIZE', '1024x1024')  # Размер генерируемого изображения
-DEFAULT_IMAGE_QUALITY = os.getenv('DEFAULT_IMAGE_QUALITY', 'standard')  # Качество генерации (standard/hd)
-DEFAULT_IMAGE_STYLE = os.getenv('DEFAULT_IMAGE_STYLE', 'vivid')  # Стиль изображения (vivid/natural)
+# Константы для генерации изображений
+DEFAULT_IMAGE_SIZE = "1024x1024"
+DEFAULT_IMAGE_QUALITY = "standard"
+DEFAULT_IMAGE_STYLE = "vivid"
+
+# Инициализация клиента OpenAI
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Проверка обязательных переменных окружения
 if not TELEGRAM_BOT_TOKEN:
     raise ValueError("❌ Не установлен TELEGRAM_BOT_TOKEN")
 if not OPENAI_API_KEY:
     raise ValueError("❌ Не установлен OPENAI_API_KEY")
-
-# Инициализация OpenAI
-openai.api_key = OPENAI_API_KEY
 
 ###########################################
 # Константы приложения
@@ -81,13 +81,13 @@ class MemeBot:
     async def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
         try:
-            response = await openai.Image.acreate(
+            response = await asyncio.to_thread(
+                client.images.generate,
                 prompt=prompt,
                 n=1,
                 size=DEFAULT_IMAGE_SIZE,
                 quality=DEFAULT_IMAGE_QUALITY,
-                style=DEFAULT_IMAGE_STYLE,
-                response_format="url"
+                style=DEFAULT_IMAGE_STYLE
             )
             
             image_url = response.data[0].url
