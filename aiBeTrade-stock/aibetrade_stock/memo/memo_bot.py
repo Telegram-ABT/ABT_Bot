@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
@@ -12,6 +12,8 @@ import atexit
 import fcntl
 import sys
 import signal
+import asyncio
+import aiohttp
 
 # Загружаем переменные окружения из файла .env
 load_dotenv()
@@ -126,15 +128,13 @@ class MemeBot:
         if not SingletonBot.check_singleton():
             sys.exit(1)
             
-        self.updater = Updater(token)
-        self.dp = self.updater.dispatcher
-        self.user_data = {}
+        self.application = Application.builder().token(token).build()
         self.setup_handlers()
 
-    def generate_image(self, prompt: str) -> Optional[bytes]:
+    async def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
         try:
-            response = openai.Image.create(
+            response = await openai.Image.acreate(
                 prompt=prompt,
                 n=1,
                 size=DEFAULT_IMAGE_SIZE,
@@ -145,238 +145,88 @@ class MemeBot:
             
             image_url = response.data[0].url
             # Загружаем изображение
-            image_response = requests.get(image_url)
-            if image_response.status_code == 200:
-                return image_response.content
-            else:
-                logger.error(f"Ошибка при загрузке изображения: {image_response.status_code}")
-                return None
+            async with aiohttp.ClientSession() as session:
+                async with session.get(image_url) as response:
+                    if response.status == 200:
+                        return await response.read()
+                    else:
+                        logger.error(f"Ошибка при загрузке изображения: {response.status}")
+                        return None
                 
         except Exception as e:
             logger.error(f"Ошибка при генерации изображения: {str(e)}")
             return None
 
-    def generate_command(self, update: Update, context: CallbackContext):
+    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик команды /start."""
+        welcome_message = (
+            "👋 Привет! Я бот для создания мемов и генерации изображений.\n\n"
+            "🎨 Что я умею:\n"
+            "1. Создавать мемы из ваших картинок\n"
+            "2. Генерировать новые изображения\n\n"
+            "Команды:\n"
+            "/help - Показать справку\n"
+            "/generate - Сгенерировать изображение"
+        )
+        await update.message.reply_text(welcome_message)
+
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик команды /help."""
+        help_message = (
+            "🤖 Инструкция по использованию:\n\n"
+            "1️⃣ Для создания мема:\n"
+            "   - Отправьте мне изображение\n"
+            "   - Выберите шрифт и цвет текста\n"
+            "   - Напишите текст\n\n"
+            "2️⃣ Для генерации изображения:\n"
+            "   - Используйте команду /generate с описанием\n"
+            "   Пример: /generate красивый закат на море\n\n"
+            "Команды:\n"
+            "/start - Начать сначала\n"
+            "/help - Показать эту справку\n"
+            "/generate - Создать новое изображение"
+        )
+        await update.message.reply_text(help_message)
+
+    async def generate_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Обработчик команды /generate."""
         if not context.args:
-            update.message.reply_text("Пожалуйста, добавьте описание изображения после команды /generate")
+            await update.message.reply_text("Пожалуйста, добавьте описание изображения после команды /generate")
             return
 
         prompt = ' '.join(context.args)
-        message = update.message.reply_text("🎨 Генерирую изображение, пожалуйста подождите...")
+        message = await update.message.reply_text("🎨 Генерирую изображение, пожалуйста подождите...")
 
-        image_data = self.generate_image(prompt)
+        image_data = await self.generate_image(prompt)
         if image_data:
             # Отправляем изображение
-            context.bot.send_photo(
+            await context.bot.send_photo(
                 chat_id=update.effective_chat.id,
                 photo=image_data,
                 caption="✨ Вот ваше изображение!"
             )
-            message.delete()
+            await message.delete()
         else:
-            message.edit_text("😔 Извините, произошла ошибка при генерации изображения")
+            await message.edit_text("😔 Извините, произошла ошибка при генерации изображения")
 
     def setup_handlers(self):
-        self.dp.add_handler(CommandHandler("start", self.start_command))
-        self.dp.add_handler(CommandHandler("help", self.help_command))
-        self.dp.add_handler(CommandHandler("generate", self.generate_command))
-        self.dp.add_handler(MessageHandler(Filters.photo, self.handle_photo))
-        self.dp.add_handler(MessageHandler(Filters.text & ~Filters.command, self.handle_text))
-        self.dp.add_handler(CallbackQueryHandler(self.button_callback))
-        self.dp.add_error_handler(self.error_handler)
-
-    def start_command(self, update: Update, context: CallbackContext) -> None:
-        welcome_message = (
-            "👋 Привет! Я бот для создания мемов!\n\n"
-            "🖼 У меня есть несколько возможностей:\n"
-            "1. Отправь мне изображение, и я добавлю на него текст\n"
-            "2. Используй команду /generate с описанием, и я создам новое изображение\n\n"
-            "Ты можешь:\n"
-            "- Выбирать из 10 различных шрифтов\n"
-            "- Использовать 10 разных цветов текста\n"
-            "- Менять позицию текста\n\n"
-            "Используй /help для получения подробной информации."
-        )
-        update.message.reply_text(welcome_message)
-
-    def help_command(self, update: Update, context: CallbackContext) -> None:
-        help_message = (
-            "📝 Как использовать бота:\n\n"
-            "1. Создание мема из существующего изображения:\n"
-            "   - Отправь изображение\n"
-            "   - Напиши текст\n"
-            "   - Выбери шрифт, цвет и позицию\n\n"
-            "2. Создание нового изображения:\n"
-            "   - Используй команду /generate\n"
-            "   - Напиши описание желаемого изображения\n\n"
-            "Доступные команды:\n"
-            "/start - Начать работу с ботом\n"
-            "/help - Показать это сообщение\n"
-            "/generate - Создать новое изображение"
-        )
-        update.message.reply_text(help_message)
-
-    def show_font_options(self, update: Update, context: CallbackContext) -> None:
-        keyboard = []
-        row = []
-        for i, (font_name, _) in enumerate(FONTS.items()):
-            if i > 0 and i % 2 == 0:
-                keyboard.append(row)
-                row = []
-            row.append(InlineKeyboardButton(font_name, callback_data=f'font_{font_name}'))
-        if row:
-            keyboard.append(row)
-            
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text('Выберите шрифт:', reply_markup=reply_markup)
-
-    def show_color_options(self, update: Update, context: CallbackContext) -> None:
-        keyboard = []
-        row = []
-        for i, (color_name, _) in enumerate(COLORS.items()):
-            if i > 0 and i % 2 == 0:
-                keyboard.append(row)
-                row = []
-            row.append(InlineKeyboardButton(color_name, callback_data=f'color_{color_name}'))
-        if row:
-            keyboard.append(row)
-            
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text('Выберите цвет текста:', reply_markup=reply_markup)
-
-    def handle_photo(self, update: Update, context: CallbackContext) -> None:
-        try:
-            photo = update.message.photo[-1]
-            file = context.bot.get_file(photo.file_id)
-            
-            user_id = update.effective_user.id
-            self.user_data[user_id] = {
-                'photo': file,
-                'stage': 'waiting_text'
-            }
-            
-            update.message.reply_text("Отлично! Теперь отправь мне текст для мема.")
-            
-        except Exception as e:
-            logger.error(f"Error handling photo: {str(e)}")
-            update.message.reply_text("Произошла ошибка при обработке фото. Попробуйте еще раз.")
-
-    def handle_text(self, update: Update, context: CallbackContext) -> None:
-        user_id = update.effective_user.id
+        """Настройка обработчиков команд."""
+        self.application.add_handler(CommandHandler("start", self.start_command))
+        self.application.add_handler(CommandHandler("help", self.help_command))
+        self.application.add_handler(CommandHandler("generate", self.generate_command))
         
-        if user_id not in self.user_data or self.user_data[user_id].get('stage') != 'waiting_text':
-            update.message.reply_text("Сначала отправьте изображение!")
-            return
-        
-        self.user_data[user_id]['text'] = update.message.text
-        self.user_data[user_id]['stage'] = 'choosing_font'
-        self.show_font_options(update, context)
+        # Добавляем обработчик ошибок
+        self.application.add_error_handler(self.error_handler)
 
-    def button_callback(self, update: Update, context: CallbackContext) -> None:
-        query = update.callback_query
-        user_id = update.effective_user.id
-        
-        if user_id not in self.user_data:
-            query.answer("Сессия истекла. Начните заново.")
-            return
-
-        data = query.data
-        if data.startswith('font_'):
-            font_name = data.split('_')[1]
-            self.user_data[user_id]['font'] = font_name
-            self.user_data[user_id]['stage'] = 'choosing_color'
-            self.show_color_options(update.effective_message, context)
-        elif data.startswith('color_'):
-            color_name = data.split('_')[1]
-            self.user_data[user_id]['color'] = COLORS[color_name]
-            self.show_position_options(update.effective_message, context)
-        elif data.startswith('pos_'):
-            position = data.split('_')[1]
-            self.user_data[user_id]['position'] = position
-            self.create_meme(update, context)
-        
-        query.answer()
-
-    def show_position_options(self, update: Update, context: CallbackContext) -> None:
-        keyboard = [
-            [InlineKeyboardButton("Сверху", callback_data='pos_top'),
-             InlineKeyboardButton("По центру", callback_data='pos_center'),
-             InlineKeyboardButton("Снизу", callback_data='pos_bottom')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        update.reply_text('Выберите позицию текста:', reply_markup=reply_markup)
-
-    def create_meme(self, update: Update, context: CallbackContext) -> None:
-        try:
-            user_id = update.effective_user.id
-            user_data = self.user_data[user_id]
-            
-            image_stream = io.BytesIO()
-            user_data['photo'].download(out=image_stream)
-            image_stream.seek(0)
-            image = Image.open(image_stream)
-            
-            draw = ImageDraw.Draw(image)
-            try:
-                font = ImageFont.truetype(FONTS[user_data['font']], size=FONT_SIZE)
-            except OSError:
-                font = ImageFont.load_default()
-            
-            text = user_data['text']
-            bbox = draw.textbbox((0, 0), text, font=font)
-            text_width = bbox[2] - bbox[0]
-            text_height = bbox[3] - bbox[1]
-            
-            width, height = image.size
-            position = user_data['position']
-            if position == 'top':
-                x = (width - text_width) / 2
-                y = 10
-            elif position == 'center':
-                x = (width - text_width) / 2
-                y = (height - text_height) / 2
-            else:  # bottom
-                x = (width - text_width) / 2
-                y = height - text_height - 10
-            
-            outline_color = 'black'
-            for adj in range(-2, 3):
-                for adj2 in range(-2, 3):
-                    draw.text((x+adj, y+adj2), text, font=font, fill=outline_color)
-            draw.text((x, y), text, font=font, fill=user_data['color'])
-            
-            output_stream = io.BytesIO()
-            image.save(output_stream, format='JPEG')
-            output_stream.seek(0)
-            
-            context.bot.send_photo(
-                chat_id=update.effective_chat.id,
-                photo=output_stream,
-                caption="Вот ваш мем! Отправьте новое изображение, чтобы создать другой мем."
-            )
-            
-            del self.user_data[user_id]
-            
-        except Exception as e:
-            logger.error(f"Error creating meme: {str(e)}")
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Произошла ошибка при создании мема. Попробуйте еще раз."
-            )
-            if user_id in self.user_data:
-                del self.user_data[user_id]
-
-    def error_handler(self, update: Update, context: CallbackContext) -> None:
-        logger.error(f'Update "{update}" caused error "{context.error}"')
-        if update:
-            update.message.reply_text("Произошла ошибка. Пожалуйста, попробуйте еще раз.")
+    async def error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Обработчик ошибок."""
+        logger.error(f"Update {update} caused error {context.error}")
 
     def run(self):
-        self.updater.start_polling()
-        self.updater.idle()
+        """Запуск бота."""
+        self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-def main():
+async def main():
     try:
         bot = MemeBot()
         logger.info("Бот запущен. Нажмите Ctrl+C для завершения.")
@@ -387,4 +237,4 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
