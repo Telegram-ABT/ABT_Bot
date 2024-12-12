@@ -8,7 +8,10 @@ import openai
 import requests
 from typing import Tuple, Optional
 from dotenv import load_dotenv
-import asyncio
+import atexit
+import fcntl
+import sys
+import signal
 
 # Загружаем переменные окружения из файла .env
 load_dotenv()
@@ -17,12 +20,54 @@ load_dotenv()
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class SingletonBot:
+    _lock_file = '/tmp/memo_bot.lock'
+    _lock_fd = None
+
+    @classmethod
+    def check_singleton(cls):
+        try:
+            # Пытаемся создать и заблокировать файл
+            cls._lock_fd = open(cls._lock_file, 'w')
+            fcntl.flock(cls._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            
+            # Записываем PID в файл блокировки
+            cls._lock_fd.write(str(os.getpid()))
+            cls._lock_fd.flush()
+            
+            # Регистрируем очистку при выходе
+            atexit.register(cls.cleanup)
+            signal.signal(signal.SIGTERM, cls.signal_handler)
+            signal.signal(signal.SIGINT, cls.signal_handler)
+            
+            return True
+            
+        except IOError:
+            logger.error("Бот уже запущен! Завершаем работу...")
+            return False
+
+    @classmethod
+    def cleanup(cls):
+        if cls._lock_fd:
+            try:
+                fcntl.flock(cls._lock_fd, fcntl.LOCK_UN)
+                cls._lock_fd.close()
+                os.unlink(cls._lock_file)
+            except:
+                pass
+
+    @classmethod
+    def signal_handler(cls, signum, frame):
+        logger.info("Получен сигнал завершения, очищаем ресурсы...")
+        cls.cleanup()
+        sys.exit(0)
+
 ###########################################
 # Переменные окружения и их значения по умолчанию
 ###########################################
 
 # API ключи и токены
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7828437733:AAGYTT94utDZa1MPGSnvlfGLsTxa0HsmEc0')  # Токен Telegram бота
+TELEGRAM_BOT_TOKEN = '7828437733:AAGYTT94utDZa1MPGSnvlfGLsTxa0HsmEc0'  # Токен Telegram бота
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')  # API ключ OpenAI
 
 # Настройки шрифтов и текста
@@ -78,6 +123,9 @@ COLORS = {
 class MemeBot:
     def __init__(self, token: str = TELEGRAM_BOT_TOKEN):
         """Инициализация бота с настройками из переменных окружения."""
+        if not SingletonBot.check_singleton():
+            sys.exit(1)
+            
         self.updater = Updater(token)
         self.dp = self.updater.dispatcher
         self.user_data = {}
@@ -328,12 +376,14 @@ class MemeBot:
         self.updater.idle()
 
 def main():
-    token = TELEGRAM_BOT_TOKEN
-    if not token:
-        raise ValueError("❌ Не установлен TELEGRAM_BOT_TOKEN")
-    
-    bot = MemeBot(token)
-    bot.run()
+    try:
+        bot = MemeBot()
+        logger.info("Бот запущен. Нажмите Ctrl+C для завершения.")
+        bot.run()
+    except Exception as e:
+        logger.error(f"Ошибка при запуске бота: {str(e)}")
+        SingletonBot.cleanup()
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
