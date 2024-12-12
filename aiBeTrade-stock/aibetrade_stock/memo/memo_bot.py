@@ -81,13 +81,16 @@ class MemeBot:
     async def generate_image(self, prompt: str) -> Optional[bytes]:
         """Генерация изображения с помощью DALL-E."""
         try:
-            response = await asyncio.to_thread(
-                client.images.generate,
-                prompt=prompt,
-                n=1,
-                size=DEFAULT_IMAGE_SIZE,
-                quality=DEFAULT_IMAGE_QUALITY,
-                style=DEFAULT_IMAGE_STYLE
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: client.images.generate(
+                    prompt=prompt,
+                    n=1,
+                    size=DEFAULT_IMAGE_SIZE,
+                    quality=DEFAULT_IMAGE_QUALITY,
+                    style=DEFAULT_IMAGE_STYLE
+                )
             )
             
             image_url = response.data[0].url
