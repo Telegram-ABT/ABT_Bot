@@ -10,22 +10,22 @@ logger = logging.getLogger(__name__)
 # URL-адреса открытых шрифтов
 FONT_URLS = {
     # Open Sans
-    'OpenSans-Regular.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Regular.ttf',
-    'OpenSans-Bold.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Bold.ttf',
-    'OpenSans-Italic.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-Italic.ttf',
-    'OpenSans-BoldItalic.ttf': 'https://github.com/googlefonts/opensans/raw/main/fonts/ttf/OpenSans-BoldItalic.ttf',
+    'OpenSans-Regular.ttf': 'https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-Regular.ttf',
+    'OpenSans-Bold.ttf': 'https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-Bold.ttf',
+    'OpenSans-Italic.ttf': 'https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-Italic.ttf',
+    'OpenSans-BoldItalic.ttf': 'https://raw.githubusercontent.com/googlefonts/opensans/main/fonts/ttf/OpenSans-BoldItalic.ttf',
     
     # Roboto
-    'Roboto-Regular.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Regular.ttf',
-    'Roboto-Bold.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf',
-    'Roboto-Italic.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Italic.ttf',
-    'Roboto-BoldItalic.ttf': 'https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-BoldItalic.ttf',
+    'Roboto-Regular.ttf': 'https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Regular.ttf',
+    'Roboto-Bold.ttf': 'https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Bold.ttf',
+    'Roboto-Italic.ttf': 'https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Italic.ttf',
+    'Roboto-BoldItalic.ttf': 'https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-BoldItalic.ttf',
     
     # PT Sans
-    'PTSans-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Regular.ttf',
-    'PTSans-Bold.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Bold.ttf',
-    'PTSans-Italic.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-Italic.ttf',
-    'PTSans-BoldItalic.ttf': 'https://github.com/google/fonts/raw/main/ofl/ptsans/PTSans-BoldItalic.ttf'
+    'PTSans-Regular.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PTSans-Regular.ttf',
+    'PTSans-Bold.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PTSans-Bold.ttf',
+    'PTSans-Italic.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PTSans-Italic.ttf',
+    'PTSans-BoldItalic.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PTSans-BoldItalic.ttf'
 }
 
 def download_fonts():
