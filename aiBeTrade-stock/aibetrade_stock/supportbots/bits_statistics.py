@@ -10,24 +10,6 @@ db = mongo_client["nntcapital"]
 collection = db["bits_data_trade"]
 
 
-def get_statistics_user_trade(bot,chat_id,message_id,lang='en'):
-    try:
-        # Удаляем предыдущее сообщение с кнопками
-        try:
-            bot.delete_message(chat_id, message_id)
-        except Exception as e:
-            logger.error(f"Error deleting message: {e}")
-            
-        strategy_id = "roman_strat"
-        last_record = collection.find_one(
-            {"strategy_id": strategy_id},  # пустой фильтр для выбора всех документов
-            sort=[("date", -1)]  # сортировка по date в обратном порядке
-        )
-        return last_record
-    except Exception as e:
-        return {"error": f"Ошибка при получении статистики: {str(e)}"}
-
-
 def get_statistics_system(bot, chat_id, message_id, lang='en'):
     try:
         # Удаляем предыдущее сообщение с кнопками
@@ -42,7 +24,7 @@ def get_statistics_system(bot, chat_id, message_id, lang='en'):
         # Получаем последнюю запись, сортируя по полю date в обратном порядке
         last_record = collection.find_one(
             {"strategy_id": strategy_id},
-            sort=[("date", -1)]
+            sort=[("datetime", -1)]
         )
         
         if last_record:

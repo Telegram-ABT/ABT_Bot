@@ -114,9 +114,6 @@ bot = telebot.TeleBot(TOKEN)
 # Устовка команд меню бота
 def setup_bot_commands(lang='en'):
     try:
-        user_id = bits_user_settings.find_one({'user_id': bot.message.from_user.id})
-        lang = user_id.get('lang_set', 'en') if user_id else 'en'
-        logger.info(f"Кода выбрали команду setup_bot_commands {lang} для пользователя {bot.message.from_user.id}")
         # Команды для разных языков
         commands = {
             "ru": [
@@ -164,14 +161,12 @@ def setup_bot_commands(lang='en'):
         }
         
         # Устанавливаем команды для каждого языка
-        bot.set_my_commands(commands[lang], language_code=lang)
-        
         for lang_code, lang_commands in commands.items():
             bot.set_my_commands(lang_commands, language_code=lang_code)
         
-        print("Команды меню бота успешно установлены")
+        logger.info("Команды меню бота успешно установлены")
     except Exception as e:
-        print(f"Ошибка при установке команд меню: {str(e)}")
+        logger.error(f"Ошибка при установке команд меню: {str(e)}")
 
 # Обработчики команд
 @bot.message_handler(commands=['help'])
@@ -388,6 +383,7 @@ def handle_start(message):
 # Обработчик callback-запросов от inline-кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
+    
     try:
         # Получаем текущий язык пользователя
         user_settings = bits_user_settings.find_one({'user_id': call.from_user.id})
@@ -400,21 +396,38 @@ def handle_callback_query(call):
                 get_statistics_system(bot, call.message.chat.id,call.message.message_id, user_lang)
                 
             elif call.data == 'stats_robots':
-                # Получаем список никнеймов
-                nicknames = db["bits_user_trade"].distinct("nickname")
-                markup = create_robots_menu(nicknames, user_lang)
+                # Преобразуем user_id в строку для соответствия формату в БД
+                user_id = str(call.from_user.id)
+                logger.info(f"Поиск никнеймов для user_id (строка): {user_id}")
                 
-                # Отправляем меню с роботами
-                bot.edit_message_reply_markup(
-                    call.message.chat.id,
-                    call.message.message_id,
-                    reply_markup=markup
-                )
+                nicknames = db["bits_user_trade"].distinct("nickname", {"user_id": user_id})
+                logger.info(f"Найдены никнеймы: {nicknames}")
+                
+                if not nicknames:
+                    no_data_texts = {
+                        'ru': "У вас пока нет активных роботов",
+                        'en': "You don't have any active robots yet",
+                        'fr': "Vous n'avez pas encore de robots actifs",
+                        'de': "Sie haben noch keine aktiven Roboter",
+                        'es': "No tienes robots activos todavía",
+                        'zh': "您目前没有活动的机器人"
+                    }
+                    bot.answer_callback_query(
+                        call.id,
+                        no_data_texts.get(user_lang, no_data_texts['en'])
+                    )
+                else:
+                    markup = create_robots_menu(nicknames, user_lang)
+                    bot.edit_message_reply_markup(
+                        call.message.chat.id,
+                        call.message.message_id,
+                        reply_markup=markup
+                    )
                 
             elif call.data.startswith('robot_'):
                 # Получаем данные конкретного робота
                 nickname = call.data.replace('robot_', '')
-                robot_data = db["bits_user_trade"].find({"nickname": nickname})
+                robot_data = db["bits_user_trade"].find({"nickname": nickname,"user_id": str(call.from_user.id)})
                 
                 if robot_data:
                     # Форматируем и отправляем данные
